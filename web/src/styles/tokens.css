@@ -1,0 +1,49 @@
+:root {
+  --color-bg: #eaf3de;
+  --color-surface: #ffffff;
+  --color-line: #e3ecd8;
+  --color-ink: #1f3b27;
+  --color-mute: #4f6656;
+  --color-sun: #ffc23d;
+  --color-shade: #2f6690;
+  --color-night: #1f3b27;
+  --color-warn: #b3261e;
+  --color-mark: #e2574c;
+
+  --shade-0: #ffc23d;
+  --shade-1: #f3e3a8;
+  --shade-2: #f4f7ee;
+  --shade-3: #7fa6c6;
+  --shade-4: #2f6690;
+
+  --font-display: 'Jua', 'Noto Sans KR', system-ui, sans-serif;
+  --font-body: 'Noto Sans KR', system-ui, sans-serif;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  --radius-pill: 999px;
+  --radius-sheet: 28px;
+  --radius-row: 18px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --touch: 44px;
+  --bar-height: 52px;
+
+  --shadow-float: 0 1px 2px rgba(31, 59, 39, 0.1), 0 2px 10px rgba(31, 59, 39, 0.16);
+  --shadow-sheet: 0 -4px 18px rgba(31, 59, 39, 0.16);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
