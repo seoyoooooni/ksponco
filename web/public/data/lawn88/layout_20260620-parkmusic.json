@@ -1,0 +1,19 @@
+{
+  "id": "20260620-parkmusic",
+  "venue": "lawn88",
+  "source": "official_map",
+  "sourceNote": "목업: 공식 맵을 보고 입력했다고 가정",
+  "stage": { "x": 0, "z": -5, "w": 26, "d": 10, "deckH": 1.5, "roofH": 12, "azimuth": 180 },
+  "performer": { "x": 0, "z": -1.5, "h": 1.7 },
+  "screens": [
+    { "x": -19, "z": -2, "w": 7, "h": 4.2, "bottom": 3.9, "azimuth": 180 },
+    { "x": 19, "z": -2, "w": 7, "h": 4.2, "bottom": 3.9, "azimuth": 180 }
+  ],
+  "zones": [
+    { "type": "standing", "poly": [[-30, 8], [30, 8], [30, 24], [-30, 24]], "density": 2.0 },
+    { "type": "picnic", "poly": [[-53, 26], [53, 26], [53, 97], [-53, 97]], "density": 0.8 },
+    { "type": "aisle", "poly": [[-1, 26], [1, 26], [1, 97], [-1, 97]] },
+    { "type": "booth", "poly": [[57, 10], [66, 10], [66, 40], [57, 40]] }
+  ],
+  "mat": { "w": 1.8, "d": 1.8, "people": 3 }
+}

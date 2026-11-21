@@ -1,0 +1,10 @@
+{
+  "id": "lawn88",
+  "name": "88잔디마당",
+  "origin5186": [210000.0, 547000.0],
+  "originNote": "목업: 시연판 좌표계 그대로 (원점은 임시 무대 앞)",
+  "stage": "temporary",
+  "fixedStage": null,
+  "seating": "lawn",
+  "defaultLayout": "layout_default.json"
+}

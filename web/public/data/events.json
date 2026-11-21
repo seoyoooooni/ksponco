@@ -1,0 +1,44 @@
+[
+  {
+    "id": "20260620-parkmusic",
+    "name": "파크뮤직 (예시)",
+    "venue": "lawn88",
+    "date": "2026-06-20",
+    "start": "13:00",
+    "end": "21:00",
+    "timeSource": "manual",
+    "people": 12000,
+    "peopleSource": "manual",
+    "layout": "layout_20260620-parkmusic.json",
+    "sourceUrl": "https://example.com/parkmusic",
+    "tempMax": 31.2
+  },
+  {
+    "id": "20260627-sampleb",
+    "name": "예시 공연 B",
+    "venue": "lawn88",
+    "date": "2026-06-27",
+    "start": "12:00",
+    "end": "21:00",
+    "timeSource": "default",
+    "people": null,
+    "peopleSource": "default",
+    "layout": null,
+    "sourceUrl": "https://example.com/sample-b",
+    "tempMax": null
+  },
+  {
+    "id": "20260704-samplec",
+    "name": "예시 공연 C",
+    "venue": "lawn88",
+    "date": "2026-07-04",
+    "start": "16:00",
+    "end": "22:00",
+    "timeSource": "api",
+    "people": 8000,
+    "peopleSource": "api",
+    "layout": null,
+    "sourceUrl": "https://example.com/sample-c",
+    "tempMax": null
+  }
+]
