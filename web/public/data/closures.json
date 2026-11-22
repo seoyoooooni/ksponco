@@ -1,4 +1,9 @@
 [
-  { "venue": "lawn88", "from": "2026-06-18", "to": "2026-06-19", "reason": "행사 설치", "source": "manual" },
-  { "venue": "lawn88", "from": "2026-06-21", "to": "2026-06-21", "reason": "행사 철거", "source": "manual" }
+  {
+    "venue": "lawn88",
+    "from": "2026-07-01",
+    "to": "2027-06-30",
+    "reason": "보수 공사",
+    "source": "manual"
+  }
 ]
