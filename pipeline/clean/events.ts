@@ -1,6 +1,5 @@
-// events_manual.json + 연계 스냅샷 → web/public/data/events.json
-// 실행: node clean/events.ts
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+// events_manual.json + 연계 스냅샷 → events.json 내용. 저장은 run.ts가 검사 후에 한다.
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { EventItem, VenueId } from '../../web/src/data/types.ts'
@@ -61,10 +60,4 @@ export function loadAndBuild(): EventItem[] {
   const manual = JSON.parse(readFileSync(MANUAL, 'utf8')) as ManualEvent[]
   const linked = JSON.parse(readFileSync(SNAPSHOT, 'utf8')) as LinkedSnapshot
   return buildEvents(manual, linked, (venue, file) => existsSync(join(DATA, venue, file)))
-}
-
-if (import.meta.main) {
-  const events = loadAndBuild()
-  writeFileSync(join(DATA, 'events.json'), JSON.stringify(events, null, 2) + '\n')
-  console.log(`저장: web/public/data/events.json (${events.length}건)`)
 }
