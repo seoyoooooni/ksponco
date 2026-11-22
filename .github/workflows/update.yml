@@ -1,0 +1,56 @@
+name: 데이터 갱신
+
+on:
+  schedule:
+    - cron: '30 2 * * *' # 매일 11:30 KST (ASOS 전일 자료가 11시 이후에 나옴)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 테스트
+        working-directory: pipeline
+        run: npm test
+
+      # 검사를 통과한 파일만 저장된다. 실패한 대상이 있어도 성공한 것은 커밋하고, 마지막에 실패로 표시한다.
+      - name: 데이터 생성
+        id: run
+        continue-on-error: true
+        working-directory: pipeline
+        env:
+          KMA_AUTH_KEY: ${{ secrets.KMA_AUTH_KEY }}
+          ASOS_DAILY_KEY: ${{ secrets.ASOS_DAILY_KEY }}
+        run: node run.ts
+
+      - name: 변경된 데이터 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data/events.json web/public/data/closures.json web/public/data/forecast.json
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "chore(data): 데이터 자동 갱신"
+            git push
+          fi
+
+      - name: 실패 표시
+        if: steps.run.outcome == 'failure'
+        run: |
+          echo "일부 대상 생성 또는 검사 실패. 위 '데이터 생성' 로그 확인"
+          exit 1
