@@ -4,9 +4,10 @@
 import { writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { checkClosures, checkEvents, checkSize } from './check/check.ts'
+import { checkClosures, checkEvents, checkForecast, checkSize } from './check/check.ts'
 import { loadAndBuildClosures } from './clean/closures.ts'
 import { loadAndBuild as loadAndBuildEvents } from './clean/events.ts'
+import { loadAndBuildForecast } from './clean/forecast.ts'
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '..', 'web', 'public', 'data')
 
@@ -20,6 +21,7 @@ export type Target = {
 export const TARGETS: Target[] = [
   { name: 'events', file: join(DATA, 'events.json'), build: loadAndBuildEvents, check: checkEvents },
   { name: 'closures', file: join(DATA, 'closures.json'), build: loadAndBuildClosures, check: checkClosures },
+  { name: 'forecast', file: join(DATA, 'forecast.json'), build: () => loadAndBuildForecast(), check: checkForecast },
 ]
 
 const MAX_SHOWN = 20
