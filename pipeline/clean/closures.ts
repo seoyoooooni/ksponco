@@ -1,13 +1,10 @@
-// closures_manual.json → web/public/data/closures.json
-// 실행: node clean/closures.ts
-import { readFileSync, writeFileSync } from 'node:fs'
+// closures_manual.json → closures.json 내용. 저장은 run.ts가 검사 후에 한다.
+import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Closure, VenueId } from '../../web/src/data/types.ts'
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
-const MANUAL = join(ROOT, 'pipeline', 'manual', 'closures_manual.json')
-const OUT = join(ROOT, 'web', 'public', 'data', 'closures.json')
+const MANUAL = join(dirname(fileURLToPath(import.meta.url)), '..', 'manual', 'closures_manual.json')
 
 // sourceUrl, note: 근거와 검증 메모. closures.json에는 나가지 않는다.
 export type ManualClosure = {
@@ -25,8 +22,6 @@ export function buildClosures(manual: ManualClosure[]): Closure[] {
     .sort((a, b) => a.venue.localeCompare(b.venue) || a.from.localeCompare(b.from))
 }
 
-if (import.meta.main) {
-  const closures = buildClosures(JSON.parse(readFileSync(MANUAL, 'utf8')) as ManualClosure[])
-  writeFileSync(OUT, JSON.stringify(closures, null, 2) + '\n')
-  console.log(`저장: web/public/data/closures.json (${closures.length}건)`)
+export function loadAndBuildClosures(): Closure[] {
+  return buildClosures(JSON.parse(readFileSync(MANUAL, 'utf8')) as ManualClosure[])
 }
