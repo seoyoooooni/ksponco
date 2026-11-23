@@ -111,9 +111,9 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId }: Props) 
         </instancedMesh>
       )}
       {m > 0 && (
-        <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow>
+        <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow renderOrder={1}>
           <boxGeometry args={[layout.mat.w, 0.04, layout.mat.d]} />
-          <meshLambertMaterial />
+          <meshLambertMaterial transparent />
         </instancedMesh>
       )}
     </>

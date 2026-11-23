@@ -107,11 +107,11 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
   return (
     <>
       <group position={[pos.x, g + 0.03, pos.z]} rotation={[-Math.atan(s.dz), 0, Math.atan(s.dx)]}>
-        <mesh receiveShadow>
+        <mesh receiveShadow renderOrder={1}>
           <boxGeometry args={[spec.w, 0.06, spec.d]} />
-          <meshLambertMaterial map={texture} />
+          <meshLambertMaterial map={texture} transparent />
         </mesh>
-        <mesh rotation-x={-Math.PI / 2} position-y={0.05}>
+        <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2}>
           <ringGeometry args={[ring * 0.9, ring * 1.05, 40]} />
           <meshBasicMaterial color={sceneColors.ink} transparent opacity={drag ? 0.9 : 0.55} />
         </mesh>
