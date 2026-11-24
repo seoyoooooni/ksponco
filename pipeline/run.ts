@@ -45,7 +45,12 @@ export async function runTarget(
     if (errors.length > MAX_SHOWN) console.error(`  … 외 ${errors.length - MAX_SHOWN}건`)
     return false
   }
-  write(t.file, text)
+  try {
+    write(t.file, text)
+  } catch (err) {
+    console.error(`[${t.name}] 저장 실패: ${(err as Error).message}`)
+    return false
+  }
   console.log(`[${t.name}] 저장 (${Array.isArray(data) ? `${data.length}건, ` : ''}${Buffer.byteLength(text)}B)`)
   return true
 }

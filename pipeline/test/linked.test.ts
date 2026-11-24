@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseItems, toRow, toSnapshot } from '../collect/linked.ts'
+import { parseItems, readTotal, toRow, toSnapshot } from '../collect/linked.ts'
 
 const xml = `<response><header><resultCode>0000</resultCode></header><body><items>
 <item><TITLE>공연명:,공연관람객수:0</TITLE><ISSUED_DATE>2025-06-14 10:00:00</ISSUED_DATE><DESCRIPTION><![CDATA[주차대수:457,방문객:2285, 기온:28.2, 풍향:1.6, 강수량:, 습도:66,휴일:]]></DESCRIPTION></item>
@@ -42,4 +42,10 @@ test('toSnapshot은 날짜별 최고기온과 공연 행만 남긴다', () => {
 
 test('toSnapshot은 2025년이 아닌 행이 있으면 오류를 낸다', () => {
   assert.throws(() => toSnapshot([{ date: '2026-01-01', hour: 0, show: '', people: 0, temp: 1 }], 'x'))
+})
+
+test('readTotal은 양의 정수만 받고 없거나 이상하면 오류를 낸다', () => {
+  assert.equal(readTotal(xml), 3)
+  for (const bad of ['<r></r>', '<totalCount></totalCount>', '<totalCount>0</totalCount>', '<totalCount>abc</totalCount>', '<totalCount>1.5</totalCount>'])
+    assert.throws(() => readTotal(bad), /totalCount 오류/)
 })
