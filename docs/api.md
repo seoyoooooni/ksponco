@@ -7,8 +7,6 @@
 
 타입 기준은 `web/src/data/types.ts`, 검사 규칙 기준은 `pipeline/check/check.ts`입니다. 둘이 다르면 코드가 맞습니다.
 
----
-
 ## 1. 데이터 파일 (프론트 ← 정적 JSON)
 
 ### 공통
@@ -109,8 +107,6 @@
 
 현재 `lawn88/`에만 파일이 있고 `lake/`는 비어 있습니다.
 
----
-
 ## 2. 외부 API (파이프라인 → 공공 API)
 
 공통: `pipeline/collect/http.ts`의 `fetchText`를 씁니다. 기본은 타임아웃 30초, 429·5xx·네트워크 오류는 30초 간격으로 최대 2번 다시 시도합니다(올림픽공원 일정만 타임아웃 15초, 간격 5초). 리다이렉트는 따라가지 않고 오류로 봅니다. 오류 메시지에는 URL을 넣지 않습니다(쿼리에 키가 있음). 키는 환경변수가 우선이고, 없으면 `pipeline/.env`에서 읽습니다.
@@ -168,8 +164,6 @@
 | 출력 | `pipeline/snapshot/linked_2025.json` (`LinkedSnapshot`: `tempMax` 날짜별 최고기온, `shows` 시간별 공연·관객 수) |
 | 실패 조건 | HTTP ≠ 200, `resultCode ≠ "0000"`, `totalCount` 오류, 빈 페이지, 받은 건수 ≠ `totalCount` |
 
----
-
 ## 3. 생성·갱신 흐름
 
 ```
@@ -178,4 +172,4 @@ node run.ts [forecast|closures|events]
   실패한 대상은 이전 파일 유지, 종료 코드 1 (알 수 없는 대상 이름은 2)
 ```
 
-GitHub Actions(`.github/workflows/update.yml`): 매일 02:30 UTC(11:30 KST)와 수동 실행. 예약 실행은 기본 브랜치의 워크플로만 돌므로 `main`에 병합된 뒤부터 동작합니다. 테스트 → `node run.ts`(최대 10분) → 바뀐 데이터 파일 3개를 봇이 커밋·push. 생성이 일부 실패하거나 10분을 넘어도 그때까지 저장한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`입니다.
+GitHub Actions(`.github/workflows/update.yml`): 매일 02:30 UTC(11:30 KST)와 수동 실행. 예약 실행은 기본 브랜치의 워크플로만 돌므로 `main`에 병합된 뒤부터 동작합니다. 테스트를 돌리고 `node run.ts`를 실행한 뒤(최대 10분), 바뀐 데이터 파일 3개를 봇이 커밋하고 push합니다. 생성이 일부 실패하거나 10분을 넘어도 그때까지 저장한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`입니다.
