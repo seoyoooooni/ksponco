@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
 import { addDays, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type VilageItem } from '../collect/kma.ts'
-import { buildForecast, parsePcp, previousRainPrevDay } from '../clean/forecast.ts'
+import { buildForecast, loadAndBuildForecast, parsePcp, previousRainPrevDay } from '../clean/forecast.ts'
 
 const it = (category: string, date: string, hour: number, value: string): VilageItem => ({
   category,
@@ -54,6 +54,53 @@ test('previousRainPrevDay: 이전 파일의 오늘 값, 없거나 읽지 못하�
   }
 })
 
+test('loadAndBuildForecast: ASOS 성공, 실패 시 이전 값 대체, 대체 불가, 키 없음', async () => {
+  const now = new Date('2026-11-23T02:30:00Z') // KST 11:30
+  const vilage = {
+    response: {
+      header: { resultCode: '00' },
+      body: { totalCount: 3, items: { item: [it('TMX', '2026-11-23', 15, '5'), it('SKY', '2026-11-23', 12, '1'), it('PTY', '2026-11-23', 12, '0')] } },
+    },
+  }
+  const asos = { response: { header: { resultCode: '00' }, body: { items: { item: [{ tm: '2026-11-22', sumRn: '2.5' }] } } } }
+  let asosCalls = 0
+  const get = (asosOk: boolean) => async (url: string) => {
+    if (url.includes('apihub.kma.go.kr')) return { status: 200, text: JSON.stringify(vilage) }
+    asosCalls++
+    return asosOk ? { status: 200, text: JSON.stringify(asos) } : { status: 500, text: '' }
+  }
+  const key = () => 'K'
+  const dir = mkdtempSync(join(tmpdir(), 'forecast-test-'))
+  const savedExit = process.exitCode
+  try {
+    const prev = join(dir, 'forecast.json')
+    const none = join(dir, 'none.json')
+    writeFileSync(prev, JSON.stringify({ updated: 'u', days: [{ date: '2026-11-23', rainPrevDay: 3.5 }] }))
+
+    const okRun = await loadAndBuildForecast(now, get(true), prev, key)
+    assert.equal(okRun.days[0].rainPrevDay, 2.5)
+    assert.equal(process.exitCode, savedExit)
+
+    const fallback = await loadAndBuildForecast(now, get(false), prev, key)
+    assert.equal(fallback.days[0].rainPrevDay, 3.5)
+    assert.equal(process.exitCode, 1)
+    process.exitCode = savedExit
+
+    await assert.rejects(loadAndBuildForecast(now, get(false), none, key), /ASOS 일자료: HTTP 500/)
+
+    asosCalls = 0
+    const noAsosKey = (name: string) => {
+      if (name === 'ASOS_DAILY_KEY') throw new Error(`키가 없습니다: ${name}`)
+      return 'K'
+    }
+    await assert.rejects(loadAndBuildForecast(now, get(true), prev, noAsosKey), /키가 없습니다: ASOS_DAILY_KEY/)
+    assert.equal(asosCalls, 0)
+  } finally {
+    process.exitCode = savedExit
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
 test('날짜별 대표값: TMX 있는 날만, SKY 최빈값, PTY 비, 전날 강수량', () => {
   const T = '2026-11-23'
   const T1 = '2026-11-24'
@@ -97,7 +144,8 @@ test('09~21시 PTY가 없으면 비 없음으로 보지 않고 오류', () => {
 })
 
 test('모르는 SKY 코드는 오류', () => {
-  assert.throws(() => buildForecast([it('TMX', '2026-11-23', 15, '5'), it('SKY', '2026-11-23', 12, '2')], '2026-11-23', 0, 'u'))
+  const items = [it('TMX', '2026-11-23', 15, '5'), it('SKY', '2026-11-23', 12, '2'), it('PTY', '2026-11-23', 12, '0')]
+  assert.throws(() => buildForecast(items, '2026-11-23', 0, 'u'), /SKY 코드 오류/)
 })
 
 test('fetchVilage: 정상 응답과 오류 응답', async () => {

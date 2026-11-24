@@ -4,7 +4,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Forecast, ForecastDay } from '../../web/src/data/types.ts'
 import { getKey } from '../collect/env.ts'
-import { addDays, dashed, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type VilageItem } from '../collect/kma.ts'
+import { fetchText } from '../collect/http.ts'
+import { addDays, dashed, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type Get, type VilageItem } from '../collect/kma.ts'
 
 const FORECAST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web', 'public', 'data', 'forecast.json')
 
@@ -83,15 +84,20 @@ export function previousRainPrevDay(today: string, file = FORECAST): number | nu
   }
 }
 
-export async function loadAndBuildForecast(now = new Date()): Promise<Forecast> {
+export async function loadAndBuildForecast(
+  now = new Date(),
+  get: Get = fetchText,
+  prevFile = FORECAST,
+  key: (name: string) => string = getKey,
+): Promise<Forecast> {
   const today = kstNow(now).date
   const { baseDate, baseTime } = vilageBase(now)
-  const items = await fetchVilage(now)
+  const items = await fetchVilage(now, get, key('KMA_AUTH_KEY'))
   // 키가 없는 설정 오류는 대신하지 않고 실패시킨다.
-  const asosKey = getKey('ASOS_DAILY_KEY')
+  const asosKey = key('ASOS_DAILY_KEY')
   // ASOS는 오늘 rainPrevDay 하나에만 쓰이므로, 실패하면 이전 예보값으로 대신해 예보 전체가 멈추지 않게 한다.
-  const observed = await fetchAsosDailyRain(addDays(today, -1), undefined, asosKey).catch((err: Error) => {
-    const prev = previousRainPrevDay(today)
+  const observed = await fetchAsosDailyRain(addDays(today, -1), get, asosKey).catch((err: Error) => {
+    const prev = previousRainPrevDay(today, prevFile)
     if (prev === null) throw err
     console.warn(`[forecast] ASOS 실패, 이전 예보의 오늘 rainPrevDay(${prev}mm)를 씀: ${err.message}`)
     process.exitCode = 1 // 저장·커밋은 하되 작업은 실패로 표시해 알아채게 한다
