@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
-import { runTarget, type Target } from '../run.ts'
+import { runTarget, writeAtomic, type Target } from '../run.ts'
 
 const target = (build: Target['build'], errors: string[] = []): Target => ({
   name: 't',
@@ -36,6 +39,19 @@ test('생성 중 오류가 나면 저장하지 않는다', async () => {
   )
   assert.equal(ok, false)
   assert.equal(writes.length, 0)
+})
+
+test('writeAtomic: 기존 파일을 바꿔 끼우고 임시 파일을 남기지 않는다', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'run-test-'))
+  try {
+    const file = join(dir, 'out.json')
+    writeFileSync(file, 'old')
+    writeAtomic(file, 'new')
+    assert.equal(readFileSync(file, 'utf8'), 'new')
+    assert.equal(existsSync(`${file}.tmp`), false)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })
 
 test('저장 중 오류가 나면 false를 돌려주고 예외를 던지지 않는다', async () => {

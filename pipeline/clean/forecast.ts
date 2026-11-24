@@ -50,7 +50,9 @@ export function buildForecast(items: VilageItem[], today: string, observedPrevRa
     const sky = SKY[skyCode]
     if (!sky) throw new Error(`${date}: SKY 코드 오류 ${skyCode}`)
 
-    const rain = pick(date, 'PTY', RAIN_HOURS).some((i) => i.fcstValue !== '0')
+    const ptys = pick(date, 'PTY', RAIN_HOURS)
+    if (!ptys.length) throw new Error(`${date}: ${RAIN_HOURS.join('~')}시 PTY 없음`)
+    const rain = ptys.some((i) => i.fcstValue !== '0')
 
     let rainPrevDay = observedPrevRain
     if (date !== today) {

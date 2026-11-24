@@ -27,7 +27,10 @@ function toSeq(v: unknown): number | null {
 }
 
 const realPost: Post = (body) =>
+  // 23개월 이상을 차례로 받으므로 기본값(30초+30초 재시도)이면 Actions 15분 제한을 넘을 수 있다.
   fetchText(URL, {
+    timeoutMs: 15_000,
+    retryWaitMs: 5_000,
     fetchFn: (u, init) =>
       fetch(u, {
         ...init,

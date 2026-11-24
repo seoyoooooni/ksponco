@@ -3,7 +3,7 @@ import { getKey } from './env.ts'
 import { fetchText, type TextResponse } from './http.ts'
 
 const VILAGE_URL = 'https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst'
-const ASOS_DAILY_URL = 'http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList'
+const ASOS_DAILY_URL = 'https://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList'
 const GRID = { nx: 62, ny: 126 } // 송파구(올림픽공원)
 const ASOS_STATION = 108 // 서울
 const BASE_TIME = '0500'
