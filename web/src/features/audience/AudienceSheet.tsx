@@ -2,7 +2,6 @@ import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
 import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
-import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
 
 export type AudienceStats = {
@@ -17,15 +16,12 @@ type Props = {
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   headline: string
-  notes: string[]
   stats: AudienceStats | null
   stay: [number, number]
   strip: StripState[]
   hour: number
   onStay: (from: number, to: number) => void
   onHour: (h: number) => void
-  eyeHeight: number
-  onEye: (h: number) => void
   canFirstPerson: boolean
   onFirstPerson: () => void
   onSources: () => void
@@ -40,7 +36,7 @@ export function AudienceSheet(p: Props) {
       onVisibleHeight={p.onVisibleHeight}
       more={
         <>
-          <div className="section">
+          <div className="section section--plain">
             <div className="section__head">
               <span>머무는 시간</span>
               <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
@@ -54,48 +50,26 @@ export function AudienceSheet(p: Props) {
               onCursor={p.onHour}
             />
           </div>
-          <div className="row">
-            <Toggle
-              label="눈높이"
-              value={p.eyeHeight < 1 ? 'sit' : 'stand'}
-              options={[
-                { value: 'sit', label: '앉아서' },
-                { value: 'stand', label: '서서' },
-              ]}
-              onChange={(v) => p.onEye(v === 'sit' ? 0.8 : 1.6)}
-            />
-            <PillButton
-              variant="primary"
-              className="grow"
-              style={{ height: 50, fontSize: 17 }}
-              icon={<EyeIcon />}
-              disabled={!p.canFirstPerson}
-              onClick={p.onFirstPerson}
-            >
-              내 눈높이로 보기
-            </PillButton>
-          </div>
+          <PillButton
+            variant="primary"
+            style={{ height: 52, fontSize: 16, fontWeight: 700 }}
+            icon={<EyeIcon />}
+            disabled={!p.canFirstPerson}
+            onClick={p.onFirstPerson}
+          >
+            내 눈높이로 보기
+          </PillButton>
         </>
       }
     >
-      <div className="headline-block">
-        <h1 className="headline">{p.headline}</h1>
-        {p.notes.map((n) => (
-          <p key={n} className="headline-note">
-            {n}
-          </p>
-        ))}
-      </div>
+      <h1 className="headline">{p.headline}</h1>
       <div className="stats">
         <div className="stat">
-          <span className="stat__label">무대 보임</span>
-          <span className="stat__value">
-            {p.stats?.stage ?? '—'}
-            {p.stats && p.stats.distance !== '—' && <small className="stat__unit">{p.stats.distance}</small>}
-          </span>
+          <span className="stat__label">무대</span>
+          <span className="stat__value">{p.stats?.stage ?? '—'}</span>
         </div>
         <div className="stat">
-          <span className="stat__label">스크린 보임</span>
+          <span className="stat__label">스크린</span>
           <span className="stat__value">{p.stats?.screen ?? '—'}</span>
         </div>
         <div className="stat">

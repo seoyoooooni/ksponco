@@ -37,11 +37,11 @@ export function FirstPersonOverlay(p: Props) {
         {p.stats && (
           <div className="stats">
             <div className="stat">
-              <span className="stat__label">무대 보임</span>
+              <span className="stat__label">무대</span>
               <span className="stat__value">{p.stats.stage}</span>
             </div>
             <div className="stat">
-              <span className="stat__label">스크린 보임</span>
+              <span className="stat__label">스크린</span>
               <span className="stat__value">{p.stats.screen}</span>
             </div>
             <div className="stat">

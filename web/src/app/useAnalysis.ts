@@ -8,6 +8,7 @@ import {
   sunHours,
   sunPhrase,
   sunStrip,
+  verdict,
   viewFrom,
   type HeadIndex,
   type SunState,
@@ -22,6 +23,10 @@ import type { OverlayCell } from '../scene/HeatOverlay'
 import type { MatPosition } from '../store/sceneStore'
 import type { AudienceStats } from '../features/audience/AudienceSheet'
 import { SEAT_COLORS, SHADE_COLORS } from './Legend'
+
+function pct(v: number): string {
+  return `${Math.round(v * 100)}%`
+}
 
 type Input = {
   bundle: VenueBundle
@@ -41,6 +46,7 @@ export type Analysis = {
   strip: SunState[]
   stats: AudienceStats | null
   headline: string
+  detail: string
   estimates: string[]
   shade: ShadeGrid | null
   spots: (ShadeSpot & { name: string })[]
@@ -127,9 +133,9 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
   const stats = useMemo<AudienceStats | null>(() => {
     if (!mat) return null
     return {
-      stage: view ? `${Math.round(view.stage * 100)}%` : '—',
+      stage: view ? pct(view.stage) : '—',
       distance: view ? `${Math.round(view.stageDistance)}m` : '—',
-      screen: view && view.screenIndex >= 0 ? `${Math.round(view.screen * 100)}%` : '—',
+      screen: view && view.screenIndex >= 0 ? pct(view.screen) : '—',
       sun: shortDuration(sunHours(strip)),
     }
   }, [mat, view, strip])
@@ -139,8 +145,10 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       ? '피크닉존 잔디를 눌러 돗자리를 놓아 보세요'
       : '잔디를 눌러 돗자리를 놓아 보세요'
     : view
-      ? `${sightPhrase(view)}, ${sunPhrase(strip, from, hourLabel)}`
+      ? verdict(view)
       : sunPhrase(strip, from, hourLabel)
+
+  const detail = mat && view ? `${sightPhrase(view)} · ${sunPhrase(strip, from, hourLabel)}` : ''
 
   const estimates = useMemo(() => {
     const out: string[] = []
@@ -151,5 +159,5 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
     return out
   }, [layout, event])
 
-  return { crowd, view, strip, stats, headline, estimates, shade, spots, overlay, lawnCenter }
+  return { crowd, view, strip, stats, headline, detail, estimates, shade, spots, overlay, lawnCenter }
 }

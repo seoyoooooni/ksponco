@@ -6,6 +6,7 @@ type Props = {
   onClose: () => void
   layoutSource: LayoutSource | null
   satelliteTrees: boolean
+  estimates: string[]
 }
 
 const LAYOUT_SOURCE: Record<LayoutSource, string> = {
@@ -21,7 +22,7 @@ const SOURCES = [
   '국토교통부 · GIS건물통합정보',
 ]
 
-export function SourcesSheet({ open, onClose, layoutSource, satelliteTrees }: Props) {
+export function SourcesSheet({ open, onClose, layoutSource, satelliteTrees, estimates }: Props) {
   return (
     <ModalSheet label="데이터 출처" open={open} onClose={onClose}>
       <h2 className="picker-title">데이터 출처</h2>
@@ -30,6 +31,11 @@ export function SourcesSheet({ open, onClose, layoutSource, satelliteTrees }: Pr
           <li key={s}>{s}</li>
         ))}
       </ul>
+      {estimates.map((e) => (
+        <p key={e} style={{ fontSize: 13, color: 'var(--color-mute)' }}>
+          {e}
+        </p>
+      ))}
       {layoutSource && <p style={{ fontSize: 13, color: 'var(--color-mute)' }}>행사 배치: {LAYOUT_SOURCE[layoutSource]}</p>}
       {satelliteTrees && (
         <p style={{ fontSize: 13, color: 'var(--color-mute)' }}>

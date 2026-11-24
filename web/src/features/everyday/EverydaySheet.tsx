@@ -52,7 +52,7 @@ export function EverydaySheet(p: Props) {
       onSnap={p.onSnap}
       onVisibleHeight={p.onVisibleHeight}
       more={
-        <div className="section">
+        <div className="section section--plain">
           <div className="section__head">
             <span>머무는 시간</span>
             <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
