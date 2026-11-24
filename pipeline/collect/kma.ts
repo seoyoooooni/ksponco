@@ -47,27 +47,37 @@ function parseJson(text: string, what: string): any {
   }
 }
 
+const VILAGE_ROWS = 1000
+const VILAGE_MAX_PAGES = 5
+
+// 한 페이지는 1000건까지라, totalCount를 채울 때까지 다음 페이지를 받는다.
 export async function fetchVilage(now: Date, get: Get = fetchText, key = getKey('KMA_AUTH_KEY')): Promise<VilageItem[]> {
   const { baseDate, baseTime } = vilageBase(now)
-  const q = new URLSearchParams({
-    pageNo: '1',
-    numOfRows: '1000',
-    dataType: 'JSON',
-    base_date: baseDate,
-    base_time: baseTime,
-    nx: String(GRID.nx),
-    ny: String(GRID.ny),
-    authKey: key,
-  })
-  const { status, text } = await get(`${VILAGE_URL}?${q}`)
-  if (status !== 200) throw new Error(`단기예보: HTTP ${status}`)
-  const j = parseJson(text, '단기예보')
-  const code = j?.response?.header?.resultCode
-  if (code !== '00') throw new Error(`단기예보: resultCode ${code} ${j?.response?.header?.resultMsg ?? ''}`)
-  const items: VilageItem[] = j.response.body?.items?.item ?? []
-  const total = Number(j.response.body?.totalCount)
-  if (items.length !== total) throw new Error(`단기예보: ${items.length}/${total}건만 받음`)
-  return items
+  const all: VilageItem[] = []
+  let total = NaN
+  for (let page = 1; page <= VILAGE_MAX_PAGES; page++) {
+    const q = new URLSearchParams({
+      pageNo: String(page),
+      numOfRows: String(VILAGE_ROWS),
+      dataType: 'JSON',
+      base_date: baseDate,
+      base_time: baseTime,
+      nx: String(GRID.nx),
+      ny: String(GRID.ny),
+      authKey: key,
+    })
+    const { status, text } = await get(`${VILAGE_URL}?${q}`)
+    if (status !== 200) throw new Error(`단기예보: HTTP ${status}`)
+    const j = parseJson(text, '단기예보')
+    const code = j?.response?.header?.resultCode
+    if (code !== '00') throw new Error(`단기예보: resultCode ${code} ${j?.response?.header?.resultMsg ?? ''}`)
+    const items: VilageItem[] = j.response.body?.items?.item ?? []
+    total = Number(j.response.body?.totalCount)
+    all.push(...items)
+    if (all.length >= total || items.length < VILAGE_ROWS) break // 덜 찬 페이지는 마지막 페이지
+  }
+  if (all.length !== total) throw new Error(`단기예보: ${all.length}/${total}건만 받음`)
+  return all
 }
 
 // date(YYYY-MM-DD) 하루 강수량(mm). 비가 안 온 날은 sumRn이 빈 문자열이라 0으로 본다.
@@ -84,6 +94,8 @@ export async function fetchAsosDailyRain(date: string, get: Get = fetchText, key
   if (code !== '00') throw new Error(`ASOS 일자료(${date}): resultCode ${code} ${j?.response?.header?.resultMsg ?? ''}`)
   const item = (j.response.body?.items?.item ?? []).find((i: { tm?: string }) => i.tm === date)
   if (!item) throw new Error(`ASOS 일자료: ${date} 자료 없음`)
+  // 비 안 온 날의 빈 문자열과 달리, 필드 자체가 없으면 응답 형식이 바뀐 것이다.
+  if (!('sumRn' in item)) throw new Error('ASOS 일자료: sumRn 필드 없음')
   const raw = String(item.sumRn ?? '').trim()
   const mm = raw === '' ? 0 : Number(raw)
   if (!Number.isFinite(mm) || mm < 0) throw new Error(`ASOS 일자료: sumRn 값 오류 ${raw}`)

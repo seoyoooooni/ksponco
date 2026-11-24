@@ -61,9 +61,21 @@ test('closures: 빈 배열은 통과, from > to는 실패', () => {
 
 test('forecast 검사', () => {
   const day = { date: '2026-11-23', sky: '맑음', rain: false, rainPrevDay: 0, tempMax: 10 }
-  assert.deepEqual(checkForecast({ updated: '2026-11-23T05:00+09:00', days: [day] }), [])
+  const days = ['2026-11-23', '2026-11-24', '2026-11-25'].map((date) => ({ ...day, date }))
+  assert.deepEqual(checkForecast({ updated: '2026-11-23T05:00+09:00', days }), [])
   assert.equal(checkForecast({ updated: '2026-11-23T05:00+09:00', days: [] }).length, 1)
-  assert.equal(checkForecast({ updated: 'x', days: [{ ...day, sky: '비' }, day] }).length, 3)
+  // updated 형식, sky 값, 날짜 중복, 3일 미만
+  assert.equal(checkForecast({ updated: 'x', days: [{ ...day, sky: '비' }, day] }).length, 4)
+})
+
+test('forecast 검사: 날짜가 빠지거나, 3일 미만이거나, 첫날이 발표일과 맞지 않으면 실패', () => {
+  const day = (date: string) => ({ date, sky: '맑음', rain: false, rainPrevDay: 0, tempMax: 10 })
+  const f = (updated: string, ...dates: string[]) => checkForecast({ updated, days: dates.map(day) })
+  // 05:30 전 실행: 전날 발표분이라 첫날이 발표일 다음 날
+  assert.deepEqual(f('2026-11-22T05:00+09:00', '2026-11-23', '2026-11-24', '2026-11-25'), [])
+  assert.equal(f('2026-11-23T05:00+09:00', '2026-11-23', '2026-11-25', '2026-11-26').length, 1)
+  assert.equal(f('2026-11-23T05:00+09:00', '2026-11-23', '2026-11-24').length, 1)
+  assert.equal(f('2026-11-20T05:00+09:00', '2026-11-23', '2026-11-24', '2026-11-25').length, 1)
 })
 
 test('300KB를 넘으면 실패', () => {

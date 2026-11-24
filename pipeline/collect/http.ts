@@ -15,12 +15,12 @@ export interface TextResponse {
 const realSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
 // 429, 5xx, 네트워크 오류·타임아웃은 retryWaitMs만큼 기다린 뒤 최대 retries번 다시 시도한다.
-// 오류 메시지에는 URL을 넣지 않는다(쿼리에 키가 있음).
+// 오류 메시지에는 URL을 넣지 않는다(쿼리에 키가 있음). 키가 다른 곳으로 넘어가지 않게 리다이렉트는 오류로 본다.
 export async function fetchText(url: string, options: FetchOptions = {}): Promise<TextResponse> {
   const { retries = 2, retryWaitMs = 30_000, timeoutMs = 30_000, fetchFn = fetch, sleep = realSleep } = options
   for (let attempt = 0; ; attempt++) {
     try {
-      const res = await fetchFn(url, { signal: AbortSignal.timeout(timeoutMs) })
+      const res = await fetchFn(url, { signal: AbortSignal.timeout(timeoutMs), redirect: 'error' })
       const retryable = res.status === 429 || res.status >= 500
       if (!retryable || attempt >= retries) return { status: res.status, text: await res.text() }
     } catch (err) {

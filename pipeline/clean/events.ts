@@ -6,7 +6,7 @@ import type { EventItem, VenueId } from '../../web/src/data/types.ts'
 import { isDate } from '../check/check.ts'
 import { addDays } from '../collect/kma.ts'
 import type { LinkedSnapshot } from '../collect/linked.ts'
-import { fetchSchedule, venuesOf, type ScheduleItem } from '../collect/olympicpark.ts'
+import { fetchSchedule, FIRST_MONTH, venuesOf, type ScheduleItem } from '../collect/olympicpark.ts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const MANUAL = join(ROOT, 'pipeline', 'manual', 'events_manual.json')
@@ -32,11 +32,16 @@ export type ManualEvent = {
 
 const SCHEDULE_VIEW = 'https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoView.es?mid=a20301010100&evtSeq='
 const MAX_SPAN_DAYS = 31 // 이보다 긴 기간은 공연이 아니라 전시·시설 안내로 보고 건너뜀
+const FIRST_DAY = `${FIRST_MONTH}-01` // 이전 날짜는 manual만 쓴다
+
+const spanMs = (it: ScheduleItem) => Date.parse(it.endDt) - Date.parse(it.beginDt)
 
 // 공식 일정 → manual 형식. 기간은 하루씩 펼치고 시각은 알 수 없어 비워 둔다(default 시각이 쓰인다).
+// 기간이 짧은 순(같으면 evtSeq 순)으로 내보내 mergeEvents에서 긴 행사가 공연을 가리지 않게 한다.
 export function scheduleToManual(items: ScheduleItem[]): ManualEvent[] {
   const out: ManualEvent[] = []
-  for (const it of items) {
+  const sorted = [...items].sort((a, b) => spanMs(a) - spanMs(b) || a.evtSeq - b.evtSeq)
+  for (const it of sorted) {
     const venues = venuesOf(it.plc)
     if (!venues.length) continue
     const { beginDt: from, endDt: to } = it
@@ -44,7 +49,8 @@ export function scheduleToManual(items: ScheduleItem[]): ManualEvent[] {
       console.warn(`[events] 건너뜀: ${it.evtSeq} ${it.title} (${from} ~ ${to})`)
       continue
     }
-    for (let date = from; date <= to; date = addDays(date, 1))
+    for (let date = from; date <= to; date = addDays(date, 1)) {
+      if (date < FIRST_DAY) continue
       for (const venue of venues)
         out.push({
           id: `${date.replaceAll('-', '')}-${it.evtSeq}${venue === 'lake' ? '-lake' : ''}`,
@@ -53,19 +59,27 @@ export function scheduleToManual(items: ScheduleItem[]): ManualEvent[] {
           date,
           sourceUrl: SCHEDULE_VIEW + it.evtSeq,
         })
+    }
   }
   // 날짜 형식이 바뀌면 전부 건너뛰어 manual만 남은 채 저장되므로 실패로 처리한다.
   if (items.length && !out.length) throw new Error('올림픽공원 일정: 펼친 공연이 0건 (날짜 형식 변경 의심)')
   return out
 }
 
-// 같은 장소·날짜는 manual이 우선, 수집분끼리는 먼저 온 것(evtSeq가 작은 것)이 우선.
+// 같은 장소·날짜는 manual이 우선, 수집분끼리는 먼저 온 것(scheduleToManual 순서)이 우선하고 경고한다.
 export function mergeEvents(manual: ManualEvent[], auto: ManualEvent[]): ManualEvent[] {
-  const taken = new Set(manual.map((m) => `${m.venue}|${m.date}`))
+  const slot = (e: ManualEvent) => `${e.venue}|${e.date}`
+  const manualSlots = new Set(manual.map(slot))
+  const taken = new Map<string, ManualEvent>()
   const extra = auto.filter((a) => {
-    const key = `${a.venue}|${a.date}`
-    if (taken.has(key)) return false
-    taken.add(key)
+    const key = slot(a)
+    if (manualSlots.has(key)) return false
+    const winner = taken.get(key)
+    if (winner) {
+      console.warn(`[events] 겹쳐서 건너뜀: ${a.id} ${a.name} (${winner.id} ${winner.name} 우선)`)
+      return false
+    }
+    taken.set(key, a)
     return true
   })
   return [...manual, ...extra]

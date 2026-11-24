@@ -116,11 +116,28 @@ test('scheduleToManual: 항목이 있는데 펼친 결과가 0건이면 오류(�
   assert.deepEqual(scheduleToManual([]), [])
 })
 
-test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리는 먼저 온 것이 이긴다', () => {
+test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리는 먼저 온 것이 이기며 경고한다', () => {
   const m = { ...base, id: 'm', date: '2026-09-05' }
   const a1 = { ...base, id: 'a1', date: '2026-09-05' }
   const a2 = { ...base, id: 'a2', date: '2026-09-06' }
   const a3 = { ...base, id: 'a3', date: '2026-09-06' }
   const a4 = { ...base, id: 'a4', venue: 'lake', date: '2026-09-05' }
+  const warn = mock.method(console, 'warn', () => {})
   assert.deepEqual(mergeEvents([m], [a1, a2, a3, a4]).map((e) => e.id), ['m', 'a2', 'a4'])
+  warn.mock.restore()
+  assert.equal(warn.mock.callCount(), 1) // a3만. manual에 밀린 a1은 경고하지 않는다
+})
+
+test('긴 행사가 같은 날의 짧은 공연을 가리지 않는다(evtSeq가 더 작아도)', () => {
+  const warn = mock.method(console, 'warn', () => {})
+  const auto = scheduleToManual([item(5000, '88잔디마당 일대', '2026-09-01', '2026-09-30'), item(5144, '88잔디마당', '2026-09-05', '2026-09-06')])
+  const merged = mergeEvents([], auto)
+  warn.mock.restore()
+  assert.equal(merged.find((e) => e.date === '2026-09-05')?.id, '20260905-5144')
+  assert.equal(merged.find((e) => e.date === '2026-09-04')?.id, '20260904-5000')
+})
+
+test('scheduleToManual: FIRST_MONTH 이전 날짜는 버린다(2025년은 manual만)', () => {
+  const out = scheduleToManual([item(7, '88잔디마당', '2025-12-31', '2026-01-01')])
+  assert.deepEqual(out.map((e) => e.date), ['2026-01-01'])
 })

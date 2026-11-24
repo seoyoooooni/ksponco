@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
 import { addDays, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type VilageItem } from '../collect/kma.ts'
-import { buildForecast, parsePcp } from '../clean/forecast.ts'
+import { buildForecast, parsePcp, previousRainPrevDay } from '../clean/forecast.ts'
 
 const it = (category: string, date: string, hour: number, value: string): VilageItem => ({
   category,
@@ -31,7 +34,24 @@ test('PCP 문자열 해석', () => {
   assert.equal(parsePcp('4.0mm'), 4)
   assert.equal(parsePcp('30.0~50.0mm'), 30)
   assert.equal(parsePcp('50.0mm 이상'), 50)
+  assert.equal(parsePcp('0.0'), 0) // 단위 없는 숫자
+  assert.equal(parsePcp('2.5'), 2.5)
   assert.throws(() => parsePcp('많음'))
+})
+
+test('previousRainPrevDay: 이전 파일의 오늘 값, 없거나 읽지 못하면 null', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'forecast-test-'))
+  try {
+    const file = join(dir, 'forecast.json')
+    writeFileSync(file, JSON.stringify({ updated: 'u', days: [{ date: '2026-11-24', rainPrevDay: 3.5 }] }))
+    assert.equal(previousRainPrevDay('2026-11-24', file), 3.5)
+    assert.equal(previousRainPrevDay('2026-11-25', file), null)
+    assert.equal(previousRainPrevDay('2026-11-24', join(dir, 'none.json')), null)
+    writeFileSync(file, '{')
+    assert.equal(previousRainPrevDay('2026-11-24', file), null)
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
 })
 
 test('날짜별 대표값: TMX 있는 날만, SKY 최빈값, PTY 비, 전날 강수량', () => {
@@ -96,11 +116,27 @@ test('fetchVilage: 정상 응답과 오류 응답', async () => {
   )
 })
 
+test('fetchVilage: 1000건을 넘으면 다음 페이지를 이어서 받는다', async () => {
+  const rows = Array.from({ length: 1200 }, (_, n) => it('TMP', '2026-11-23', n % 24, String(n)))
+  const pages: string[] = []
+  const get = async (u: string) => {
+    const page = Number(new URL(u).searchParams.get('pageNo'))
+    pages.push(String(page))
+    const item = rows.slice((page - 1) * 1000, page * 1000)
+    return { status: 200, text: JSON.stringify({ response: { header: { resultCode: '00' }, body: { totalCount: 1200, items: { item } } } }) }
+  }
+  const got = await fetchVilage(new Date('2026-11-23T02:30:00Z'), get, 'K')
+  assert.equal(got.length, 1200)
+  assert.deepEqual(pages, ['1', '2'])
+})
+
 test('fetchAsosDailyRain: 빈 sumRn은 0, 값은 숫자, 자료 없으면 오류', async () => {
   const res = (sumRn: string) => ok({ response: { header: { resultCode: '00' }, body: { items: { item: [{ tm: '2026-11-22', sumRn }] } } } })
   assert.equal(await fetchAsosDailyRain('2026-11-22', res(''), 'K'), 0)
   assert.equal(await fetchAsosDailyRain('2026-11-22', res('12.5'), 'K'), 12.5)
   await assert.rejects(fetchAsosDailyRain('2026-11-21', res('1'), 'K'), /자료 없음/)
+  const noField = ok({ response: { header: { resultCode: '00' }, body: { items: { item: [{ tm: '2026-11-22' }] } } } })
+  await assert.rejects(fetchAsosDailyRain('2026-11-22', noField, 'K'), /sumRn 필드 없음/)
 })
 
 test('fetchAsosDailyRain: 이미 인코딩된 키는 다시 인코딩하지 않는다', async () => {

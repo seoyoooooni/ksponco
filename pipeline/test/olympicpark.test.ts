@@ -32,8 +32,10 @@ test('fetchMonth: HTTP 오류, JSON 아님, 구조 다름, 필드 누락은 에�
   await assert.rejects(fetchMonth('2026-09', async () => ({ status: 500, text: '' })), /HTTP 500/)
   await assert.rejects(fetchMonth('2026-09', async () => ({ status: 200, text: '<html>' })), /JSON이 아닌/)
   await assert.rejects(fetchMonth('2026-09', ok({ a: 1 })), /구조가 다름/)
-  await assert.rejects(fetchMonth('2026-09', ok([[{ ...row(1), title: undefined }]])), /필드/)
-  await assert.rejects(fetchMonth('2026-09', ok([[{ ...row(1), evtSeq: 'x' }]])), /필드/)
+  await assert.rejects(fetchMonth('2026-09', ok([[row(1)]])), /구조가 다름/) // 지난 공연 목록 없음
+  await assert.rejects(fetchMonth('2026-09', ok([[row(1)], null])), /구조가 다름/)
+  await assert.rejects(fetchMonth('2026-09', ok([[{ ...row(1), title: undefined }], []])), /필드/)
+  await assert.rejects(fetchMonth('2026-09', ok([[{ ...row(1), evtSeq: 'x' }], []])), /필드/)
 })
 
 test('fetchSchedule: 같은 evtSeq는 한 번만 담고 evtSeq 순으로 돌려준다', async () => {

@@ -1,6 +1,12 @@
 // 단기예보 + ASOS → forecast.json 내용. 저장은 run.ts가 검사 후에 한다.
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Forecast, ForecastDay } from '../../web/src/data/types.ts'
+import { getKey } from '../collect/env.ts'
 import { addDays, dashed, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type VilageItem } from '../collect/kma.ts'
+
+const FORECAST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web', 'public', 'data', 'forecast.json')
 
 const SKY: Record<string, string> = { '1': '맑음', '3': '구름많음', '4': '흐림' }
 const SKY_HOURS = [9, 18] // 하늘 상태 대표 시간대(포함)
@@ -15,7 +21,7 @@ export function parsePcp(s: string): number {
   if (range) return Number(range[1])
   const over = v.match(/^(\d+(?:\.\d+)?)mm 이상$/)
   if (over) return Number(over[1])
-  const plain = v.match(/^(\d+(?:\.\d+)?)mm$/)
+  const plain = v.match(/^(\d+(?:\.\d+)?)(?:mm)?$/)
   if (plain) return Number(plain[1])
   throw new Error(`PCP 형식 오류: ${s}`)
 }
@@ -66,11 +72,31 @@ export function buildForecast(items: VilageItem[], today: string, observedPrevRa
   return { updated, days }
 }
 
+// 이전 forecast.json에 있던 오늘의 rainPrevDay(어제 예보 PCP 합). 없거나 읽을 수 없으면 null.
+export function previousRainPrevDay(today: string, file = FORECAST): number | null {
+  try {
+    const prev = JSON.parse(readFileSync(file, 'utf8')) as Forecast
+    const v = prev.days.find((d) => d.date === today)?.rainPrevDay
+    return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null
+  } catch {
+    return null
+  }
+}
+
 export async function loadAndBuildForecast(now = new Date()): Promise<Forecast> {
   const today = kstNow(now).date
   const { baseDate, baseTime } = vilageBase(now)
   const items = await fetchVilage(now)
-  const observed = await fetchAsosDailyRain(addDays(today, -1))
+  // 키가 없는 설정 오류는 대신하지 않고 실패시킨다.
+  const asosKey = getKey('ASOS_DAILY_KEY')
+  // ASOS는 오늘 rainPrevDay 하나에만 쓰이므로, 실패하면 이전 예보값으로 대신해 예보 전체가 멈추지 않게 한다.
+  const observed = await fetchAsosDailyRain(addDays(today, -1), undefined, asosKey).catch((err: Error) => {
+    const prev = previousRainPrevDay(today)
+    if (prev === null) throw err
+    console.warn(`[forecast] ASOS 실패, 이전 예보의 오늘 rainPrevDay(${prev}mm)를 씀: ${err.message}`)
+    process.exitCode = 1 // 저장·커밋은 하되 작업은 실패로 표시해 알아채게 한다
+    return prev
+  })
   const updated = `${dashed(baseDate)}T${baseTime.slice(0, 2)}:${baseTime.slice(2)}+09:00`
   return buildForecast(items, today, observed, updated)
 }

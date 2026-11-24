@@ -65,8 +65,9 @@ export async function fetchMonth(ym: string, post: Post = realPost): Promise<Sch
     throw new Error(`올림픽공원 일정(${ym}): JSON이 아닌 응답 (${text.slice(0, 80).replace(/\s+/g, ' ')})`)
   }
   // [예정 공연, 지난 공연]
-  if (!Array.isArray(j) || !Array.isArray(j[0])) throw new Error(`올림픽공원 일정(${ym}): 응답 구조가 다름`)
-  const rows = [...j[0], ...(Array.isArray(j[1]) ? j[1] : [])]
+  // 지난 공연이 빠진 채 통과하면 자동 수집분이 조용히 사라지므로 둘 다 배열이어야 한다.
+  if (!Array.isArray(j) || !Array.isArray(j[0]) || !Array.isArray(j[1])) throw new Error(`올림픽공원 일정(${ym}): 응답 구조가 다름`)
+  const rows = [...j[0], ...j[1]]
   const out: ScheduleItem[] = []
   rows.forEach((r, i) => {
     // 잔디·수변 행만 쓴다. 실내 공연 행은 형식이 이상해도 갱신을 막지 않도록 무시한다.
