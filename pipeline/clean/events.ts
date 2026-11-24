@@ -1,9 +1,12 @@
-// events_manual.json + 연계 스냅샷 → events.json 내용. 저장은 run.ts가 검사 후에 한다.
+// events_manual.json + 올림픽공원 공식 일정 + 연계 스냅샷 → events.json 내용. 저장은 run.ts가 검사 후에 한다.
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { EventItem, VenueId } from '../../web/src/data/types.ts'
+import { isDate } from '../check/check.ts'
+import { addDays } from '../collect/kma.ts'
 import type { LinkedSnapshot } from '../collect/linked.ts'
+import { fetchSchedule, venuesOf, type ScheduleItem } from '../collect/olympicpark.ts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const MANUAL = join(ROOT, 'pipeline', 'manual', 'events_manual.json')
@@ -25,6 +28,45 @@ export type ManualEvent = {
   sourceUrl: string
   linkedName?: string
   note?: string
+}
+
+const SCHEDULE_VIEW = 'https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoView.es?mid=a20301010100&evtSeq='
+const MAX_SPAN_DAYS = 31 // 이보다 긴 기간은 공연이 아니라 전시·시설 안내로 보고 건너뜀
+
+// 공식 일정 → manual 형식. 기간은 하루씩 펼치고 시각은 알 수 없어 비워 둔다(default 시각이 쓰인다).
+export function scheduleToManual(items: ScheduleItem[]): ManualEvent[] {
+  const out: ManualEvent[] = []
+  for (const it of items) {
+    const venues = venuesOf(it.plc)
+    if (!venues.length) continue
+    const { beginDt: from, endDt: to } = it
+    if (!isDate(from) || !isDate(to) || from > to || to > addDays(from, MAX_SPAN_DAYS - 1)) {
+      console.warn(`[events] 건너뜀: ${it.evtSeq} ${it.title} (${from} ~ ${to})`)
+      continue
+    }
+    for (let date = from; date <= to; date = addDays(date, 1))
+      for (const venue of venues)
+        out.push({
+          id: `${date.replaceAll('-', '')}-${it.evtSeq}${venue === 'lake' ? '-lake' : ''}`,
+          name: it.title,
+          venue,
+          date,
+          sourceUrl: SCHEDULE_VIEW + it.evtSeq,
+        })
+  }
+  return out
+}
+
+// 같은 장소·날짜는 manual이 우선, 수집분끼리는 먼저 온 것(evtSeq가 작은 것)이 우선.
+export function mergeEvents(manual: ManualEvent[], auto: ManualEvent[]): ManualEvent[] {
+  const taken = new Set(manual.map((m) => `${m.venue}|${m.date}`))
+  const extra = auto.filter((a) => {
+    const key = `${a.venue}|${a.date}`
+    if (taken.has(key)) return false
+    taken.add(key)
+    return true
+  })
+  return [...manual, ...extra]
 }
 
 export function buildEvents(
@@ -56,8 +98,9 @@ export function buildEvents(
     .sort((a, b) => a.date.localeCompare(b.date) || a.venue.localeCompare(b.venue))
 }
 
-export function loadAndBuild(): EventItem[] {
+export async function loadAndBuild(now = new Date(), getSchedule = fetchSchedule): Promise<EventItem[]> {
   const manual = JSON.parse(readFileSync(MANUAL, 'utf8')) as ManualEvent[]
   const linked = JSON.parse(readFileSync(SNAPSHOT, 'utf8')) as LinkedSnapshot
-  return buildEvents(manual, linked, (venue, file) => existsSync(join(DATA, venue, file)))
+  const auto = scheduleToManual(await getSchedule(now))
+  return buildEvents(mergeEvents(manual, auto), linked, (venue, file) => existsSync(join(DATA, venue, file)))
 }
