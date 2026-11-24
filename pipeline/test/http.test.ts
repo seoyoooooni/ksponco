@@ -63,6 +63,12 @@ test('재시도 한도를 넘은 오류는 URL 없이 던진다', async () => {
   )
 })
 
+test('리다이렉트는 따라가지 않도록 요청한다', async () => {
+  let init: RequestInit | undefined
+  await fetchText('http://x', { fetchFn: async (_u, i) => ((init = i), res(200)), sleep: noSleep })
+  assert.equal(init?.redirect, 'error')
+})
+
 test('연속 호출 사이에 간격을 둔다', async () => {
   const waits: number[] = []
   const get = createSpacedFetch({

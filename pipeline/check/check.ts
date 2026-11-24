@@ -1,8 +1,11 @@
 // 출력 파일 품질 검사. 오류 메시지 목록을 돌려주고, 비어 있으면 통과.
+import { addDays } from '../collect/kma.ts'
+
 const VENUES = ['lawn88', 'lake']
 const VALUE_SOURCES = ['api', 'manual', 'linked', 'default']
 const SKIES = ['맑음', '구름많음', '흐림']
 const TEMP_RANGE = [-30, 45] as const
+const MIN_FORECAST_DAYS = 3 // 05:30 전 실행(전날 발표분)이어도 오늘~모레는 있다
 export const MAX_BYTES = 300 * 1024
 
 type Obj = Record<string, unknown>
@@ -93,5 +96,14 @@ export function checkForecast(data: unknown): string[] {
     if (!(isNum(d.rainPrevDay) && d.rainPrevDay >= 0)) errors.push(`${at}: rainPrevDay 값 오류: ${String(d.rainPrevDay)}`)
     if (!(isNum(d.tempMax) && inTemp(d.tempMax))) errors.push(`${at}: tempMax 값 오류: ${String(d.tempMax)}`)
   })
+  // 일부 날짜가 빠지거나 오래된 발표분이 들어온 경우
+  const ds = [...dates]
+  if (ds.length < MIN_FORECAST_DAYS) errors.push(`forecast.days: ${ds.length}일뿐 (최소 ${MIN_FORECAST_DAYS}일)`)
+  ds.forEach((d, i) => {
+    if (i && d !== addDays(ds[i - 1], 1)) errors.push(`forecast.days: ${ds[i - 1]} 다음 날짜가 ${d}`)
+  })
+  const base = typeof data.updated === 'string' ? data.updated.slice(0, 10) : ''
+  if (isDate(base) && ds.length && ds[0] !== base && ds[0] !== addDays(base, 1))
+    errors.push(`forecast.days: 첫날 ${ds[0]}이 발표일(${base}) 또는 다음 날이 아님`)
   return errors
 }
