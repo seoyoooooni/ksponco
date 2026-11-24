@@ -1,7 +1,7 @@
 import { PillButton } from '../../ui/Buttons'
 import { ChevronLeft } from '../../ui/icons'
 import { Toggle } from '../../ui/Toggle'
-import { clock } from '../../lib/format'
+import { timeLabel } from '../../lib/format'
 import type { AudienceStats } from './AudienceSheet'
 
 type Props = {
@@ -37,23 +37,23 @@ export function FirstPersonOverlay(p: Props) {
         {p.stats && (
           <div className="stats">
             <div className="stat">
-              <span className="stat__label">무대</span>
+              <span className="stat__label">무대 보임</span>
               <span className="stat__value">{p.stats.stage}</span>
             </div>
             <div className="stat">
-              <span className="stat__label">스크린</span>
-              <span className="stat__value is-shade">{p.stats.screen}</span>
+              <span className="stat__label">스크린 보임</span>
+              <span className="stat__value">{p.stats.screen}</span>
             </div>
             <div className="stat">
               <span className="stat__label">거리</span>
-              <span className="stat__value">{p.stats.stageLabel.replace('무대 · ', '')}</span>
+              <span className="stat__value">{p.stats.distance}</span>
             </div>
           </div>
         )}
         <label style={{ display: 'grid', gap: 6, fontSize: 'var(--text-sm)', fontWeight: 700 }}>
           <span style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>그림자 시각</span>
-            <span style={{ color: 'var(--color-mute)' }}>{clock(p.hour)}</span>
+            <span style={{ color: 'var(--color-mute)' }}>{timeLabel(p.hour)}</span>
           </span>
           <input
             className="range"

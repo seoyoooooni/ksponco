@@ -7,11 +7,12 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { clock, dateLabel, durationLabel, hourLabel, parseClock } from '../lib/format'
+import { dateLabel, durationLabel, hourLabel, parseClock, timeLabel } from '../lib/format'
 import { zoneAt } from '../lib/polygon'
 import { sunsetHour } from '../lib/sun'
 import { SceneCanvas } from '../scene/SceneCanvas'
 import { sceneStore, TODAY, useScene } from '../store/sceneStore'
+import type { SheetSnap } from '../ui/BottomSheet'
 import { SearchBar } from '../ui/SearchBar'
 import { Toast } from '../ui/Toast'
 import { DevTools } from './DevTools'
@@ -84,7 +85,7 @@ function Main({ ready }: { ready: Base }) {
   const camera = useScene((s) => s.camera)
   const notice = useScene((s) => s.notice)
   const crowdScale = useScene((s) => s.crowdScale)
-  const sheetExpanded = useScene((s) => s.sheetExpanded)
+  const sheetSnap = useScene((s) => s.sheetSnap)
   const pickerOpen = useScene((s) => s.pickerOpen)
   const sourcesOpen = useScene((s) => s.sourcesOpen)
   const seats = useScene((s) => s.seats)
@@ -110,10 +111,10 @@ function Main({ ready }: { ready: Base }) {
     if (event) {
       const from = Math.max(9, parseClock(event.start))
       const to = Math.min(22, parseClock(event.end))
-      sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetExpanded: false })
+      sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetSnap: 1 })
     } else {
       const s = defaultEverydayStay(date, 2)
-      sceneStore.set({ stay: s, hour: s[0], seats: false, sheetExpanded: false })
+      sceneStore.set({ stay: s, hour: s[0], seats: false, sheetSnap: 1 })
     }
   }, [event?.id, date])
 
@@ -131,6 +132,8 @@ function Main({ ready }: { ready: Base }) {
   }, [camera])
 
   const clearNotice = useCallback(() => sceneStore.set({ notice: null }), [])
+  const setSnap = useCallback((v: SheetSnap) => sceneStore.set({ sheetSnap: v }), [])
+  const setSheetH = useCallback((h: number) => sceneStore.set({ sheetH: h }), [])
   const closePicker = useCallback(() => sceneStore.set({ pickerOpen: false }), [])
   const closeSources = useCallback(() => sceneStore.set({ sourcesOpen: false }), [])
 
@@ -142,7 +145,11 @@ function Main({ ready }: { ready: Base }) {
 
   const fpLines: [string, string?] = analysis.view
     ? [
-        analysis.view.stage >= 0.6 ? '무대가 다 보여요.' : `무대가 ${Math.round(analysis.view.stage * 100)}% 보여요.`,
+        analysis.view.stage >= 0.95
+          ? '무대가 다 보여요.'
+          : analysis.view.stage >= 0.6
+            ? '무대가 대부분 보여요.'
+            : `무대가 ${Math.round(analysis.view.stage * 100)}%만 보여요.`,
         analysis.view.stageDistance > 45 && analysis.view.screen >= 0.6 ? '표정은 스크린으로 보세요' : undefined,
       ]
     : [analysis.headline]
@@ -192,8 +199,9 @@ function Main({ ready }: { ready: Base }) {
           )}
           {mode === 'event' ? (
             <AudienceSheet
-              expanded={sheetExpanded}
-              onExpandedChange={(v) => sceneStore.set({ sheetExpanded: v })}
+              snap={sheetSnap}
+              onSnap={setSnap}
+              onVisibleHeight={setSheetH}
               headline={analysis.headline}
               notes={analysis.estimates}
               stats={analysis.stats}
@@ -210,16 +218,17 @@ function Main({ ready }: { ready: Base }) {
             />
           ) : (
             <EverydaySheet
-              expanded={sheetExpanded}
-              onExpandedChange={(v) => sceneStore.set({ sheetExpanded: v })}
+              snap={sheetSnap}
+              onSnap={setSnap}
+              onVisibleHeight={setSheetH}
               closure={closure ? { title: `${dateLabel(date)}은 ${closure.reason}로 출입이 제한돼요`, sub: `${dateLabel(closure.from)}부터 ${dateLabel(closure.to)}까지예요. 다른 날짜를 골라 보세요.` } : null}
-              headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}, 그늘이 이어지는 곳`}
+              headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}\n그늘이 이어지는 곳`}
               spots={analysis.spots.map((s) => ({ name: s.name, meta: `${mat ? '내 돗자리에서' : '잔디 가운데서'} ${Math.round(s.distance)}m` }))}
               onSpot={(i) => {
                 const s = analysis.spots[i]
                 if (s) sceneStore.set({ mat: { x: s.x, z: s.z }, matTouched: true })
               }}
-              sunsetText={sunset ? `해 지는 시각 ${clock(sunset)} · 노을은 ${hourLabel(Math.floor((sunset - 0.5) * 4) / 4)}쯤부터` : '해 지는 시각을 계산하지 못했어요'}
+              sunsetText={sunset ? `해 지는 시각 ${timeLabel(sunset)} · 노을은 ${hourLabel(Math.floor((sunset - 0.5) * 4) / 4)}쯤부터` : '해 지는 시각을 계산하지 못했어요'}
               duration={durationValue}
               onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(22, stay[0] + h)] })}
               stay={stay}

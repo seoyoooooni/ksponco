@@ -88,7 +88,16 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
   const spots = useMemo(() => {
     if (layout || !shade) return []
     const origin = mat ?? lawnCenter
-    return shadeSpots(shade, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} 나무 그늘` }))
+    const picks = shadeSpots(shade, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} 나무 그늘` }))
+    const sides = ['서편', '가운데', '동편']
+    for (const name of new Set(picks.map((s) => s.name))) {
+      const same = picks.filter((s) => s.name === name).sort((a, b) => a.x - b.x)
+      if (same.length < 2) continue
+      same.forEach((s, i) => {
+        s.name = `${name} · ${same.length === 2 ? sides[i * 2] : sides[i]}`
+      })
+    }
+    return picks
   }, [layout, shade, mat, lawnCenter])
 
   const overlay = useMemo<OverlayCell[] | null>(() => {
@@ -119,7 +128,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
     if (!mat) return null
     return {
       stage: view ? `${Math.round(view.stage * 100)}%` : '—',
-      stageLabel: view ? `무대 · ${Math.round(view.stageDistance)}m` : '무대',
+      distance: view ? `${Math.round(view.stageDistance)}m` : '—',
       screen: view && view.screenIndex >= 0 ? `${Math.round(view.screen * 100)}%` : '—',
       sun: shortDuration(sunHours(strip)),
     }

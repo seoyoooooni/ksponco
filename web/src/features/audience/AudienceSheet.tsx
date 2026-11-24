@@ -1,4 +1,4 @@
-import { BottomSheet } from '../../ui/BottomSheet'
+import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
 import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
@@ -7,14 +7,15 @@ import { rangeLabel } from '../../lib/format'
 
 export type AudienceStats = {
   stage: string
-  stageLabel: string
+  distance: string
   screen: string
   sun: string
 }
 
 type Props = {
-  expanded: boolean
-  onExpandedChange: (v: boolean) => void
+  snap: SheetSnap
+  onSnap: (v: SheetSnap) => void
+  onVisibleHeight: (h: number) => void
   headline: string
   notes: string[]
   stats: AudienceStats | null
@@ -34,8 +35,9 @@ export function AudienceSheet(p: Props) {
   return (
     <BottomSheet
       label="내 자리 결과"
-      expanded={p.expanded}
-      onExpandedChange={p.onExpandedChange}
+      snap={p.snap}
+      onSnap={p.onSnap}
+      onVisibleHeight={p.onVisibleHeight}
       more={
         <>
           <div className="section">
@@ -86,19 +88,22 @@ export function AudienceSheet(p: Props) {
       </div>
       <div className="stats">
         <div className="stat">
-          <span className="stat__label">{p.stats?.stageLabel ?? '무대'}</span>
-          <span className="stat__value">{p.stats?.stage ?? '—'}</span>
+          <span className="stat__label">무대 보임</span>
+          <span className="stat__value">
+            {p.stats?.stage ?? '—'}
+            {p.stats && p.stats.distance !== '—' && <small className="stat__unit">{p.stats.distance}</small>}
+          </span>
         </div>
         <div className="stat">
-          <span className="stat__label">스크린</span>
-          <span className="stat__value is-shade">{p.stats?.screen ?? '—'}</span>
+          <span className="stat__label">스크린 보임</span>
+          <span className="stat__value">{p.stats?.screen ?? '—'}</span>
         </div>
         <div className="stat">
           <span className="stat__label">햇볕</span>
           <span className="stat__value">{p.stats?.sun ?? '—'}</span>
         </div>
       </div>
-      <button type="button" className="link-small" onClick={p.onSources} style={{ order: 99 }}>
+      <button type="button" className="link-small" onClick={p.onSources}>
         데이터 출처
       </button>
     </BottomSheet>

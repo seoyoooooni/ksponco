@@ -111,14 +111,16 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
           <boxGeometry args={[spec.w, 0.06, spec.d]} />
           <meshLambertMaterial map={texture} transparent />
         </mesh>
-        <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2}>
-          <ringGeometry args={[ring * 0.9, ring * 1.05, 40]} />
-          <meshBasicMaterial color={sceneColors.ink} transparent opacity={drag ? 0.9 : 0.55} />
-        </mesh>
+        {showPin && (
+          <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2}>
+            <ringGeometry args={[ring * 0.85, ring * 1.25, 40]} />
+            <meshBasicMaterial color={sceneColors.mark} transparent opacity={drag ? 1 : 0.9} />
+          </mesh>
+        )}
         {showPin && (
           <mesh ref={pin} rotation-x={Math.PI} position-y={2.8}>
-            <coneGeometry args={[0.8, 2, 14]} />
-            <meshLambertMaterial color={sceneColors.ink} />
+            <coneGeometry args={[1, 2.4, 14]} />
+            <meshLambertMaterial color={sceneColors.mark} />
           </mesh>
         )}
         {bubble && !drag && (

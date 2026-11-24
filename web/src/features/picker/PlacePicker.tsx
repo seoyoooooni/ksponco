@@ -53,9 +53,7 @@ export function PlacePicker(p: Props) {
   const eventDays = useMemo(() => new Set(venueEvents.map((e) => e.date)), [venueEvents])
   const closedDays = useMemo(() => new Set(venueClosures.flatMap((c) => eachDay(c.from, c.to))), [venueClosures])
 
-  const upcoming = venueEvents.filter((e) => e.date >= p.today).slice(0, 3)
-  const chips = upcoming.length ? upcoming : venueEvents.slice(-3)
-  const chipTitle = upcoming.length ? '다가오는 공연' : '지난 공연'
+  const chips = venueEvents.filter((e) => e.date >= p.today).slice(0, 3)
 
   const event = venueEvents.find((e) => e.date === selected) ?? null
   const closure = closedOn(venueClosures, selected)
@@ -76,13 +74,13 @@ export function PlacePicker(p: Props) {
         value={p.venue}
         options={[
           { value: 'lawn88', label: '88잔디마당', disabled: !p.venuesReady.includes('lawn88') },
-          { value: 'lake', label: '88호수 수변무대', disabled: !p.venuesReady.includes('lake') },
+          { value: 'lake', label: p.venuesReady.includes('lake') ? '88호수 수변무대' : '수변무대 · 준비 중', disabled: !p.venuesReady.includes('lake') },
         ]}
         onChange={p.onVenue}
       />
       {chips.length > 0 && (
         <div style={{ display: 'grid', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>{chipTitle}</span>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>다가오는 공연</span>
           <div className="chips">
             {chips.map((e) => (
               <button

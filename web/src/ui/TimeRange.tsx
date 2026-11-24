@@ -123,6 +123,13 @@ export function TimeRange({
           onKeyDown={nudge('to')}
         />
       </div>
+      <div className="timerange__ticks" aria-hidden="true">
+        {[9, 12, 15, 18, 21].filter((h) => h >= min && h <= max).map((h) => (
+          <span key={h} style={{ left: pct(h) }}>
+            {h}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }

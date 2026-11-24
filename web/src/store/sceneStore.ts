@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import type { VenueId } from '../data/types'
 import type { PersonStyleId } from '../scene/personStyles'
+import type { SheetSnap } from '../ui/BottomSheet'
 
 export type CameraMode = 'orbit' | 'firstPerson'
 
@@ -22,7 +23,8 @@ export type SceneState = {
   crowdScale: number
   crowdCount: number
   personStyle: PersonStyleId
-  sheetExpanded: boolean
+  sheetSnap: SheetSnap
+  sheetH: number
   pickerOpen: boolean
   sourcesOpen: boolean
   seats: boolean
@@ -57,7 +59,8 @@ let state: SceneState = {
   crowdScale: 1,
   crowdCount: 0,
   personStyle: 'chibi',
-  sheetExpanded: false,
+  sheetSnap: 1,
+  sheetH: 0,
   pickerOpen: false,
   sourcesOpen: false,
   seats: false,

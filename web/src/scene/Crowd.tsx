@@ -14,11 +14,12 @@ type Props = {
   myMat: MatPosition | null
   scale: number
   styleId: PersonStyleId
+  faded?: boolean
 }
 
 const HIDE_R = 2.2
 
-export function Crowd({ crowd, layout, terrain, myMat, scale, styleId }: Props) {
+export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = false }: Props) {
   const bodies = useRef<InstancedMesh>(null)
   const heads = useRef<InstancedMesh>(null)
   const mats = useRef<InstancedMesh>(null)
@@ -101,19 +102,19 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId }: Props) 
           ) : (
             <capsuleGeometry args={[body.radius, body.length, 4, 10]} />
           )}
-          <meshLambertMaterial />
+          <meshLambertMaterial transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
         </instancedMesh>
       )}
       {n > 0 && style.head && (
         <instancedMesh key={`h-${styleId}`} ref={heads} args={[undefined, undefined, n]}>
           <sphereGeometry args={[style.head.radius, 12, 8]} />
-          <meshLambertMaterial color={style.head.color ?? '#ffffff'} />
+          <meshLambertMaterial color={style.head.color ?? '#ffffff'} transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
         </instancedMesh>
       )}
       {m > 0 && (
         <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow renderOrder={1}>
           <boxGeometry args={[layout.mat.w, 0.04, layout.mat.d]} />
-          <meshLambertMaterial transparent />
+          <meshLambertMaterial transparent opacity={faded ? 0.3 : 1} />
         </instancedMesh>
       )}
     </>

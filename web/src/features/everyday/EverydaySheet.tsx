@@ -1,4 +1,4 @@
-import { BottomSheet } from '../../ui/BottomSheet'
+import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { ChevronRight } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
@@ -10,8 +10,9 @@ export type SpotItem = {
 }
 
 type Props = {
-  expanded: boolean
-  onExpandedChange: (v: boolean) => void
+  snap: SheetSnap
+  onSnap: (v: SheetSnap) => void
+  onVisibleHeight: (h: number) => void
   closure: { title: string; sub: string } | null
   headline: string
   spots: SpotItem[]
@@ -31,7 +32,7 @@ type Props = {
 export function EverydaySheet(p: Props) {
   if (p.closure) {
     return (
-      <BottomSheet label="출입 제한 안내" expanded={false}>
+      <BottomSheet label="출입 제한 안내" snap={1} onVisibleHeight={p.onVisibleHeight}>
         <div className="closure">
           <span className="eyebrow">출입 제한</span>
           <h1 className="headline">{p.closure.title}</h1>
@@ -47,8 +48,9 @@ export function EverydaySheet(p: Props) {
   return (
     <BottomSheet
       label="그늘 자리 찾기"
-      expanded={p.expanded}
-      onExpandedChange={p.onExpandedChange}
+      snap={p.snap}
+      onSnap={p.onSnap}
+      onVisibleHeight={p.onVisibleHeight}
       more={
         <div className="section">
           <div className="section__head">
@@ -91,7 +93,7 @@ export function EverydaySheet(p: Props) {
           { value: 3, label: '3시간' },
           { value: 'custom', label: '직접' },
         ]}
-        onChange={(v) => (v === 'custom' ? p.onExpandedChange(true) : p.onDuration(v))}
+        onChange={(v) => (v === 'custom' ? p.onSnap(2) : p.onDuration(v))}
       />
       <button type="button" className="link-small" onClick={p.onSources}>
         데이터 출처

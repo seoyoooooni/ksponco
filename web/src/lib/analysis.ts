@@ -207,5 +207,5 @@ export function sunPhrase(strip: SunState[], from: number, hourText: (h: number)
   if (at === null) return '끝날 때까지 볕이 들어요'
   const rest = strip.slice(Math.round((at - from) / STEP))
   if (rest.some((v) => v === 1)) return `${hourText(at)}부터 그늘이에요`
-  return '해 질 때까지 볕이 들어요'
+  return '해\u00a0질 때까지 볕이 들어요'
 }

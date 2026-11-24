@@ -15,7 +15,7 @@ type Props = {
 
 const FIRST_PERSON_FOV = 58
 const ORBIT_HFOV = 34
-const VIEW_SHIFT = 0.14
+const PANEL_SHIFT = (400 + 32) / 2
 
 function orbitFov(aspect: number): number {
   const half = (ORBIT_HFOV / 2) * (Math.PI / 180)
@@ -28,6 +28,7 @@ export function CameraRig({ eye, lookAt, orbitTarget }: Props) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera
   const size = useThree((s) => s.size)
   const wide = useWide()
+  const sheetH = useScene((s) => s.sheetH)
   const saved = useRef<{ position: Vector3; fov: number } | null>(null)
   const view = mode === 'firstPerson' && eye && lookAt ? { eye, lookAt } : null
   const key = view ? `${view.eye.join(',')}|${view.lookAt.join(',')}` : 'orbit'
@@ -51,11 +52,11 @@ export function CameraRig({ eye, lookAt, orbitTarget }: Props) {
       camera.clearViewOffset()
     } else {
       camera.fov = orbitFov(size.width / size.height)
-      if (wide) camera.clearViewOffset()
-      else camera.setViewOffset(size.width, size.height, 0, size.height * VIEW_SHIFT, size.width, size.height)
+      if (wide) camera.setViewOffset(size.width, size.height, PANEL_SHIFT, 0, size.width, size.height)
+      else camera.setViewOffset(size.width, size.height, 0, Math.min(sheetH, size.height * 0.6) / 2, size.width, size.height)
     }
     camera.updateProjectionMatrix()
-  }, [key, size.width, size.height, wide])
+  }, [key, size.width, size.height, wide, sheetH])
 
   if (view) return null
   return (

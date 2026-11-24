@@ -17,6 +17,8 @@
 
 .headline {
   flex: 1;
+  word-break: keep-all;
+  white-space: pre-line;
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 22px;
@@ -51,8 +53,11 @@
   white-space: nowrap;
 }
 
-.stat__value.is-shade {
-  color: var(--color-shade);
+.stat__unit {
+  margin-left: 4px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-mute);
 }
 
 .section {
@@ -398,22 +403,54 @@
 
 @media (min-width: 900px) {
   .fabs {
-    bottom: calc(var(--space-4) * 2);
-    right: calc(var(--panel-w) + var(--space-4) * 3);
+    bottom: var(--space-5);
+    right: calc(var(--panel-w) + var(--space-4) * 2);
   }
 
   .legend-chip {
-    top: calc(var(--topbar-h) + var(--space-4));
-    left: calc(var(--space-4) * 2);
+    top: var(--topbar-h);
+    left: var(--space-5);
+    box-shadow: var(--shadow-float);
   }
 
   .dev {
-    left: calc(var(--space-4) * 2);
-    bottom: calc(var(--space-4) * 2);
+    left: var(--space-5);
+    bottom: var(--space-5);
   }
 
   .headline {
-    font-size: var(--text-2xl);
+    font-size: 28px;
+  }
+
+  .stat__label {
+    font-size: 13px;
+  }
+
+  .stat__value {
+    font-size: 30px;
+    line-height: 1.15;
+  }
+
+  .stat__unit {
+    font-size: 14px;
+  }
+
+  .section {
+    gap: 10px;
+    padding-top: 18px;
+  }
+
+  .spot {
+    height: 64px;
+  }
+
+  .spot__text b {
+    font-size: 16px;
+  }
+
+  .spot__text span,
+  .plain-line {
+    font-size: 14px;
   }
 
   .fp-top {
