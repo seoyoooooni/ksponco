@@ -27,7 +27,7 @@
 
 - 생성: `pipeline/run.ts` (`events`), 매일 11:30 KST 자동 갱신(워크플로가 `main`에 병합된 뒤부터)
 - 로더: `loadEvents(): Promise<EventItem[]>`
-- 형태: `EventItem[]`, 날짜 → 장소 순 정렬, 빈 배열 불가
+- 형태: `EventItem[]`, 날짜 → 장소 순 정렬, 빈 배열 불가, 이전 파일보다 10% 넘게 줄면 저장 안 함
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
