@@ -19,6 +19,8 @@ export type SceneState = {
   matTouched: boolean
   eyeHeight: number
   camera: CameraMode
+  fpAway: boolean
+  fpRecenter: number
   notice: string | null
   crowdScale: number
   crowdCount: number
@@ -55,6 +57,8 @@ let state: SceneState = {
   matTouched: false,
   eyeHeight: 0.8,
   camera: 'orbit',
+  fpAway: false,
+  fpRecenter: 0,
   notice: null,
   crowdScale: 1,
   crowdCount: 0,
