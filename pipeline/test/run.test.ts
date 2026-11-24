@@ -37,3 +37,10 @@ test('생성 중 오류가 나면 저장하지 않는다', async () => {
   assert.equal(ok, false)
   assert.equal(writes.length, 0)
 })
+
+test('저장 중 오류가 나면 false를 돌려주고 예외를 던지지 않는다', async () => {
+  const ok = await runTarget(target(() => [1]), () => {
+    throw new Error('EACCES')
+  })
+  assert.equal(ok, false)
+})

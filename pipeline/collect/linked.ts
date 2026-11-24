@@ -75,6 +75,14 @@ export function toSnapshot(rows: LinkedRow[], fetched: string): LinkedSnapshot {
   return { source: BASE, fetched, tempMax: sortedTemps, shows }
 }
 
+// totalCount가 없거나 숫자가 아니면 NaN이 되어 루프가 첫 페이지에서 조용히 끝나므로 미리 막는다.
+export function readTotal(text: string): number {
+  const raw = tag(text, 'totalCount')
+  const total = Number(raw)
+  if (!Number.isInteger(total) || total < 1) throw new Error(`totalCount 오류: ${raw}`)
+  return total
+}
+
 async function main() {
   const key = getKey('KCISA_LINKED_KEY')
   const get = createSpacedFetch({ spacingMs: 5_000, retryWaitMs: 30_000, retries: 2 })
@@ -84,12 +92,13 @@ async function main() {
     const { status, text } = await get(`${BASE}?serviceKey=${encodeURIComponent(key)}&numOfRows=${PAGE_SIZE}&pageNo=${page}`)
     const code = tag(text, 'resultCode')
     if (status !== 200 || code !== '0000') throw new Error(`page ${page}: HTTP ${status}, resultCode ${code}`)
-    if (total === Infinity) total = Number(tag(text, 'totalCount'))
+    if (total === Infinity) total = readTotal(text)
     const got = parseItems(text)
     if (!got.length) throw new Error(`page ${page}: 빈 페이지 (${items.length}/${total})`)
     items.push(...got)
     console.log(`page ${page}: ${got.length}건 (${items.length}/${total})`)
   }
+  if (items.length !== total) throw new Error(`수집 ${items.length}건, 예상 ${total}건`)
   const snapshot = toSnapshot(items.map(toRow), new Date().toISOString())
   mkdirSync(dirname(OUT), { recursive: true })
   writeFileSync(OUT, JSON.stringify(snapshot, null, 2) + '\n')
