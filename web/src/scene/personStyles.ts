@@ -1,4 +1,4 @@
-export type PersonStyleId = 'basic' | 'chibi' | 'pawn' | 'bean'
+export type PersonStyleId = 'basic' | 'chibi' | 'pawn' | 'bean' | 'cat'
 
 export type PersonStyle = {
   label: string
@@ -6,6 +6,8 @@ export type PersonStyle = {
   bodyUnit: number
   span: (seated: boolean) => [number, number]
   head: { radius: number; y: (seated: boolean) => number; color: string | null } | null
+  ears?: { radius: number; height: number; spread: number; lift: number }
+  tones?: readonly string[]
 }
 
 export const personStyles: Record<PersonStyleId, PersonStyle> = {
@@ -36,6 +38,15 @@ export const personStyles: Record<PersonStyleId, PersonStyle> = {
     bodyUnit: 1.06,
     span: (s) => (s ? [0, 0.72] : [0, 1.3]),
     head: null,
+  },
+  cat: {
+    label: '고양이',
+    body: { kind: 'capsule', radius: 0.22, length: 0.34 },
+    bodyUnit: 0.78,
+    span: (s) => (s ? [0.04, 0.5] : [0.04, 0.86]),
+    head: { radius: 0.25, y: (s) => (s ? 0.72 : 1.08), color: null },
+    ears: { radius: 0.1, height: 0.2, spread: 0.14, lift: 0.2 },
+    tones: ['#e39b4c', '#2e2a28', '#f2eee6', '#9a9a9a', '#e8d3b0', '#8b6a4f'],
   },
 }
 
