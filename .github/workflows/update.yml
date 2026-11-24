@@ -5,8 +5,7 @@ on:
     - cron: '30 2 * * *' # 매일 11:30 KST (ASOS 전일 자료가 11시 이후에 나옴)
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: {}
 
 concurrency:
   group: data-update
@@ -16,10 +15,15 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      # 쓰기 토큰은 .git/config에 남기지 않고 push 단계에서만 쓴다.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
 
@@ -28,9 +32,11 @@ jobs:
         run: npm test
 
       # 검사를 통과한 파일만 저장된다. 실패한 대상이 있어도 성공한 것은 커밋하고, 마지막에 실패로 표시한다.
+      # 작업 전체가 시간 초과로 취소되면 커밋 단계도 건너뛰므로, 이 단계만 끊고 그때까지 저장한 파일은 커밋한다.
       - name: 데이터 생성
         id: run
         continue-on-error: true
+        timeout-minutes: 10
         working-directory: pipeline
         env:
           KMA_AUTH_KEY: ${{ secrets.KMA_AUTH_KEY }}
@@ -38,6 +44,8 @@ jobs:
         run: node run.ts
 
       - name: 변경된 데이터 커밋
+        env:
+          TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -46,8 +54,9 @@ jobs:
             echo "변경 없음"
           else
             git commit -m "chore(data): 데이터 자동 갱신"
-            git pull --rebase # 실행 중 다른 push가 있으면 그 위에 올린다
-            git push
+            REMOTE="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git pull --rebase "$REMOTE" "$GITHUB_REF_NAME" # 실행 중 다른 push가 있으면 그 위에 올린다
+            git push "$REMOTE" "HEAD:$GITHUB_REF_NAME"
           fi
 
       - name: 실패 표시

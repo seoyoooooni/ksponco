@@ -1,2 +1,5 @@
 pipeline/raw/
 pipeline/.env
+.env
+.env.*
+*.tmp
