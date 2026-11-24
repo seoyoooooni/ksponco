@@ -1,4 +1,5 @@
 // 출력 파일 품질 검사. 오류 메시지 목록을 돌려주고, 비어 있으면 통과.
+import { readFileSync } from 'node:fs'
 import { addDays } from '../collect/kma.ts'
 
 const VENUES = ['lawn88', 'lake']
@@ -29,6 +30,19 @@ const inTemp = (v: number) => v >= TEMP_RANGE[0] && v <= TEMP_RANGE[1]
 export function checkSize(text: string): string[] {
   const bytes = Buffer.byteLength(text, 'utf8')
   return bytes > MAX_BYTES ? [`파일 크기 ${bytes}B가 ${MAX_BYTES}B를 넘음`] : []
+}
+
+// 지난 공연도 계속 받으므로 정상이면 건수가 줄지 않는다. 10% 넘게 줄면 응답 형식·장소 표기 변경을 의심한다.
+// 이전 파일이 없거나 읽지 못하면 비교하지 않는다.
+export function checkShrink(data: unknown, prevFile: string): string[] {
+  let prev: unknown
+  try {
+    prev = JSON.parse(readFileSync(prevFile, 'utf8'))
+  } catch {
+    return []
+  }
+  if (!Array.isArray(data) || !Array.isArray(prev)) return []
+  return data.length < prev.length * 0.9 ? [`건수가 ${prev.length}건에서 ${data.length}건으로 10% 넘게 줄어듦 (수집 누락 의심)`] : []
 }
 
 export function checkEvents(data: unknown): string[] {

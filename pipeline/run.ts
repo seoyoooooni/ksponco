@@ -4,12 +4,13 @@
 import { renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { checkClosures, checkEvents, checkForecast, checkSize } from './check/check.ts'
+import { checkClosures, checkEvents, checkForecast, checkShrink, checkSize } from './check/check.ts'
 import { loadAndBuildClosures } from './clean/closures.ts'
 import { loadAndBuild as loadAndBuildEvents } from './clean/events.ts'
 import { loadAndBuildForecast } from './clean/forecast.ts'
 
 const DATA = join(dirname(fileURLToPath(import.meta.url)), '..', 'web', 'public', 'data')
+const EVENTS = join(DATA, 'events.json')
 
 export type Target = {
   name: string
@@ -22,7 +23,7 @@ export type Target = {
 export const TARGETS: Target[] = [
   { name: 'forecast', file: join(DATA, 'forecast.json'), build: () => loadAndBuildForecast(), check: checkForecast },
   { name: 'closures', file: join(DATA, 'closures.json'), build: loadAndBuildClosures, check: checkClosures },
-  { name: 'events', file: join(DATA, 'events.json'), build: loadAndBuildEvents, check: checkEvents },
+  { name: 'events', file: EVENTS, build: loadAndBuildEvents, check: (d) => [...checkEvents(d), ...checkShrink(d, EVENTS)] },
 ]
 
 const MAX_SHOWN = 20
