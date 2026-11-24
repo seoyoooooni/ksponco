@@ -25,7 +25,7 @@
 
 ### 1.1 `events.json`: 공연 목록
 
-- 생성: `pipeline/run.ts` (`events`), 매일 11:30 KST 자동 갱신
+- 생성: `pipeline/run.ts` (`events`), 매일 11:30 KST 자동 갱신(워크플로가 `main`에 병합된 뒤부터)
 - 로더: `loadEvents(): Promise<EventItem[]>`
 - 형태: `EventItem[]`, 날짜 → 장소 순 정렬, 빈 배열 불가
 
@@ -83,7 +83,7 @@
 | 필드 | 타입 | 설명 |
 |---|---|---|
 | `updated` | string | 사용한 단기예보 발표 시각, ISO 8601(`2026-11-24T05:00+09:00`) |
-| `days` | `ForecastDay[]` | 오늘(KST)부터, 최고기온(TMX)이 있는 날만. 빈 배열 불가, 날짜 중복 불가 |
+| `days` | `ForecastDay[]` | 오늘(KST)부터, 최고기온(TMX)이 있는 날만. 날짜는 하루씩 이어지고 3일 이상, 첫날은 발표일 또는 그다음 날 |
 
 `ForecastDay`
 
@@ -92,7 +92,7 @@
 | `date` | string | `YYYY-MM-DD` |
 | `sky` | `'맑음' \| '구름많음' \| '흐림'` | 09~18시 하늘 상태 최빈값(동점이면 더 흐린 쪽). 타입은 `string`으로 선언돼 있음 |
 | `rain` | boolean | 09~21시에 강수형태(PTY)가 0이 아닌 시간이 있으면 `true` |
-| `rainPrevDay` | number | 전날 강수량(mm, 0 이상). 오늘은 ASOS 관측값, 이후는 전날 예보 PCP 합 |
+| `rainPrevDay` | number | 전날 강수량(mm, 0 이상). 오늘은 ASOS 관측값(ASOS가 실패하면 이전 파일의 오늘 값), 이후는 전날 예보 PCP 합. 05시 발표분은 06시부터라 내일 값에는 오늘 00~05시 강수가 빠짐 |
 | `tempMax` | number | 최고기온(°C, -30~45) |
 
 ### 1.4 장소 데이터 (`<venue>/…`)
@@ -113,7 +113,7 @@
 
 ## 2. 외부 API (파이프라인 → 공공 API)
 
-공통: `pipeline/collect/http.ts`의 `fetchText`를 씁니다. 타임아웃 30초, 429·5xx·네트워크 오류는 30초 간격으로 최대 2번 다시 시도합니다. 오류 메시지에는 URL을 넣지 않습니다(쿼리에 키가 있음). 키는 환경변수가 우선이고, 없으면 `pipeline/.env`에서 읽습니다.
+공통: `pipeline/collect/http.ts`의 `fetchText`를 씁니다. 기본은 타임아웃 30초, 429·5xx·네트워크 오류는 30초 간격으로 최대 2번 다시 시도합니다(올림픽공원 일정만 타임아웃 15초, 간격 5초). 리다이렉트는 따라가지 않고 오류로 봅니다. 오류 메시지에는 URL을 넣지 않습니다(쿼리에 키가 있음). 키는 환경변수가 우선이고, 없으면 `pipeline/.env`에서 읽습니다.
 
 ### 2.1 기상청 단기예보 (API허브)
 
@@ -125,6 +125,7 @@
 | 키 | `KMA_AUTH_KEY` |
 | 발표분 | 05시 발표분. KST 05:30 전이면 전날 05시 발표분 |
 | 사용 항목 | `SKY`, `PTY`, `PCP`, `TMX` |
+| 페이지 | 1000건씩. 받은 건수가 `totalCount`보다 적으면 다음 페이지(최대 5페이지) |
 | 실패 조건 | HTTP ≠ 200, JSON 아님, `resultCode ≠ "00"`, 받은 건수 ≠ `totalCount` |
 
 ### 2.2 ASOS 일자료 (공공데이터포털)
@@ -132,11 +133,11 @@
 | 항목 | 내용 |
 |---|---|
 | 코드 | `collect/kma.ts` `fetchAsosDailyRain` |
-| 요청 | `GET http://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList` |
+| 요청 | `GET https://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList` |
 | 파라미터 | `serviceKey`, `numOfRows=10`, `pageNo=1`, `dataType=JSON`, `dataCd=ASOS`, `dateCd=DAY`, `startDt=endDt=어제(YYYYMMDD)`, `stnIds=108`(서울) |
 | 키 | `ASOS_DAILY_KEY` (이미 인코딩된 키면 그대로 씀) |
 | 사용 항목 | `sumRn` (빈 문자열이면 0mm) |
-| 실패 조건 | HTTP ≠ 200, JSON 아님, `resultCode ≠ "00"`, 해당 날짜 행 없음, `sumRn`이 숫자가 아니거나 음수 |
+| 실패 조건 | HTTP ≠ 200, JSON 아님, `resultCode ≠ "00"`, 해당 날짜 행 없음, `sumRn` 필드 없음, `sumRn`이 숫자가 아니거나 음수. 실패하면 이전 `forecast.json`의 오늘 `rainPrevDay`로 대신해 저장하고 종료 코드 1(작업은 실패로 표시). 이전 값이 없거나 키가 없으면 forecast 실패 |
 | 참고 | 전날 자료는 11시 이후 조회 가능해서 갱신 시각을 11:30 KST로 잡음 |
 
 ### 2.3 올림픽공원 공식 일정 (ksponco.or.kr)
@@ -151,7 +152,7 @@
 | 호출 범위 | 2026-01부터 오늘(KST)+12개월까지 월마다, 0.3초 간격 |
 | 응답 | `[예정 공연[], 지난 공연[]]`. 사용 필드: `evtSeq`, `title`, `plc`, `beginDt`, `endDt` |
 | 장소 판별 | `plc`에 "88잔디마당"이면 `lawn88`, "수변무대"면 `lake`(둘 다면 둘 다). 나머지 행은 무시 |
-| 실패 조건 | 한 달이라도 HTTP ≠ 200, JSON 아님, 구조 다름, 잔디·수변 행의 필드 누락 → 전체 실패. 전체 결과가 0건이어도 실패 |
+| 실패 조건 | 한 달이라도 HTTP ≠ 200, JSON 아님, 구조 다름(두 목록 중 하나라도 배열이 아님), 잔디·수변 행의 필드 누락 → 전체 실패. 전체 결과가 0건이어도 실패 |
 | 상세 링크 | `https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoView.es?mid=a20301010100&evtSeq=<evtSeq>` (`sourceUrl`로 씀) |
 | 참고 | 공개 문서가 없는 API라 형식이 바뀔 수 있음. 이용약관은 확인하지 않음 |
 
@@ -172,9 +173,9 @@
 ## 3. 생성·갱신 흐름
 
 ```
-node run.ts [events|closures|forecast]
-  대상마다: build() → check() + 크기 검사 → 통과하면 저장
+node run.ts [forecast|closures|events]
+  대상마다(이 순서로): build() → check() + 크기 검사 → 통과하면 저장
   실패한 대상은 이전 파일 유지, 종료 코드 1 (알 수 없는 대상 이름은 2)
 ```
 
-GitHub Actions(`.github/workflows/update.yml`): 매일 02:30 UTC(11:30 KST)와 수동 실행. 테스트 → `node run.ts` → 바뀐 데이터 파일 3개를 봇이 커밋·push. 생성이 일부 실패해도 성공한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`입니다.
+GitHub Actions(`.github/workflows/update.yml`): 매일 02:30 UTC(11:30 KST)와 수동 실행. 예약 실행은 기본 브랜치의 워크플로만 돌므로 `main`에 병합된 뒤부터 동작합니다. 테스트 → `node run.ts`(최대 10분) → 바뀐 데이터 파일 3개를 봇이 커밋·push. 생성이 일부 실패하거나 10분을 넘어도 그때까지 저장한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`입니다.
