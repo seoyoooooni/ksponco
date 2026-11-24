@@ -54,6 +54,8 @@ export function scheduleToManual(items: ScheduleItem[]): ManualEvent[] {
           sourceUrl: SCHEDULE_VIEW + it.evtSeq,
         })
   }
+  // 날짜 형식이 바뀌면 전부 건너뛰어 manual만 남은 채 저장되므로 실패로 처리한다.
+  if (items.length && !out.length) throw new Error('올림픽공원 일정: 펼친 공연이 0건 (날짜 형식 변경 의심)')
   return out
 }
 

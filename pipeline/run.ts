@@ -1,7 +1,7 @@
 // 생성 → 검사 → 통과한 파일만 저장. 실패한 대상은 이전 파일을 그대로 두고 종료 코드 1.
 // 실행: node run.ts            (전체)
 //       node run.ts closures   (일부만)
-import { writeFileSync } from 'node:fs'
+import { renameSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkClosures, checkEvents, checkForecast, checkSize } from './check/check.ts'
@@ -26,10 +26,14 @@ export const TARGETS: Target[] = [
 
 const MAX_SHOWN = 20
 
-export async function runTarget(
-  t: Target,
-  write: (file: string, text: string) => void = (f, s) => writeFileSync(f, s),
-): Promise<boolean> {
+// 쓰는 도중 실패해도 기존 파일이 깨지지 않게 임시 파일에 쓴 뒤 바꿔 끼운다.
+export function writeAtomic(file: string, text: string) {
+  const tmp = `${file}.tmp`
+  writeFileSync(tmp, text)
+  renameSync(tmp, file)
+}
+
+export async function runTarget(t: Target, write: (file: string, text: string) => void = writeAtomic): Promise<boolean> {
   let data: unknown
   try {
     data = await t.build()

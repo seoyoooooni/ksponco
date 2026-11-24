@@ -109,6 +109,13 @@ test('scheduleToManual: 다른 장소, 잘못된 날짜, 31일 초과 기간은 
   assert.ok(out.every((e) => e.id.includes('-5')))
 })
 
+test('scheduleToManual: 항목이 있는데 펼친 결과가 0건이면 오류(날짜 형식 변경 대비)', () => {
+  const warn = mock.method(console, 'warn', () => {})
+  assert.throws(() => scheduleToManual([item(1, '88잔디마당', '2026.05.10', '2026.05.11')]), /0건/)
+  warn.mock.restore()
+  assert.deepEqual(scheduleToManual([]), [])
+})
+
 test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리는 먼저 온 것이 이긴다', () => {
   const m = { ...base, id: 'm', date: '2026-09-05' }
   const a1 = { ...base, id: 'a1', date: '2026-09-05' }
