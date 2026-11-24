@@ -1,9 +1,33 @@
 {
-  "updated": "2026-06-16T05:00+09:00",
+  "updated": "2026-11-24T05:00+09:00",
   "days": [
-    { "date": "2026-06-16", "sky": "맑음", "rain": false, "rainPrevDay": 0.0, "tempMax": 28 },
-    { "date": "2026-06-17", "sky": "구름많음", "rain": false, "rainPrevDay": 0.0, "tempMax": 27 },
-    { "date": "2026-06-18", "sky": "흐림", "rain": true, "rainPrevDay": 0.0, "tempMax": 24 },
-    { "date": "2026-06-19", "sky": "맑음", "rain": false, "rainPrevDay": 12.5, "tempMax": 29 }
+    {
+      "date": "2026-11-24",
+      "sky": "맑음",
+      "rain": false,
+      "rainPrevDay": 5.1,
+      "tempMax": 4
+    },
+    {
+      "date": "2026-11-25",
+      "sky": "구름많음",
+      "rain": false,
+      "rainPrevDay": 0,
+      "tempMax": 7
+    },
+    {
+      "date": "2026-11-26",
+      "sky": "맑음",
+      "rain": false,
+      "rainPrevDay": 0,
+      "tempMax": 16
+    },
+    {
+      "date": "2026-11-27",
+      "sky": "구름많음",
+      "rain": true,
+      "rainPrevDay": 0,
+      "tempMax": 16
+    }
   ]
 }
