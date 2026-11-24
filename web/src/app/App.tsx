@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import { loadClosures, loadEvents, loadLayout, loadVenueBundle } from '../data/load'
+import { loadClosures, loadEvents, loadForecast, loadLayout, loadVenueBundle } from '../data/load'
 import { useLoad } from '../data/useLoad'
-import type { Closure, EventItem, Layout } from '../data/types'
+import type { Closure, EventItem, Forecast, Layout } from '../data/types'
 import type { VenueBundle } from '../data/load'
 import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
 import { dateLabel, durationLabel, hourLabel, parseClock, timeLabel } from '../lib/format'
+import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { sunsetHour } from '../lib/sun'
 import { SceneCanvas } from '../scene/SceneCanvas'
@@ -22,7 +23,7 @@ import { SourcesSheet } from './SourcesSheet'
 import { useAnalysis } from './useAnalysis'
 import { usePlayback } from './usePlayback'
 
-const VENUES_READY = ['lawn88'] as const
+const VENUES_READY = ['lawn88', 'lake'] as const
 
 function defaultEverydayStay(date: string, hours: number): [number, number] {
   if (date === TODAY) {
@@ -58,14 +59,20 @@ type Base = {
   bundle: VenueBundle
   events: EventItem[]
   closures: Closure[]
+  forecast: Forecast | null
 }
 
 export function App() {
   usePlayback()
   const venue = useScene((s) => s.venue)
   const base = useLoad<Base>(async () => {
-    const [bundle, events, closures] = await Promise.all([loadVenueBundle(venue), loadEvents(), loadClosures()])
-    return { bundle, events, closures }
+    const [bundle, events, closures, forecast] = await Promise.all([
+      loadVenueBundle(venue),
+      loadEvents(),
+      loadClosures(),
+      loadForecast().catch(() => null),
+    ])
+    return { bundle, events, closures, forecast }
   }, [venue])
 
   if (base.status !== 'ready') {
@@ -91,6 +98,7 @@ function Main({ ready }: { ready: Base }) {
   const sourcesOpen = useScene((s) => s.sourcesOpen)
   const seats = useScene((s) => s.seats)
   const playing = useScene((s) => s.playing)
+  const chosenPref = useScene((s) => s.pref)
 
   const event = useMemo(
     () => ready.events.find((e) => e.venue === venue && e.date === date) ?? null,
@@ -112,14 +120,17 @@ function Main({ ready }: { ready: Base }) {
     if (event) {
       const from = Math.max(9, parseClock(event.start))
       const to = Math.min(22, parseClock(event.end))
-      sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetSnap: 1 })
+      sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetSnap: 1, pref: null })
     } else {
       const s = defaultEverydayStay(date, 2)
-      sceneStore.set({ stay: s, hour: s[0], seats: false, sheetSnap: 1 })
+      sceneStore.set({ stay: s, hour: s[0], seats: false, sheetSnap: 1, pref: null })
     }
   }, [event?.id, date])
 
-  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats })
+  const tempMax = dayTempMax(date, ready.forecast, event?.tempMax ?? null)
+  const pref = chosenPref ?? autoPref(tempMax)
+  const sunWeight = prefWeight(tempMax, chosenPref !== null)
+  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats, pref, sunWeight })
 
   useEffect(() => {
     if (!layoutReady) return
@@ -169,12 +180,13 @@ function Main({ ready }: { ready: Base }) {
       {firstPerson ? (
         <FirstPersonOverlay
           lines={fpLines}
-          stats={analysis.stats}
+          stats={analysis.view ? analysis.stats : null}
           eyeHeight={eyeHeight}
           onEye={(h) => sceneStore.set({ eyeHeight: h })}
           onBack={() => sceneStore.set({ camera: 'orbit' })}
           away={fpAway}
           onRecenter={() => sceneStore.set({ fpRecenter: sceneStore.get().fpRecenter + 1 })}
+          recenterLabel={layout?.stage || ready.bundle.venue.fixedStage ? '무대 보기' : '처음 방향 보기'}
         />
       ) : (
         <>
@@ -186,17 +198,11 @@ function Main({ ready }: { ready: Base }) {
               onOpen={() => sceneStore.set({ pickerOpen: true })}
             />
           </header>
-          {mode === 'everyday' && !closure && <Legend kind="shade" />}
           {mode === 'event' && seats && <Legend kind="seats" />}
-          {!closure && (
-            <FloatingActions
-              showSeats={mode === 'event'}
-              seats={seats}
-              onSeats={() => sceneStore.set({ seats: !seats })}
-              playing={playing}
-              onPlay={() => sceneStore.set({ playing: !playing })}
-            />
-          )}
+          {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
+          <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
+            데이터 출처
+          </button>
           {mode === 'event' ? (
             <AudienceSheet
               snap={sheetSnap}
@@ -211,7 +217,8 @@ function Main({ ready }: { ready: Base }) {
               onHour={(h) => sceneStore.set({ hour: h })}
               canFirstPerson={Boolean(mat)}
               onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
-              onSources={() => sceneStore.set({ sourcesOpen: true })}
+              playing={playing}
+              onPlay={() => sceneStore.set({ playing: !playing })}
             />
           ) : (
             <EverydaySheet
@@ -219,7 +226,9 @@ function Main({ ready }: { ready: Base }) {
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
               closure={closure ? { title: `${dateLabel(date)}은 ${closure.reason}로 출입이 제한돼요`, sub: `${dateLabel(closure.from)}부터 ${dateLabel(closure.to)}까지예요. 다른 날짜를 골라 보세요.` } : null}
-              headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}\n그늘이 이어지는 곳`}
+              headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}\n${pref === 'shade' ? '그늘이 이어지는 곳' : '볕이 드는 곳'}`}
+              pref={pref}
+              onPref={(v) => sceneStore.set({ pref: v })}
               spots={analysis.spots.map((s) => ({ name: s.name, meta: `${Math.round(s.distance)}m` }))}
               onSpot={(i) => {
                 const s = analysis.spots[i]
@@ -231,10 +240,12 @@ function Main({ ready }: { ready: Base }) {
               stay={stay}
               strip={analysis.strip}
               hour={hour}
-              myMatText={mat ? `내 돗자리: ${analysis.headline}${analysis.detail ? ` · ${analysis.detail}` : ''}` : null}
+              canFirstPerson={Boolean(mat)}
+              onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
               onHour={(h) => sceneStore.set({ hour: h })}
-              onSources={() => sceneStore.set({ sourcesOpen: true })}
+              playing={playing}
+              onPlay={() => sceneStore.set({ playing: !playing })}
             />
           )}
           {import.meta.env.DEV && <DevTools />}

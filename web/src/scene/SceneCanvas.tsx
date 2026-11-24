@@ -17,6 +17,7 @@ import { SpotMarkers, type SpotMarker } from './SpotMarkers'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
+import { Water } from './Water'
 
 type Props = {
   bundle: VenueBundle
@@ -44,7 +45,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
   const crowdScale = useScene((s) => s.crowdScale)
   const personStyle = useScene((s) => s.personStyle)
 
-  const stage = layout ? (layout.stage ?? venue.fixedStage ?? null) : null
+  const stage = layout?.stage ?? venue.fixedStage ?? null
 
   const center = useMemo<[number, number, number]>(() => {
     const cx = terrain.x0 + ((terrain.nx - 1) * terrain.cell) / 2
@@ -63,8 +64,11 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
   const lookAt = useMemo<[number, number, number] | null>(() => {
     if (performerTarget) return performerTarget
     if (!mat) return null
-    return [center[0], heightAt(terrain, center[0], center[2]) + 1.5, center[2] - 30]
-  }, [performerTarget, mat, center, terrain])
+    if (stage) return [stage.x, heightAt(terrain, stage.x, stage.z) + stage.deckH + 2, stage.z]
+    const far = Math.hypot(mat.x - center[0], mat.z - center[2]) > 10
+    const tz = far ? center[2] : center[2] - 30
+    return [center[0], heightAt(terrain, center[0], tz) + 1.5, tz]
+  }, [performerTarget, mat, center, terrain, stage])
 
   const eye = useMemo<[number, number, number] | null>(
     () => (mat ? [mat.x, heightAt(terrain, mat.x, mat.z) + eyeHeight, mat.z] : null),
@@ -110,6 +114,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
       <SunLight center={center} radius={radius} />
 
       <Terrain terrain={terrain} layout={layout} onPick={handlePick} />
+      {venue.water && <Water poly={venue.water} />}
       <Trees trees={trees} terrain={terrain} />
       <Buildings buildings={buildings} />
 
@@ -123,7 +128,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
 
       {layout && crowd && <Crowd crowd={crowd} layout={layout} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
-      {overlay && <HeatOverlay cells={overlay} terrain={terrain} />}
+      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
 
       {mat && (

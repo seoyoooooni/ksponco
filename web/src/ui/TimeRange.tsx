@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { PauseIcon, PlayIcon } from './icons'
 
 export type StripState = 0 | 1 | 2
 
@@ -13,6 +14,8 @@ type Props = {
   minSpan?: number
   onChange: (from: number, to: number) => void
   onCursor?: (hour: number) => void
+  playing?: boolean
+  onPlay?: () => void
 }
 
 const STATE_CLASS = ['is-night', 'is-shade', 'is-sun'] as const
@@ -38,6 +41,8 @@ export function TimeRange({
   minSpan = 0.5,
   onChange,
   onCursor,
+  playing = false,
+  onPlay,
 }: Props) {
   const track = useRef<HTMLDivElement>(null)
   const span = max - min
@@ -79,6 +84,17 @@ export function TimeRange({
 
   return (
     <div className="timerange">
+      {onPlay && (
+        <button
+          type="button"
+          className="timerange__play"
+          aria-label={playing ? '그림자 재생 멈춤' : '하루 그림자 재생'}
+          aria-pressed={playing}
+          onClick={onPlay}
+        >
+          {playing ? <PauseIcon size={14} /> : <PlayIcon size={14} />}
+        </button>
+      )}
       <div
         ref={track}
         className="timerange__track"

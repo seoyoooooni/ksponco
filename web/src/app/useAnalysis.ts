@@ -8,7 +8,6 @@ import {
   sunHours,
   sunPhrase,
   sunStrip,
-  verdict,
   viewFrom,
   type HeadIndex,
   type SunState,
@@ -16,8 +15,9 @@ import {
 } from '../lib/analysis'
 import { buildCrowd, type Crowd } from '../lib/crowd'
 import { hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
-import { goodSeats, seatGrade } from '../lib/goodSeats'
-import { directionName, scanBounds, shadeGrid, shadeSpots, type ShadeGrid, type ShadeSpot } from '../lib/shadeGrid'
+import { comfort, stripShade, type SunPref } from '../lib/comfort'
+import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
+import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots, type ShadeGrid, type ShadeSpot } from '../lib/shadeGrid'
 import { heightAt, sourceAt } from '../lib/terrainSample'
 import type { OverlayCell } from '../scene/HeatOverlay'
 import type { MatPosition } from '../store/sceneStore'
@@ -38,6 +38,8 @@ type Input = {
   eyeHeight: number
   crowdScale: number
   seats: boolean
+  pref: SunPref
+  sunWeight: number
 }
 
 export type Analysis = {
@@ -59,7 +61,7 @@ function shadeColor(f: number): string {
   return SHADE_COLORS[k]
 }
 
-export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats }: Input): Analysis {
+export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats, pref, sunWeight }: Input): Analysis {
   const { terrain, trees, venue } = bundle
   const [from, to] = stay
   const stage = layout ? (layout.stage ?? venue.fixedStage ?? null) : null
@@ -94,7 +96,9 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
   const spots = useMemo(() => {
     if (layout || !shade) return []
     const origin = mat ?? lawnCenter
-    const picks = shadeSpots(shade, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} 나무 그늘` }))
+    const want = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
+    const suffix = pref === 'shade' ? '나무 그늘' : '양지'
+    const picks = shadeSpots(want, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} ${suffix}` }))
     const sides = ['서편', '가운데', '동편']
     for (const name of new Set(picks.map((s) => s.name))) {
       const same = picks.filter((s) => s.name === name).sort((a, b) => a.x - b.x)
@@ -104,7 +108,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       })
     }
     return picks
-  }, [layout, shade, mat, lawnCenter])
+  }, [layout, shade, mat, lawnCenter, pref])
 
   const overlay = useMemo<OverlayCell[] | null>(() => {
     if (!layout && shade) {
@@ -120,15 +124,15 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       return cells
     }
     if (layout && seats) {
-      return goodSeats(layout, stage, terrain, heads, canopies, shade, 0.4).map((c) => ({
+      return goodSeats(layout, stage, terrain, heads, canopies, shade, sunWeight, 2, pref).map((c) => ({
         x: c.x,
         z: c.z,
-        size: 4,
+        size: 2,
         color: SEAT_COLORS[seatGrade(c.score)],
       }))
     }
     return null
-  }, [layout, seats, shade, stage, terrain, heads, canopies])
+  }, [layout, seats, shade, stage, terrain, heads, canopies, sunWeight, pref])
 
   const stats = useMemo<AudienceStats | null>(() => {
     if (!mat) return null
@@ -145,7 +149,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       ? '피크닉존 잔디를 눌러 돗자리를 놓아 보세요'
       : '잔디를 눌러 돗자리를 놓아 보세요'
     : view
-      ? verdict(view)
+      ? seatVerdict(view.stage, comfort(stripShade(strip), pref), sunWeight)
       : sunPhrase(strip, from, hourLabel)
 
   const detail = mat && view ? `${sightPhrase(view)} · ${sunPhrase(strip, from, hourLabel)}` : ''

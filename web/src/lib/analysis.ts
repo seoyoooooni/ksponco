@@ -201,12 +201,6 @@ export function sightPhrase(view: ViewResult): string {
   return '앞사람에 많이 가림'
 }
 
-export function verdict(view: ViewResult): string {
-  const far = view.stageDistance > 45
-  if ((view.stage >= 0.6 && !far) || view.screen >= 0.6) return '좋은 자리예요'
-  if (view.stage >= 0.25) return '그럭저럭 보여요'
-  return '잘 안 보이는 자리예요'
-}
 
 export function sunPhrase(strip: SunState[], from: number, hourText: (h: number) => string): string {
   if (!strip.some((v) => v === 2)) return '내내 그늘'

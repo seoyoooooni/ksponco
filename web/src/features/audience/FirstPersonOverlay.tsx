@@ -11,6 +11,7 @@ type Props = {
   onBack: () => void
   away: boolean
   onRecenter: () => void
+  recenterLabel: string
 }
 
 export function FirstPersonOverlay(p: Props) {
@@ -22,7 +23,7 @@ export function FirstPersonOverlay(p: Props) {
         </PillButton>
         {p.away && (
           <PillButton variant="light" onClick={p.onRecenter}>
-            무대 보기
+            {p.recenterLabel}
           </PillButton>
         )}
       </div>

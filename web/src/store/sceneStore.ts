@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react'
 import type { VenueId } from '../data/types'
 import type { PersonStyleId } from '../scene/personStyles'
 import type { SheetSnap } from '../ui/BottomSheet'
+import type { SunPref } from '../lib/comfort'
 
 export type CameraMode = 'orbit' | 'firstPerson'
 
@@ -31,6 +32,7 @@ export type SceneState = {
   sourcesOpen: boolean
   seats: boolean
   playing: boolean
+  pref: SunPref | null
 }
 
 type Listener = () => void
@@ -69,6 +71,7 @@ let state: SceneState = {
   sourcesOpen: false,
   seats: false,
   playing: false,
+  pref: null,
 }
 
 const listeners = new Set<Listener>()
