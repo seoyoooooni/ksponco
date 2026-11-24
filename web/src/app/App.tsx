@@ -82,6 +82,7 @@ function Main({ ready }: { ready: Base }) {
   const mat = useScene((s) => s.mat)
   const matTouched = useScene((s) => s.matTouched)
   const eyeHeight = useScene((s) => s.eyeHeight)
+  const fpAway = useScene((s) => s.fpAway)
   const camera = useScene((s) => s.camera)
   const notice = useScene((s) => s.notice)
   const crowdScale = useScene((s) => s.crowdScale)
@@ -169,12 +170,11 @@ function Main({ ready }: { ready: Base }) {
         <FirstPersonOverlay
           lines={fpLines}
           stats={analysis.stats}
-          hour={hour}
-          range={stay}
-          onHour={(h) => sceneStore.set({ hour: h })}
           eyeHeight={eyeHeight}
           onEye={(h) => sceneStore.set({ eyeHeight: h })}
           onBack={() => sceneStore.set({ camera: 'orbit' })}
+          away={fpAway}
+          onRecenter={() => sceneStore.set({ fpRecenter: sceneStore.get().fpRecenter + 1 })}
         />
       ) : (
         <>
