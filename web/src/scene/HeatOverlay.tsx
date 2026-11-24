@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef } from 'react'
-import { Color, InstancedMesh, Object3D } from 'three'
+import { useMemo } from 'react'
+import { BufferGeometry, Color, Float32BufferAttribute } from 'three'
 import type { Terrain } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 
@@ -10,32 +10,40 @@ export type OverlayCell = {
   color: string
 }
 
-export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain: Terrain }) {
-  const ref = useRef<InstancedMesh>(null)
+const LIFT = 0.15
 
-  useLayoutEffect(() => {
-    const mesh = ref.current
-    if (!mesh) return
-    const o = new Object3D()
+export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain: Terrain }) {
+  const geometry = useMemo(() => {
+    const pos: number[] = []
+    const col: number[] = []
     const c = new Color()
-    cells.forEach((cell, i) => {
-      o.position.set(cell.x, heightAt(terrain, cell.x, cell.z) + 0.12, cell.z)
-      o.rotation.set(-Math.PI / 2, 0, 0)
-      o.scale.set(cell.size, cell.size, 1)
-      o.updateMatrix()
-      mesh.setMatrixAt(i, o.matrix)
-      mesh.setColorAt(i, c.set(cell.color))
-    })
-    mesh.instanceMatrix.needsUpdate = true
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
-    mesh.computeBoundingSphere()
+    for (const cell of cells) {
+      const h = cell.size / 2
+      const x0 = cell.x - h
+      const x1 = cell.x + h
+      const z0 = cell.z - h
+      const z1 = cell.z + h
+      const y = (x: number, z: number) => heightAt(terrain, x, z) + LIFT
+      const a = [x0, y(x0, z0), z0]
+      const b = [x1, y(x1, z0), z0]
+      const d = [x0, y(x0, z1), z1]
+      const e = [x1, y(x1, z1), z1]
+      pos.push(...a, ...d, ...b, ...b, ...d, ...e)
+      c.set(cell.color)
+      for (let k = 0; k < 6; k++) col.push(c.r, c.g, c.b)
+    }
+    const g = new BufferGeometry()
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3))
+    g.setAttribute('color', new Float32BufferAttribute(col, 3))
+    g.computeVertexNormals()
+    g.computeBoundingSphere()
+    return g
   }, [cells, terrain])
 
   if (cells.length === 0) return null
   return (
-    <instancedMesh key={cells.length} ref={ref} args={[undefined, undefined, cells.length]} raycast={() => null}>
-      <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial transparent opacity={0.88} depthWrite={false} />
-    </instancedMesh>
+    <mesh geometry={geometry} raycast={() => null}>
+      <meshLambertMaterial vertexColors transparent opacity={0.9} depthWrite={false} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+    </mesh>
   )
 }

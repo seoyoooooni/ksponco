@@ -22,6 +22,7 @@ const HIDE_R = 2.2
 export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = false }: Props) {
   const bodies = useRef<InstancedMesh>(null)
   const heads = useRef<InstancedMesh>(null)
+  const ears = useRef<InstancedMesh>(null)
   const mats = useRef<InstancedMesh>(null)
   const style = personStyles[styleId]
 
@@ -36,12 +37,17 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
   useLayoutEffect(() => {
     const c = new Color()
     crowd.people.forEach((p, i) => {
-      c.set(clothTones[p.tone % clothTones.length])
+      const tones = style.tones ?? clothTones
+      c.set(tones[p.tone % tones.length])
       bodies.current?.setColorAt(i, c)
       if (style.head && !style.head.color) heads.current?.setColorAt(i, c)
+      if (style.ears) {
+        ears.current?.setColorAt(i * 2, c)
+        ears.current?.setColorAt(i * 2 + 1, c)
+      }
     })
     crowd.mats.forEach((m, i) => mats.current?.setColorAt(i, c.set(matTones[m.tone % matTones.length])))
-    for (const mesh of [bodies.current, heads.current, mats.current]) {
+    for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {
       if (mesh?.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   }, [crowd, style])
@@ -70,6 +76,14 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
         o.scale.set(s, s, s)
         o.updateMatrix()
         heads.current?.setMatrixAt(i, o.matrix)
+        if (style.ears) {
+          const e = style.ears
+          for (const k of [0, 1]) {
+            o.position.set(p.x + (k ? e.spread : -e.spread), g + style.head.y(p.seated) + e.lift, p.z)
+            o.updateMatrix()
+            ears.current?.setMatrixAt(i * 2 + k, o.matrix)
+          }
+        }
       }
     })
 
@@ -81,7 +95,7 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
       mats.current?.setMatrixAt(i, o.matrix)
     })
 
-    for (const mesh of [bodies.current, heads.current, mats.current]) {
+    for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {
       if (!mesh) continue
       mesh.instanceMatrix.needsUpdate = true
       mesh.computeBoundingSphere()
@@ -109,6 +123,12 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
         <instancedMesh key={`h-${styleId}`} ref={heads} args={[undefined, undefined, n]}>
           <sphereGeometry args={[style.head.radius, 12, 8]} />
           <meshLambertMaterial color={style.head.color ?? '#ffffff'} transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
+        </instancedMesh>
+      )}
+      {n > 0 && style.head && style.ears && (
+        <instancedMesh key={`e-${styleId}`} ref={ears} args={[undefined, undefined, n * 2]}>
+          <coneGeometry args={[style.ears.radius, style.ears.height, 4]} />
+          <meshLambertMaterial transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
         </instancedMesh>
       )}
       {m > 0 && (
