@@ -21,16 +21,14 @@ function Svg({ size = 20, children, ...rest }: IconProps) {
   )
 }
 
-export function PinIcon({ size = 26 }: { size?: number }) {
+export function PinIcon({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={(size * 30) / 26} viewBox="0 0 26 30" aria-hidden="true">
       <path
         d="M13 29s-10-9.2-10-16.5a10 10 0 0 1 20 0C23 19.8 13 29 13 29z"
-        fill="var(--color-sun)"
-        stroke="var(--color-ink)"
-        strokeWidth="2"
+        fill="var(--color-ink)"
       />
-      <circle cx="13" cy="12.5" r="3.6" fill="var(--color-ink)" />
+      <circle cx="13" cy="12.5" r="3.8" fill="#ffffff" />
     </svg>
   )
 }

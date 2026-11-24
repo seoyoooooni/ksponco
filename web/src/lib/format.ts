@@ -36,17 +36,13 @@ export function hourLabel(h: number): string {
   return mm ? `${h12}시 ${mm}분` : `${h12}시`
 }
 
-export function periodLabel(h: number): string {
-  return h < 12 ? '오전' : '오후'
-}
-
 export function timeLabel(h: number): string {
-  return `${periodLabel(h)} ${hourLabel(h)}`
+  const total = Math.round(h * 60)
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
 }
 
 export function rangeLabel(from: number, to: number): string {
-  const end = periodLabel(from) === periodLabel(to) ? hourLabel(to) : timeLabel(to)
-  return `${timeLabel(from)}–${end}`
+  return `${timeLabel(from)}–${timeLabel(to)}`
 }
 
 export function parseClock(s: string): number {

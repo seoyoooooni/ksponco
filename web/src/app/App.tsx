@@ -146,10 +146,10 @@ function Main({ ready }: { ready: Base }) {
   const fpLines: [string, string?] = analysis.view
     ? [
         analysis.view.stage >= 0.95
-          ? '무대가 다 보여요.'
+          ? '무대가 다 보여요'
           : analysis.view.stage >= 0.6
-            ? '무대가 대부분 보여요.'
-            : `무대가 ${Math.round(analysis.view.stage * 100)}%만 보여요.`,
+            ? '무대가 대부분 보여요'
+            : `무대가 ${Math.round(analysis.view.stage * 100)}%만 보여요`,
         analysis.view.stageDistance > 45 && analysis.view.screen >= 0.6 ? '표정은 스크린으로 보세요' : undefined,
       ]
     : [analysis.headline]
@@ -203,15 +203,12 @@ function Main({ ready }: { ready: Base }) {
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
               headline={analysis.headline}
-              notes={analysis.estimates}
               stats={analysis.stats}
               stay={stay}
               strip={analysis.strip}
               hour={hour}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
               onHour={(h) => sceneStore.set({ hour: h })}
-              eyeHeight={eyeHeight}
-              onEye={(h) => sceneStore.set({ eyeHeight: h })}
               canFirstPerson={Boolean(mat)}
               onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               onSources={() => sceneStore.set({ sourcesOpen: true })}
@@ -223,18 +220,18 @@ function Main({ ready }: { ready: Base }) {
               onVisibleHeight={setSheetH}
               closure={closure ? { title: `${dateLabel(date)}은 ${closure.reason}로 출입이 제한돼요`, sub: `${dateLabel(closure.from)}부터 ${dateLabel(closure.to)}까지예요. 다른 날짜를 골라 보세요.` } : null}
               headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}\n그늘이 이어지는 곳`}
-              spots={analysis.spots.map((s) => ({ name: s.name, meta: `${mat ? '내 돗자리에서' : '잔디 가운데서'} ${Math.round(s.distance)}m` }))}
+              spots={analysis.spots.map((s) => ({ name: s.name, meta: `${Math.round(s.distance)}m` }))}
               onSpot={(i) => {
                 const s = analysis.spots[i]
                 if (s) sceneStore.set({ mat: { x: s.x, z: s.z }, matTouched: true })
               }}
-              sunsetText={sunset ? `해 지는 시각 ${timeLabel(sunset)} · 노을은 ${hourLabel(Math.floor((sunset - 0.5) * 4) / 4)}쯤부터` : '해 지는 시각을 계산하지 못했어요'}
+              sunsetText={sunset ? `해 지는 시각 ${timeLabel(sunset)}` : '해 지는 시각을 계산하지 못했어요'}
               duration={durationValue}
               onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(22, stay[0] + h)] })}
               stay={stay}
               strip={analysis.strip}
               hour={hour}
-              myMatText={mat ? `내 돗자리: ${analysis.headline}` : null}
+              myMatText={mat ? `내 돗자리: ${analysis.headline}${analysis.detail ? ` · ${analysis.detail}` : ''}` : null}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
               onHour={(h) => sceneStore.set({ hour: h })}
               onSources={() => sceneStore.set({ sourcesOpen: true })}
@@ -261,6 +258,7 @@ function Main({ ready }: { ready: Base }) {
         open={sourcesOpen}
         onClose={closeSources}
         layoutSource={layout?.source ?? null}
+        estimates={mode === 'event' ? analysis.estimates : []}
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
       <Toast message={notice} onDone={clearNotice} />

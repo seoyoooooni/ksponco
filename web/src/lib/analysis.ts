@@ -193,19 +193,26 @@ export function viewFrom(
 
 export function sightPhrase(view: ViewResult): string {
   const far = view.stageDistance > 45
-  if (view.stage >= 0.6 && !far) return '무대가 잘 보이고'
-  if (view.stage >= 0.6 && view.screen >= 0.6) return '무대는 멀지만 스크린이 잘 보이고'
-  if (view.stage >= 0.6) return '무대가 보이지만 멀고'
-  if (view.screen >= 0.6) return '무대는 가리지만 스크린이 잘 보이고'
-  if (view.stage >= 0.25) return '무대가 일부 보이고'
-  return '앞사람에 많이 가려지고'
+  if (view.stage >= 0.6 && !far) return '무대 잘 보임'
+  if (view.stage >= 0.6 && view.screen >= 0.6) return '스크린 잘 보임'
+  if (view.stage >= 0.6) return '무대 멀리 보임'
+  if (view.screen >= 0.6) return '스크린만 잘 보임'
+  if (view.stage >= 0.25) return '무대 일부 보임'
+  return '앞사람에 많이 가림'
+}
+
+export function verdict(view: ViewResult): string {
+  const far = view.stageDistance > 45
+  if ((view.stage >= 0.6 && !far) || view.screen >= 0.6) return '좋은 자리예요'
+  if (view.stage >= 0.25) return '그럭저럭 보여요'
+  return '잘 안 보이는 자리예요'
 }
 
 export function sunPhrase(strip: SunState[], from: number, hourText: (h: number) => string): string {
-  if (!strip.some((v) => v === 2)) return '머무는 동안 내내 그늘이에요'
+  if (!strip.some((v) => v === 2)) return '내내 그늘'
   const at = shadeFrom(strip, from)
-  if (at === null) return '끝날 때까지 볕이 들어요'
+  if (at === null) return '끝까지 볕'
   const rest = strip.slice(Math.round((at - from) / STEP))
-  if (rest.some((v) => v === 1)) return `${hourText(at)}부터 그늘이에요`
-  return '해\u00a0질 때까지 볕이 들어요'
+  if (rest.some((v) => v === 1)) return `${hourText(at)}부터 그늘`
+  return '해\u00a0질 때까지 볕'
 }

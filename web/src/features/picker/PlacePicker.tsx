@@ -59,10 +59,10 @@ export function PlacePicker(p: Props) {
   const closure = closedOn(venueClosures, selected)
 
   const info = event
-    ? { title: event.name, sub: `공연 ${rangeLabel(parseClock(event.start), parseClock(event.end))}` }
+    ? { title: event.name, sub: rangeLabel(parseClock(event.start), parseClock(event.end)) }
     : closure
       ? { title: '출입 제한', sub: closure.reason }
-      : { title: '공연 없는 날', sub: '그늘 지도로 보여요' }
+      : { title: '공연 없는 날', sub: '' }
   const sel = parseDate(selected)
   const same = selected === p.date
 
@@ -120,7 +120,8 @@ export function PlacePicker(p: Props) {
       <div className="day-info" aria-live="polite">
         <span className="day-info__date">{dateLabel(selected)}</span>
         <span className="day-info__text">
-          <b>{info.title}</b> · {info.sub}
+          <b>{info.title}</b>
+          {info.sub && ` · ${info.sub}`}
         </span>
       </div>
       <button
