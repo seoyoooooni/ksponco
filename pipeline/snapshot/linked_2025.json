@@ -1,0 +1,2958 @@
+{
+  "source": "https://api.kcisa.kr/openapi/API_CPM_009/request",
+  "fetched": "2026-11-22T15:57:20.230Z",
+  "tempMax": {
+    "2025-01-01": 8.5,
+    "2025-01-02": 5.9,
+    "2025-01-03": 3.1,
+    "2025-01-04": 5.5,
+    "2025-01-05": 2.4,
+    "2025-01-06": 2.9,
+    "2025-01-07": 1,
+    "2025-01-08": 0.1,
+    "2025-01-09": -6.1,
+    "2025-01-10": -2,
+    "2025-01-11": 0.3,
+    "2025-01-12": 1.9,
+    "2025-01-13": 3.9,
+    "2025-01-14": 5,
+    "2025-01-15": -0.9,
+    "2025-01-16": 2.8,
+    "2025-01-17": 5.1,
+    "2025-01-18": 7.4,
+    "2025-01-19": 8.8,
+    "2025-01-20": 7.3,
+    "2025-01-21": 6.3,
+    "2025-01-22": 7.5,
+    "2025-01-23": 7.4,
+    "2025-01-24": 10.3,
+    "2025-01-25": 11.2,
+    "2025-01-26": 7.5,
+    "2025-01-27": 5.1,
+    "2025-01-28": -2.6,
+    "2025-01-29": -1.5,
+    "2025-01-30": -1.2,
+    "2025-01-31": 0.6,
+    "2025-02-01": 7.8,
+    "2025-02-02": 6.6,
+    "2025-02-03": 0.6,
+    "2025-02-04": -5.8,
+    "2025-02-05": -3.9,
+    "2025-02-06": -0.8,
+    "2025-02-07": -5,
+    "2025-02-08": -3.7,
+    "2025-02-09": 1.4,
+    "2025-02-10": 2.4,
+    "2025-02-11": 7,
+    "2025-02-12": 2.4,
+    "2025-02-13": 5.9,
+    "2025-02-14": 9.7,
+    "2025-02-15": 7.8,
+    "2025-02-16": 9.4,
+    "2025-02-17": 3.3,
+    "2025-02-18": 2.1,
+    "2025-02-19": 1,
+    "2025-02-20": 1.8,
+    "2025-02-21": 2.2,
+    "2025-02-22": 2.5,
+    "2025-02-23": 0.2,
+    "2025-02-24": 4.5,
+    "2025-02-25": 5.6,
+    "2025-02-26": 8.4,
+    "2025-02-27": 14,
+    "2025-02-28": 13.2,
+    "2025-03-01": 12.8,
+    "2025-03-02": 15.3,
+    "2025-03-03": 6.9,
+    "2025-03-04": 3.4,
+    "2025-03-05": 8.9,
+    "2025-03-06": 10.3,
+    "2025-03-07": 11.1,
+    "2025-03-08": 10.9,
+    "2025-03-09": 13.4,
+    "2025-03-10": 14.8,
+    "2025-03-11": 16.4,
+    "2025-03-12": 11.6,
+    "2025-03-13": 14.9,
+    "2025-03-14": 19.7,
+    "2025-03-15": 17.1,
+    "2025-03-16": 10.1,
+    "2025-03-17": 6.6,
+    "2025-03-18": 5.1,
+    "2025-03-19": 7.2,
+    "2025-03-20": 14.7,
+    "2025-03-21": 18.3,
+    "2025-03-22": 19.6,
+    "2025-03-23": 23.8,
+    "2025-03-24": 21.3,
+    "2025-03-25": 21.4,
+    "2025-03-26": 23.6,
+    "2025-03-27": 18.5,
+    "2025-03-28": 11.4,
+    "2025-03-29": 6.5,
+    "2025-03-30": 7.4,
+    "2025-03-31": 13.7,
+    "2025-04-01": 16.8,
+    "2025-04-02": 14.4,
+    "2025-04-03": 16.8,
+    "2025-04-04": 16.1,
+    "2025-04-05": 9.5,
+    "2025-04-06": 15.5,
+    "2025-04-07": 20,
+    "2025-04-08": 18.4,
+    "2025-04-09": 17.8,
+    "2025-04-10": 18.7,
+    "2025-04-11": 24.2,
+    "2025-04-12": 22.1,
+    "2025-04-13": 8,
+    "2025-04-14": 5.9,
+    "2025-04-15": 13.8,
+    "2025-04-16": 21.7,
+    "2025-04-17": 24.5,
+    "2025-04-18": 23.5,
+    "2025-04-19": 19.9,
+    "2025-04-20": 24,
+    "2025-04-21": 27,
+    "2025-04-22": 20.4,
+    "2025-04-23": 22.5,
+    "2025-04-24": 19.3,
+    "2025-04-25": 17.6,
+    "2025-04-26": 19.9,
+    "2025-04-27": 18.8,
+    "2025-04-28": 20,
+    "2025-04-29": 20.8,
+    "2025-04-30": 25.6,
+    "2025-05-01": 17.6,
+    "2025-05-02": 18.2,
+    "2025-05-03": 13.6,
+    "2025-05-04": 19.7,
+    "2025-05-05": 14.8,
+    "2025-05-06": 19.1,
+    "2025-05-07": 20.9,
+    "2025-05-08": 24.9,
+    "2025-05-09": 17.3,
+    "2025-05-10": 15.1,
+    "2025-05-11": 20,
+    "2025-05-12": 23.2,
+    "2025-05-13": 25.6,
+    "2025-05-14": 26.5,
+    "2025-05-15": 22.1,
+    "2025-05-16": 21.8,
+    "2025-05-17": 24.1,
+    "2025-05-18": 21,
+    "2025-05-19": 20.5,
+    "2025-05-20": 27,
+    "2025-05-21": 30.3,
+    "2025-05-22": 28.4,
+    "2025-05-23": 22.3,
+    "2025-05-24": 18.9,
+    "2025-05-25": 22.3,
+    "2025-05-26": 26,
+    "2025-05-27": 26.9,
+    "2025-05-28": 26.8,
+    "2025-05-29": 27.2,
+    "2025-05-30": 27.9,
+    "2025-05-31": 26.7,
+    "2025-06-01": 29.1,
+    "2025-06-02": 23,
+    "2025-06-03": 24.7,
+    "2025-06-04": 24.9,
+    "2025-06-05": 26.8,
+    "2025-06-06": 29.7,
+    "2025-06-07": 28.2,
+    "2025-06-08": 30.1,
+    "2025-06-09": 29.9,
+    "2025-06-10": 25.2,
+    "2025-06-11": 28.3,
+    "2025-06-12": 32.7,
+    "2025-06-13": 29,
+    "2025-06-14": 32.1,
+    "2025-06-15": 33,
+    "2025-06-16": 25.1,
+    "2025-06-17": 29.4,
+    "2025-06-18": 30.5,
+    "2025-06-19": 33.6,
+    "2025-06-20": 28.3,
+    "2025-06-21": 24,
+    "2025-06-22": 28.4,
+    "2025-06-23": 31.4,
+    "2025-06-24": 27.8,
+    "2025-06-25": 22,
+    "2025-06-26": 24.2,
+    "2025-06-27": 29.1,
+    "2025-06-28": 27.9,
+    "2025-06-29": 30.1,
+    "2025-06-30": 31.2,
+    "2025-07-01": 31.6,
+    "2025-07-02": 30.6,
+    "2025-07-03": 31.5,
+    "2025-07-04": 29.5,
+    "2025-07-05": 32.2,
+    "2025-07-06": 32.7,
+    "2025-07-07": 33,
+    "2025-07-08": 37.4,
+    "2025-07-09": 35.5,
+    "2025-07-10": 36.1,
+    "2025-07-11": 36,
+    "2025-07-12": 36.2,
+    "2025-07-13": 30.8,
+    "2025-07-14": 27.9,
+    "2025-07-15": 25.7,
+    "2025-07-16": 24.6,
+    "2025-07-17": 24.3,
+    "2025-07-18": 27,
+    "2025-07-19": 25.6,
+    "2025-07-20": 31.3,
+    "2025-07-21": 31.6,
+    "2025-07-22": 32,
+    "2025-07-23": 33.1,
+    "2025-07-24": 33.9,
+    "2025-07-25": 36,
+    "2025-07-26": 37,
+    "2025-07-27": 37.6,
+    "2025-07-28": 36.3,
+    "2025-07-29": 36.3,
+    "2025-07-30": 35.8,
+    "2025-07-31": 34,
+    "2025-08-01": 34.6,
+    "2025-08-02": 36.2,
+    "2025-08-03": 32.4,
+    "2025-08-04": 33.6,
+    "2025-08-05": 33.4,
+    "2025-08-06": 29.3,
+    "2025-08-07": 32,
+    "2025-08-08": 30.1,
+    "2025-08-09": 26.4,
+    "2025-08-10": 33.1,
+    "2025-08-11": 29.2,
+    "2025-08-12": 34,
+    "2025-08-13": 26.9,
+    "2025-08-14": 26.9,
+    "2025-08-15": 30.9,
+    "2025-08-16": 31.7,
+    "2025-08-17": 31.9,
+    "2025-08-18": 32.6,
+    "2025-08-19": 32.1,
+    "2025-08-20": 32.7,
+    "2025-08-21": 34.2,
+    "2025-08-22": 33.4,
+    "2025-08-23": 31.8,
+    "2025-08-24": 34.5,
+    "2025-08-25": 32,
+    "2025-08-26": 31.3,
+    "2025-08-27": 30.6,
+    "2025-08-28": 30.9,
+    "2025-08-29": 32.7,
+    "2025-08-30": 31.7,
+    "2025-08-31": 31.5,
+    "2025-09-01": 28.1,
+    "2025-09-02": 30.5,
+    "2025-09-03": 31.9,
+    "2025-09-04": 29.7,
+    "2025-09-05": 32.5,
+    "2025-09-06": 30,
+    "2025-09-07": 28.1,
+    "2025-09-08": 29.4,
+    "2025-09-09": 26.8,
+    "2025-09-10": 31.2,
+    "2025-09-11": 31.6,
+    "2025-09-12": 26.3,
+    "2025-09-13": 27.4,
+    "2025-09-14": 29.2,
+    "2025-09-15": 30.4,
+    "2025-09-16": 26.7,
+    "2025-09-17": 23.9,
+    "2025-09-18": 25.8,
+    "2025-09-19": 21.4,
+    "2025-09-20": 23.4,
+    "2025-09-21": 27.1,
+    "2025-09-22": 24.9,
+    "2025-09-23": 26.4,
+    "2025-09-24": 23.5,
+    "2025-09-25": 26,
+    "2025-09-26": 26.8,
+    "2025-09-27": 26.8,
+    "2025-09-28": 21.6,
+    "2025-09-29": 23.8,
+    "2025-09-30": 23.7,
+    "2025-10-01": 25.6,
+    "2025-10-02": 25.7,
+    "2025-10-03": 22.3,
+    "2025-10-04": 24.9,
+    "2025-10-05": 22.2,
+    "2025-10-06": 20.7,
+    "2025-10-07": 19.7,
+    "2025-10-08": 27.7,
+    "2025-10-09": 22.5,
+    "2025-10-10": 17.7,
+    "2025-10-11": 23.7,
+    "2025-10-12": 21.3,
+    "2025-10-13": 18.3,
+    "2025-10-14": 20.8,
+    "2025-10-15": 25.2,
+    "2025-10-16": 24.7,
+    "2025-10-17": 24.4,
+    "2025-10-18": 18.6,
+    "2025-10-19": 19.1,
+    "2025-10-20": 15.8,
+    "2025-10-21": 14,
+    "2025-10-22": 18.5,
+    "2025-10-23": 19.3,
+    "2025-10-24": 20.9,
+    "2025-10-25": 17.5,
+    "2025-10-26": 13.7,
+    "2025-10-27": 12,
+    "2025-10-28": 14.3,
+    "2025-10-29": 18.2,
+    "2025-10-30": 18.1,
+    "2025-10-31": 20.5,
+    "2025-11-01": 17.3,
+    "2025-11-02": 11.2,
+    "2025-11-03": 14.5,
+    "2025-11-04": 16.2,
+    "2025-11-05": 18.7,
+    "2025-11-06": 18.5,
+    "2025-11-07": 19.9,
+    "2025-11-08": 17,
+    "2025-11-09": 17.5,
+    "2025-11-10": 12.3,
+    "2025-11-11": 15.1,
+    "2025-11-12": 17.1,
+    "2025-11-13": 17.3,
+    "2025-11-14": 14.8,
+    "2025-11-15": 17.3,
+    "2025-11-16": 16.6,
+    "2025-11-17": 4.7,
+    "2025-11-18": 5.4,
+    "2025-11-19": 8,
+    "2025-11-20": 13.7,
+    "2025-11-21": 11.5,
+    "2025-11-23": 13.4,
+    "2025-11-24": 14.3,
+    "2025-11-25": 8.2,
+    "2025-11-26": 8.7,
+    "2025-11-27": 4.9,
+    "2025-11-28": 6.7,
+    "2025-12-01": 12.2,
+    "2025-12-02": 3.3,
+    "2025-12-03": -3.1,
+    "2025-12-04": 3.3,
+    "2025-12-05": 2,
+    "2025-12-06": 4.4,
+    "2025-12-07": 13.3,
+    "2025-12-08": 7.3,
+    "2025-12-09": 8.3,
+    "2025-12-10": 7.9,
+    "2025-12-11": 7.9,
+    "2025-12-12": 6.9,
+    "2025-12-13": 4.5,
+    "2025-12-14": 2,
+    "2025-12-15": 4.2,
+    "2025-12-16": 4.4,
+    "2025-12-17": 3.6,
+    "2025-12-18": 8,
+    "2025-12-19": 8.6,
+    "2025-12-20": 10.3,
+    "2025-12-22": 3,
+    "2025-12-23": 2.7,
+    "2025-12-24": 5.5,
+    "2025-12-26": -10.3,
+    "2025-12-29": 7.8,
+    "2025-12-30": 2.7,
+    "2025-12-31": -3.4
+  },
+  "shows": [
+    {
+      "date": "2025-01-01",
+      "hour": 16,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-01",
+      "hour": 17,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-01",
+      "hour": 18,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-01",
+      "hour": 19,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-01",
+      "hour": 20,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-04",
+      "hour": 16,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-04",
+      "hour": 17,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-04",
+      "hour": 18,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-04",
+      "hour": 19,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-04",
+      "hour": 20,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-05",
+      "hour": 16,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-05",
+      "hour": 17,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-05",
+      "hour": 18,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-05",
+      "hour": 19,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-01-05",
+      "hour": 20,
+      "show": "김희재 콘서트 HEERE WE GO",
+      "people": 2700
+    },
+    {
+      "date": "2025-02-21",
+      "hour": 19,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-21",
+      "hour": 20,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-21",
+      "hour": 21,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-21",
+      "hour": 22,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-21",
+      "hour": 23,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-22",
+      "hour": 19,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-22",
+      "hour": 20,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-22",
+      "hour": 21,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-23",
+      "hour": 19,
+      "show": "2025 ONEW CONCERT [ONEW THE LIVE : CONNECTION] IN SEOUL",
+      "people": 2465
+    },
+    {
+      "date": "2025-02-28",
+      "hour": 18,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-02-28",
+      "hour": 19,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-02-28",
+      "hour": 20,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-02-28",
+      "hour": 21,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-02-28",
+      "hour": 22,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 17,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 18,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL, keshi: REQUIEM TOUR IN SEOU",
+      "people": 16153
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 19,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL, keshi: REQUIEM TOUR IN SEOU",
+      "people": 16153
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 20,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL, keshi: REQUIEM TOUR IN SEOU",
+      "people": 16153
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 21,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL, keshi: REQUIEM TOUR IN SEOU",
+      "people": 16153
+    },
+    {
+      "date": "2025-03-01",
+      "hour": 22,
+      "show": "keshi: REQUIEM TOUR IN SEOU",
+      "people": 4578
+    },
+    {
+      "date": "2025-03-02",
+      "hour": 16,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-02",
+      "hour": 17,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-02",
+      "hour": 18,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-02",
+      "hour": 19,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-02",
+      "hour": 20,
+      "show": "j-hope Tour HOPE ON THE STAGE in SEOUL",
+      "people": 11575
+    },
+    {
+      "date": "2025-03-06",
+      "hour": 19,
+      "show": "KEHLANI - CRASH WORLD TOUR in Seoul",
+      "people": 4382
+    },
+    {
+      "date": "2025-03-06",
+      "hour": 20,
+      "show": "KEHLANI - CRASH WORLD TOUR in Seoul",
+      "people": 4382
+    },
+    {
+      "date": "2025-03-06",
+      "hour": 21,
+      "show": "KEHLANI - CRASH WORLD TOUR in Seoul",
+      "people": 4382
+    },
+    {
+      "date": "2025-03-06",
+      "hour": 22,
+      "show": "KEHLANI - CRASH WORLD TOUR in Seoul",
+      "people": 4382
+    },
+    {
+      "date": "2025-03-06",
+      "hour": 23,
+      "show": "KEHLANI - CRASH WORLD TOUR in Seoul",
+      "people": 4382
+    },
+    {
+      "date": "2025-03-07",
+      "hour": 19,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-07",
+      "hour": 20,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-07",
+      "hour": 21,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-07",
+      "hour": 22,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-07",
+      "hour": 23,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-08",
+      "hour": 17,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-08",
+      "hour": 18,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-08",
+      "hour": 19,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-08",
+      "hour": 20,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-08",
+      "hour": 21,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9066
+    },
+    {
+      "date": "2025-03-09",
+      "hour": 16,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9067
+    },
+    {
+      "date": "2025-03-09",
+      "hour": 17,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9067
+    },
+    {
+      "date": "2025-03-09",
+      "hour": 18,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9067
+    },
+    {
+      "date": "2025-03-09",
+      "hour": 19,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9067
+    },
+    {
+      "date": "2025-03-09",
+      "hour": 20,
+      "show": "TAEYEON CONCERT - The TENSE",
+      "people": 9067
+    },
+    {
+      "date": "2025-03-21",
+      "hour": 19,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-21",
+      "hour": 20,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-21",
+      "hour": 21,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-21",
+      "hour": 22,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-21",
+      "hour": 23,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 16,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL",
+      "people": 8100
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 17,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 18,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 19,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 20,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-22",
+      "hour": 21,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 5700
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 15,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL",
+      "people": 3200
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 16,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 17,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 18,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 19,
+      "show": "2025 NCT WISH ASIA TOUR LOG in SEOUL, 2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 13800
+    },
+    {
+      "date": "2025-03-23",
+      "hour": 20,
+      "show": "2025 ATEEZ WORLD TOUR [TOWARDS THE LIGHT : WILL TO POWER] FINALE IN SEOUL, 2025 BTOB FAN-CON 3,2,1 GO! MELympic 콘서트 주간 3위",
+      "people": 10600
+    },
+    {
+      "date": "2025-03-29",
+      "hour": 12,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-29",
+      "hour": 13,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-29",
+      "hour": 14,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-29",
+      "hour": 15,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-29",
+      "hour": 16,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-30",
+      "hour": 12,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-30",
+      "hour": 13,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-30",
+      "hour": 14,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-30",
+      "hour": 15,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-03-30",
+      "hour": 21,
+      "show": "〈미스터트롯3〉 전국투어 콘서트",
+      "people": 2800
+    },
+    {
+      "date": "2025-04-05",
+      "hour": 17,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-05",
+      "hour": 18,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-05",
+      "hour": 19,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-05",
+      "hour": 20,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-05",
+      "hour": 21,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-06",
+      "hour": 16,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-06",
+      "hour": 17,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-06",
+      "hour": 18,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-06",
+      "hour": 19,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-06",
+      "hour": 20,
+      "show": "EUNHYUK LIVE TOUR 2025 -Limitless: Time- Special in SEOUL, 2025 IVE THE 3RD FAN CONCERT 〈IVE SCOUT〉",
+      "people": 12800
+    },
+    {
+      "date": "2025-04-12",
+      "hour": 17,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-12",
+      "hour": 18,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-12",
+      "hour": 19,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-12",
+      "hour": 20,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-12",
+      "hour": 21,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-13",
+      "hour": 16,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-13",
+      "hour": 17,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-13",
+      "hour": 18,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-13",
+      "hour": 19,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-13",
+      "hour": 20,
+      "show": "2025 STAYC TOUR STAY TUNED, 2025 2NE1 CONCERT ［WELCOME BACK］ ENCORE IN SEOUL",
+      "people": 11160
+    },
+    {
+      "date": "2025-04-18",
+      "hour": 19,
+      "show": "2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 6000
+    },
+    {
+      "date": "2025-04-18",
+      "hour": 20,
+      "show": "2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 6000
+    },
+    {
+      "date": "2025-04-18",
+      "hour": 21,
+      "show": "2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 6000
+    },
+    {
+      "date": "2025-04-18",
+      "hour": 22,
+      "show": "2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 6000
+    },
+    {
+      "date": "2025-04-19",
+      "hour": 17,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-19",
+      "hour": 18,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-19",
+      "hour": 19,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-19",
+      "hour": 20,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-19",
+      "hour": 21,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-20",
+      "hour": 16,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-20",
+      "hour": 17,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-20",
+      "hour": 18,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-20",
+      "hour": 19,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-20",
+      "hour": 20,
+      "show": "2025 OH MY GIRL CONCERT [Milky Way], 2025 ZEROBASEONE FAN-CON［BLUE MANSION］",
+      "people": 8900
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 16,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale",
+      "people": 8550
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 17,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 18,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 19,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 20,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-26",
+      "hour": 21,
+      "show": "DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 1450
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 15,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale",
+      "people": 8550
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 16,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 17,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 18,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 19,
+      "show": "2024-25 TAEMIN WORLD TOUR [Ephemeral Gaze] Finale, DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-04-27",
+      "hour": 20,
+      "show": "DAESUNG 2025 ASIA TOUR：D’s WAVE IN SEOUL",
+      "people": 1450
+    },
+    {
+      "date": "2025-05-02",
+      "hour": 18,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-02",
+      "hour": 19,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-02",
+      "hour": 20,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-02",
+      "hour": 21,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-02",
+      "hour": 22,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-03",
+      "hour": 17,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-03",
+      "hour": 18,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-03",
+      "hour": 19,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-03",
+      "hour": 20,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-03",
+      "hour": 21,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-04",
+      "hour": 16,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-04",
+      "hour": 17,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-04",
+      "hour": 18,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-04",
+      "hour": 19,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-04",
+      "hour": 20,
+      "show": "YUURI ARENA LIVE 2025 at SEOUL, Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-05",
+      "hour": 16,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-05",
+      "hour": 17,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-05",
+      "hour": 18,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-05",
+      "hour": 19,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-05",
+      "hour": 20,
+      "show": "Xdinary Heroes〈Beautiful Mind〉World Tour in SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-05-09",
+      "hour": 18,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-09",
+      "hour": 19,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-09",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-09",
+      "hour": 21,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-09",
+      "hour": 22,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-10",
+      "hour": 17,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-10",
+      "hour": 18,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-10",
+      "hour": 19,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-10",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-10",
+      "hour": 21,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 15,
+      "show": "2025 N.Flying LIVE ＆CON4 : FULL CIRCLE",
+      "people": 4050
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 16,
+      "show": "2025 N.Flying LIVE ＆CON4 : FULL CIRCLE, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 17,
+      "show": "2025 N.Flying LIVE ＆CON4 : FULL CIRCLE, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 18,
+      "show": "2025 N.Flying LIVE ＆CON4 : FULL CIRCLE, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 19,
+      "show": "2025 N.Flying LIVE ＆CON4 : FULL CIRCLE, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 19250
+    },
+    {
+      "date": "2025-05-11",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 15200
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 18,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL",
+      "people": 16000
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 19,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 21,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 22,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-16",
+      "hour": 23,
+      "show": "2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 2698
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 17,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 18,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 19,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL, 2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL, 2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 21,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL, 2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 22,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 3500
+    },
+    {
+      "date": "2025-05-17",
+      "hour": 23,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 3500
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 15,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL",
+      "people": 3500
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 16,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 17,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 18,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 19,
+      "show": "2025 KAI SOLO CONCERT TOUR 〈KAION〉 IN SEOUL, DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 22198
+    },
+    {
+      "date": "2025-05-18",
+      "hour": 20,
+      "show": "DAY6 3RD WORLD TOUR〈FOREVER YOUNG〉FINALE in SEOUL, 2025 BIBI 1st WORLD TOUR ［EVE］ IN SEOUL",
+      "people": 18698
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 18,
+      "show": "SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You)",
+      "people": 9500
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 19,
+      "show": "SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 12029
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 20,
+      "show": "SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 12029
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 21,
+      "show": "SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 12029
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 22,
+      "show": "SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 12029
+    },
+    {
+      "date": "2025-05-23",
+      "hour": 23,
+      "show": "[서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 2529
+    },
+    {
+      "date": "2025-05-24",
+      "hour": 17,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-24",
+      "hour": 18,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-24",
+      "hour": 19,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-24",
+      "hour": 20,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-24",
+      "hour": 21,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You), [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-25",
+      "hour": 16,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉",
+      "people": 6113
+    },
+    {
+      "date": "2025-05-25",
+      "hour": 17,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉, SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You)",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-25",
+      "hour": 18,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉, SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You)",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-25",
+      "hour": 19,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉, SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You)",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-25",
+      "hour": 20,
+      "show": "2025 Jay Park World Tour [Serenades & Body Rolls], [서울] 2025 멜로망스 전국투어 콘서트 〈Romance Station〉, SHINee WORLD Ⅶ [E.S.S.A.Y] (Every Stage Shines Around You)",
+      "people": 15613
+    },
+    {
+      "date": "2025-05-30",
+      "hour": 10,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-30",
+      "hour": 11,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-30",
+      "hour": 12,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-30",
+      "hour": 13,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-30",
+      "hour": 14,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-31",
+      "hour": 10,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-31",
+      "hour": 11,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-31",
+      "hour": 12,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-31",
+      "hour": 13,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-05-31",
+      "hour": 14,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-01",
+      "hour": 10,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-01",
+      "hour": 11,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-01",
+      "hour": 12,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-01",
+      "hour": 13,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-01",
+      "hour": 14,
+      "show": "제17회 서울재즈페스티벌 2025",
+      "people": 15000
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 16,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울",
+      "people": 1050
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 17,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 18,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 19,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 20,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-07",
+      "hour": 21,
+      "show": "2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 15450
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 15,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 16,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 17,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 18,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 19,
+      "show": "윤종신 전국투어 콘서트 그때 - 서울, 2025 BAEKHYUN WORLD TOUR 〈Reverie〉 in SEOUL, 2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-08",
+      "hour": 20,
+      "show": "2025 ILLIT GLITTER DAY IN SEOUL",
+      "people": 2500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 12,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 13,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 14,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 15,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 16,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 17,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 18,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 19,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 20,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 21,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-14",
+      "hour": 22,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 12,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 13,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 14,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 15,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 16,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 17,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 18,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 19,
+      "show": "뷰티풀 민트 라이프 2025, 2025 IRENE & SEULGI Concert Tour [ BALANCE ] in SEOUL",
+      "people": 16500
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 20,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 21,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-15",
+      "hour": 22,
+      "show": "뷰티풀 민트 라이프 2025",
+      "people": 14000
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 10,
+      "show": "［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 400
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 11,
+      "show": "［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 400
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 12,
+      "show": "［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 400
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 13,
+      "show": "［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 400
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 18,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 19,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 20,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 21,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-20",
+      "hour": 22,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-21",
+      "hour": 15,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-21",
+      "hour": 16,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-21",
+      "hour": 17,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-21",
+      "hour": 18,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-21",
+      "hour": 19,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-22",
+      "hour": 15,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP, ［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 3200
+    },
+    {
+      "date": "2025-06-22",
+      "hour": 16,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP, ［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 3200
+    },
+    {
+      "date": "2025-06-22",
+      "hour": 17,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP, ［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 3200
+    },
+    {
+      "date": "2025-06-22",
+      "hour": 18,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP, ［서울］뮤지컬 번개맨 시즌2 - 여름맞이 특별공연",
+      "people": 3200
+    },
+    {
+      "date": "2025-06-22",
+      "hour": 19,
+      "show": "[서울 앵콜] 2025 박지현 콘서트 쇼맨쉽 SHOWMANSHIP",
+      "people": 2800
+    },
+    {
+      "date": "2025-06-27",
+      "hour": 19,
+      "show": "2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 2173
+    },
+    {
+      "date": "2025-06-27",
+      "hour": 20,
+      "show": "2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 2173
+    },
+    {
+      "date": "2025-06-27",
+      "hour": 21,
+      "show": "2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 2173
+    },
+    {
+      "date": "2025-06-27",
+      "hour": 22,
+      "show": "2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 2173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 16,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 17,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 18,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 19,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 20,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 21,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 22,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-06-28",
+      "hour": 23,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 16,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 17,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 18,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 19,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 20,
+      "show": "2025 서울파크뮤직페스티벌, 2025 PALMTREE ISLAND 3rd GALA CONCERT",
+      "people": 20173
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 21,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 22,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-06-29",
+      "hour": 23,
+      "show": "2025 서울파크뮤직페스티벌",
+      "people": 18000
+    },
+    {
+      "date": "2025-07-04",
+      "hour": 19,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-04",
+      "hour": 20,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-04",
+      "hour": 21,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-04",
+      "hour": 22,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-04",
+      "hour": 23,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-05",
+      "hour": 17,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-05",
+      "hour": 18,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-05",
+      "hour": 19,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-05",
+      "hour": 20,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-05",
+      "hour": 21,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-06",
+      "hour": 15,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-06",
+      "hour": 16,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-06",
+      "hour": 17,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-06",
+      "hour": 18,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-06",
+      "hour": 19,
+      "show": "2025 RIIZE CONCERT TOUR [RIIZING LOUD] IN SEOUL",
+      "people": 10000
+    },
+    {
+      "date": "2025-07-11",
+      "hour": 19,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-11",
+      "hour": 20,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-11",
+      "hour": 21,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-11",
+      "hour": 22,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-12",
+      "hour": 17,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-12",
+      "hour": 18,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-12",
+      "hour": 19,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-12",
+      "hour": 20,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-12",
+      "hour": 21,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-13",
+      "hour": 16,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-13",
+      "hour": 17,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-13",
+      "hour": 18,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-13",
+      "hour": 19,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-13",
+      "hour": 20,
+      "show": "HIGHLIGHT LIVE 2025 [RIDE OR DIE]",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-18",
+      "hour": 19,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-18",
+      "hour": 20,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-18",
+      "hour": 21,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-18",
+      "hour": 22,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-18",
+      "hour": 23,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-19",
+      "hour": 17,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-19",
+      "hour": 18,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-19",
+      "hour": 19,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-19",
+      "hour": 20,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-19",
+      "hour": 21,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-20",
+      "hour": 15,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-20",
+      "hour": 16,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-20",
+      "hour": 17,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-20",
+      "hour": 18,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-20",
+      "hour": 19,
+      "show": "2025 MONSTA X CONNECT X",
+      "people": 13000
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 18,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL",
+      "people": 9500
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 19,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 20,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 21,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 22,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-25",
+      "hour": 23,
+      "show": "2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 2718
+    },
+    {
+      "date": "2025-07-26",
+      "hour": 17,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-26",
+      "hour": 18,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-26",
+      "hour": 19,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-26",
+      "hour": 20,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-26",
+      "hour": 21,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-27",
+      "hour": 16,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-27",
+      "hour": 17,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-27",
+      "hour": 18,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-27",
+      "hour": 19,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-07-27",
+      "hour": 20,
+      "show": "BOYNEXTDOOR TOUR [KNOCK ON Vol.1] FINAL, 2025 WINNER CONCERT ［IN OUR CIRCLE］",
+      "people": 12218
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 16,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 11238
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 17,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>, 2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 22898
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 18,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>, 2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 22898
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 19,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>, 2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 22898
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 20,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>, 2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 22898
+    },
+    {
+      "date": "2025-08-02",
+      "hour": 21,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 11660
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 15,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL",
+      "people": 15160
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 16,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL, 그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 26398
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 17,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL, 그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 26398
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 18,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL, 그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 26398
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 19,
+      "show": "2025 WayV Concert Tour [NO Way OUT] in SEOUL, 2025 ONEW WORLD TOUR [ONEW THE LIVE : PERCENT (%)] IN SEOUL, 그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 26398
+    },
+    {
+      "date": "2025-08-03",
+      "hour": 20,
+      "show": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+      "people": 11238
+    },
+    {
+      "date": "2025-08-16",
+      "hour": 16,
+      "show": "2025 TAEMIN FANMEETING [CLASS-MATE]",
+      "people": 3000
+    },
+    {
+      "date": "2025-08-29",
+      "hour": 19,
+      "show": "2025 aespa LIVE TOUR - SYNK : aeXIS LINE",
+      "people": 9500
+    },
+    {
+      "date": "2025-08-29",
+      "hour": 20,
+      "show": "2025 aespa LIVE TOUR - SYNK : aeXIS LINE",
+      "people": 9500
+    },
+    {
+      "date": "2025-08-29",
+      "hour": 21,
+      "show": "2025 aespa LIVE TOUR - SYNK : aeXIS LINE",
+      "people": 9500
+    },
+    {
+      "date": "2025-08-29",
+      "hour": 22,
+      "show": "2025 aespa LIVE TOUR - SYNK : aeXIS LINE",
+      "people": 9500
+    },
+    {
+      "date": "2025-08-29",
+      "hour": 23,
+      "show": "2025 aespa LIVE TOUR - SYNK : aeXIS LINE",
+      "people": 9500
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 11,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 12,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 13,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 14,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 15,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 16,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-06",
+      "hour": 17,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5667
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 11,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 12,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 13,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 14,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 15,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 16,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 17,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 18,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 19,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 20,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-07",
+      "hour": 21,
+      "show": "Someday Festival 2025 - week 1",
+      "people": 5666
+    },
+    {
+      "date": "2025-09-13",
+      "hour": 21,
+      "show": "Gen Hoshino presents MAD HOPE Asia Tour in SEOUL",
+      "people": 2700
+    },
+    {
+      "date": "2025-09-14",
+      "hour": 20,
+      "show": "Gen Hoshino presents MAD HOPE Asia Tour in SEOUL",
+      "people": 2700
+    },
+    {
+      "date": "2025-09-26",
+      "hour": 18,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-26",
+      "hour": 19,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-26",
+      "hour": 20,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-26",
+      "hour": 21,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-26",
+      "hour": 22,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-27",
+      "hour": 17,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-27",
+      "hour": 18,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-27",
+      "hour": 19,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-27",
+      "hour": 20,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-27",
+      "hour": 21,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-28",
+      "hour": 15,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-28",
+      "hour": 16,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-28",
+      "hour": 17,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-28",
+      "hour": 18,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-09-28",
+      "hour": 19,
+      "show": "2025 KEYLAND : Uncanny Valley",
+      "people": 4000
+    },
+    {
+      "date": "2025-10-04",
+      "hour": 16,
+      "show": "2025 QWER 1ST WORLDTOUR [ROCKATION]",
+      "people": 3266
+    },
+    {
+      "date": "2025-10-31",
+      "hour": 19,
+      "show": "IVE WORLD TOUR [SHOW WHAT I AM]",
+      "people": 11000
+    },
+    {
+      "date": "2025-10-31",
+      "hour": 20,
+      "show": "IVE WORLD TOUR [SHOW WHAT I AM]",
+      "people": 11000
+    },
+    {
+      "date": "2025-10-31",
+      "hour": 21,
+      "show": "IVE WORLD TOUR [SHOW WHAT I AM]",
+      "people": 11000
+    },
+    {
+      "date": "2025-10-31",
+      "hour": 22,
+      "show": "IVE WORLD TOUR [SHOW WHAT I AM]",
+      "people": 11000
+    },
+    {
+      "date": "2025-11-02",
+      "hour": 15,
+      "show": "IVE WORLD TOUR [SHOW WHAT I AM]",
+      "people": 11000
+    },
+    {
+      "date": "2025-12-05",
+      "hour": 19,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20004
+    },
+    {
+      "date": "2025-12-05",
+      "hour": 20,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20004
+    },
+    {
+      "date": "2025-12-05",
+      "hour": 21,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20004
+    },
+    {
+      "date": "2025-12-05",
+      "hour": 22,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20004
+    },
+    {
+      "date": "2025-12-05",
+      "hour": 23,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20004
+    },
+    {
+      "date": "2025-12-06",
+      "hour": 17,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울, 2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 23004
+    },
+    {
+      "date": "2025-12-06",
+      "hour": 18,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울, 2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 23004
+    },
+    {
+      "date": "2025-12-06",
+      "hour": 19,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울, 2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 23004
+    },
+    {
+      "date": "2025-12-06",
+      "hour": 20,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울, 2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 23004
+    },
+    {
+      "date": "2025-12-06",
+      "hour": 21,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울, 2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 23004
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 15,
+      "show": "2025 손태진 전국투어 콘서트 〈It‘s Son Time〉",
+      "people": 3000
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 16,
+      "show": "2025 손태진 전국투어 콘서트 〈It‘s Son Time〉, 2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 23005
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 17,
+      "show": "2025 손태진 전국투어 콘서트 〈It‘s Son Time〉, 2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 23005
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 18,
+      "show": "2025 손태진 전국투어 콘서트 〈It‘s Son Time〉, 2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 23005
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 19,
+      "show": "2025 손태진 전국투어 콘서트 〈It‘s Son Time〉, 2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 23005
+    },
+    {
+      "date": "2025-12-07",
+      "hour": 20,
+      "show": "2025 god CONCERT < ICONIC BOX > - 서울, 2025 정승환의 안녕, 겨울",
+      "people": 20005
+    },
+    {
+      "date": "2025-12-12",
+      "hour": 21,
+      "show": "2025-26 로이킴 LIVE TOUR ［ja, daumm］ - 서울",
+      "people": 2700
+    },
+    {
+      "date": "2025-12-14",
+      "hour": 17,
+      "show": "2025-26 로이킴 LIVE TOUR ［ja, daumm］ - 서울, 2025 박지현 팬콘서트 멤버쉽 MEMBERSHIP, 2025 이문세 ‘The Best’",
+      "people": 23500
+    },
+    {
+      "date": "2025-12-14",
+      "hour": 20,
+      "show": "2025 이문세 ‘The Best’",
+      "people": 18000
+    },
+    {
+      "date": "2025-12-19",
+      "hour": 22,
+      "show": "2025 DAY6 Special Concert ‘The Present’, 2025 N.Flying LIVE ‘&CON4 ENCORE : Let’s Roll &4EVER, 2025 규현(KYUHYUN) Concert ‘The Classic’",
+      "people": 20420
+    },
+    {
+      "date": "2025-12-20",
+      "hour": 21,
+      "show": "2025 규현(KYUHYUN) Concert ‘The Classic’, 2025 N.Flying LIVE ‘&CON4 ENCORE : Let’s Roll &4EVER, 2025 DAY6 Special Concert ‘The Present’",
+      "people": 20420
+    }
+  ]
+}
