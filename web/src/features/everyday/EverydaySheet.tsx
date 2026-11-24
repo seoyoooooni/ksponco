@@ -1,8 +1,10 @@
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
-import { ChevronRight } from '../../ui/icons'
+import { PillButton } from '../../ui/Buttons'
+import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
+import type { SunPref } from '../../lib/comfort'
 
 export type SpotItem = {
   name: string
@@ -14,7 +16,6 @@ type Props = {
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   closure: { title: string; sub: string } | null
-  headline: string
   spots: SpotItem[]
   onSpot: (i: number) => void
   sunsetText: string
@@ -23,10 +24,15 @@ type Props = {
   stay: [number, number]
   strip: StripState[]
   hour: number
-  myMatText: string | null
+  headline: string
+  canFirstPerson: boolean
+  pref: SunPref
+  onPref: (v: SunPref) => void
+  onFirstPerson: () => void
   onStay: (from: number, to: number) => void
   onHour: (h: number) => void
-  onSources: () => void
+  playing: boolean
+  onPlay: () => void
 }
 
 export function EverydaySheet(p: Props) {
@@ -38,9 +44,6 @@ export function EverydaySheet(p: Props) {
           <h1 className="headline">{p.closure.title}</h1>
           <p style={{ color: 'var(--color-mute)' }}>{p.closure.sub}</p>
         </div>
-        <button type="button" className="link-small" onClick={p.onSources}>
-          데이터 출처
-        </button>
       </BottomSheet>
     )
   }
@@ -57,31 +60,40 @@ export function EverydaySheet(p: Props) {
             <span>머무는 시간</span>
             <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
           </div>
-          <TimeRange from={p.stay[0]} to={p.stay[1]} strip={p.strip} cursor={p.hour} onChange={p.onStay} onCursor={p.onHour} />
-          {p.myMatText && <p style={{ fontSize: 13 }}>{p.myMatText}</p>}
+          <TimeRange from={p.stay[0]} to={p.stay[1]} strip={p.strip} cursor={p.hour} onChange={p.onStay} onCursor={p.onHour} playing={p.playing} onPlay={p.onPlay} />
+          <PillButton
+            variant="primary"
+            style={{ height: 52, fontSize: 16, fontWeight: 700, marginTop: 8 }}
+            icon={<EyeIcon />}
+            disabled={!p.canFirstPerson}
+            onClick={p.onFirstPerson}
+          >
+            내 시점으로 보기
+          </PillButton>
         </div>
       }
     >
-      <h1 className="headline" style={{ marginTop: -4 }}>
-        {p.headline}
-      </h1>
-      {p.spots.length > 0 ? (
-        <ol className="spot-list">
+      <Toggle
+        label="찾는 자리"
+        value={p.pref}
+        options={[
+          { value: 'shade', label: '그늘' },
+          { value: 'sun', label: '볕' },
+        ]}
+        onChange={p.onPref}
+      />
+      <h1 className="headline">{p.headline}</h1>
+      {p.spots.length > 0 && (
+        <div className="spot-btns" role="group" aria-label="추천 자리">
           {p.spots.map((s, i) => (
-            <li key={i}>
-              <button type="button" className="spot" onClick={() => p.onSpot(i)}>
-                <span className="spot__no">{i + 1}</span>
-                <span className="spot__text">
-                  <b>{s.name}</b>
-                  <span>{s.meta}</span>
-                </span>
-                <ChevronRight size={16} />
-              </button>
-            </li>
+            <button key={i} type="button" className="spot-btn" aria-label={`${i + 1}번 추천 자리로 옮기기, ${s.meta}`} onClick={() => p.onSpot(i)}>
+              {i + 1}
+            </button>
           ))}
-        </ol>
-      ) : (
-        <p className="plain-line">이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.</p>
+        </div>
+      )}
+      {p.spots.length === 0 && (
+        <p className="plain-line">{p.pref === 'shade' ? '이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.' : '이 시간엔 계속 볕이 드는 곳이 없어요. 시간을 바꿔 보세요.'}</p>
       )}
       <p className="plain-line">{p.sunsetText}</p>
       <Toggle
@@ -95,9 +107,6 @@ export function EverydaySheet(p: Props) {
         ]}
         onChange={(v) => (v === 'custom' ? p.onSnap(2) : p.onDuration(v))}
       />
-      <button type="button" className="link-small" onClick={p.onSources}>
-        데이터 출처
-      </button>
     </BottomSheet>
   )
 }

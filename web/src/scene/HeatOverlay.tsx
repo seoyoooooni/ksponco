@@ -20,7 +20,8 @@ export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain:
     const c = new Color()
     cells.forEach((cell, i) => {
       o.position.set(cell.x, heightAt(terrain, cell.x, cell.z) + 0.12, cell.z)
-      o.scale.set(cell.size, 1, cell.size)
+      o.rotation.set(-Math.PI / 2, 0, 0)
+      o.scale.set(cell.size, cell.size, 1)
       o.updateMatrix()
       mesh.setMatrixAt(i, o.matrix)
       mesh.setColorAt(i, c.set(cell.color))
@@ -33,8 +34,8 @@ export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain:
   if (cells.length === 0) return null
   return (
     <instancedMesh key={cells.length} ref={ref} args={[undefined, undefined, cells.length]} raycast={() => null}>
-      <boxGeometry args={[1, 0.06, 1]} />
-      <meshBasicMaterial transparent opacity={0.6} depthWrite={false} />
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial transparent opacity={0.88} depthWrite={false} />
     </instancedMesh>
   )
 }

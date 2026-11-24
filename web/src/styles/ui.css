@@ -239,6 +239,11 @@
   z-index: 20;
 }
 
+.sheet > *,
+.sheet__more > * {
+  flex-shrink: 0;
+}
+
 .sheet--snap {
   overflow: hidden;
   touch-action: none;
@@ -385,6 +390,35 @@
 
 .toast[hidden] {
   display: none;
+}
+
+.timerange {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.timerange > :not(.timerange__play) {
+  flex: 1;
+  min-width: 0;
+}
+
+.timerange__play {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-fill);
+  color: var(--color-ink);
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.timerange__play[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .timerange__track {

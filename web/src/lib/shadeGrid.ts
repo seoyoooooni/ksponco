@@ -10,6 +10,8 @@ export type ShadeGrid = {
   nx: number
   nz: number
   frac: number[]
+  steps: number
+  daySteps: number
 }
 
 export function scanBounds(terrain: Terrain): { x0: number; x1: number; z0: number; z1: number } {
@@ -58,7 +60,13 @@ export function shadeGrid(
       frac.push(suns.length ? shade / suns.length : 0)
     }
   }
-  return { x0: area.x0, z0: area.z0, cell, nx, nz, frac }
+  return { x0: area.x0, z0: area.z0, cell, nx, nz, frac, steps: suns.length, daySteps: suns.filter((s) => s.up).length }
+}
+
+export function dayShade(grid: ShadeGrid, f: number): number | null {
+  if (!grid.daySteps) return null
+  const night = grid.steps - grid.daySteps
+  return Math.min(1, Math.max(0, (f * grid.steps - night) / grid.daySteps))
 }
 
 export type ShadeSpot = {

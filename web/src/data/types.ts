@@ -21,6 +21,7 @@ export type Venue = {
   fixedStage: StageSpec | null
   seating: string
   defaultLayout: string
+  water?: Vec2[]
 }
 
 export type Performer = {

@@ -24,7 +24,8 @@ type Props = {
   onHour: (h: number) => void
   canFirstPerson: boolean
   onFirstPerson: () => void
-  onSources: () => void
+  playing: boolean
+  onPlay: () => void
 }
 
 export function AudienceSheet(p: Props) {
@@ -48,6 +49,8 @@ export function AudienceSheet(p: Props) {
               cursor={p.hour}
               onChange={p.onStay}
               onCursor={p.onHour}
+              playing={p.playing}
+              onPlay={p.onPlay}
             />
           </div>
           <PillButton
@@ -57,7 +60,7 @@ export function AudienceSheet(p: Props) {
             disabled={!p.canFirstPerson}
             onClick={p.onFirstPerson}
           >
-            내 눈높이로 보기
+            내 시점으로 보기
           </PillButton>
         </>
       }
@@ -77,9 +80,6 @@ export function AudienceSheet(p: Props) {
           <span className="stat__value">{p.stats?.sun ?? '—'}</span>
         </div>
       </div>
-      <button type="button" className="link-small" onClick={p.onSources}>
-        데이터 출처
-      </button>
     </BottomSheet>
   )
 }

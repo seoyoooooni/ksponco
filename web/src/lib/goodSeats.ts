@@ -1,7 +1,8 @@
 import type { Layout, StageSpec, Terrain } from '../data/types'
 import { performerTargets, visibleRatio, type Canopy, type HeadIndex } from './analysis'
 import { bounds, zoneAt } from './polygon'
-import type { ShadeGrid } from './shadeGrid'
+import { comfort, type SunPref } from './comfort'
+import { dayShade, type ShadeGrid } from './shadeGrid'
 import { heightAt } from './terrainSample'
 
 export type SeatCell = {
@@ -18,7 +19,8 @@ export function goodSeats(
   canopies: Canopy[],
   shade: ShadeGrid | null,
   sunWeight: number,
-  cell = 4,
+  cell: number,
+  pref: SunPref,
 ): SeatCell[] {
   const picnic = layout.zones.filter((z) => z.type === 'picnic')
   const all = performerTargets(layout, stage, terrain)
@@ -31,19 +33,29 @@ export function goodSeats(
         if (zoneAt(layout.zones, x, z) !== zone) continue
         const eye: [number, number, number] = [x, heightAt(terrain, x, z) + 0.8, z]
         const view = visibleRatio(eye, targets, heads, canopies)
-        let shadeFrac = 0
+        let day: number | null = null
         if (shade) {
           const i = Math.floor((x - shade.x0) / shade.cell)
           const j = Math.floor((z - shade.z0) / shade.cell)
-          if (i >= 0 && j >= 0 && i < shade.nx && j < shade.nz) shadeFrac = shade.frac[j * shade.nx + i]
+          if (i >= 0 && j >= 0 && i < shade.nx && j < shade.nz) day = dayShade(shade, shade.frac[j * shade.nx + i])
         }
-        out.push({ x, z, score: view * (1 - sunWeight) + shadeFrac * sunWeight })
+        out.push({ x, z, score: seatScore(view, comfort(day, pref), sunWeight) })
       }
     }
   }
   return out
 }
 
+export function seatScore(view: number, comfortScore: number, sunWeight: number): number {
+  return view * (1 - sunWeight) + comfortScore * sunWeight
+}
+
 export function seatGrade(score: number): 0 | 1 | 2 {
   return score >= 0.62 ? 2 : score >= 0.42 ? 1 : 0
+}
+
+const VERDICT = ['아쉬운 자리예요', '무난한 자리예요', '좋은 자리예요'] as const
+
+export function seatVerdict(view: number, comfortScore: number, sunWeight: number): string {
+  return VERDICT[seatGrade(seatScore(view, comfortScore, sunWeight))]
 }

@@ -20,6 +20,7 @@ export const sceneColors = {
   screen: '#1c2b3a',
   performer: '#e2574c',
   tent: '#f7f4ec',
+  water: '#9cc6d9',
   tentSuggest: '#ffc23d',
   hemiSky: '#ffffff',
   hemiGround: '#a6a598',
