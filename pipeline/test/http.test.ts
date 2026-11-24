@@ -84,6 +84,6 @@ test('연속 호출 사이에 간격을 둔다', async () => {
 })
 
 test('parseEnv는 KEY=값, 주석, 따옴표, 값 안의 =를 처리한다', () => {
-  const env = parseEnv('# 주석\nA=1\n\nB = "x y"\nC=a=b%3D\r\nbad line\n')
-  assert.deepEqual(env, { A: '1', B: 'x y', C: 'a=b%3D' })
+  const env = parseEnv('# 주석\nA=1\n\nB = "x y"\nC=a=b%3D\r\nbad line\nD=k1   # 설명\nE=a#b\n')
+  assert.deepEqual(env, { A: '1', B: 'x y', C: 'a=b%3D', D: 'k1', E: 'a#b' })
 })
