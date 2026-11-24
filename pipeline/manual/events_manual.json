@@ -1,0 +1,29 @@
+[
+  { "id": "20250530-sjf", "name": "제17회 서울재즈페스티벌 2025", "venue": "lawn88", "date": "2025-05-30", "start": "12:20", "end": "21:30", "linkedName": "제17회 서울재즈페스티벌 2025", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+  { "id": "20250530-sjf-lake", "name": "제17회 서울재즈페스티벌 2025", "venue": "lake", "date": "2025-05-30", "start": "13:00", "end": "21:30", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+  { "id": "20250531-sjf", "name": "제17회 서울재즈페스티벌 2025", "venue": "lawn88", "date": "2025-05-31", "start": "12:00", "end": "21:30", "linkedName": "제17회 서울재즈페스티벌 2025", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+  { "id": "20250531-sjf-lake", "name": "제17회 서울재즈페스티벌 2025", "venue": "lake", "date": "2025-05-31", "start": "13:00", "end": "21:00", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+  { "id": "20250601-sjf", "name": "제17회 서울재즈페스티벌 2025", "venue": "lawn88", "date": "2025-06-01", "start": "12:00", "end": "21:20", "linkedName": "제17회 서울재즈페스티벌 2025", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+  { "id": "20250601-sjf-lake", "name": "제17회 서울재즈페스티벌 2025", "venue": "lake", "date": "2025-06-01", "start": "12:00", "end": "20:00", "sourceUrl": "https://www.seouljazz.co.kr/bbs/board.php?bo_table=notice&wr_id=206" },
+
+  { "id": "20250613-bml", "name": "뷰티풀 민트 라이프 2025", "venue": "lawn88", "date": "2025-06-13", "start": "13:40", "end": "21:30", "linkedName": "뷰티풀 민트 라이프 2025", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013", "note": "연계 데이터에 6/13 없음" },
+  { "id": "20250613-bml-lake", "name": "뷰티풀 민트 라이프 2025", "venue": "lake", "date": "2025-06-13", "start": "14:30", "end": "21:40", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013", "note": "종료는 마지막 공연 시작+60분(타임테이블 표기)으로 계산" },
+  { "id": "20250614-bml", "name": "뷰티풀 민트 라이프 2025", "venue": "lawn88", "date": "2025-06-14", "start": "13:00", "end": "21:20", "linkedName": "뷰티풀 민트 라이프 2025", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013" },
+  { "id": "20250614-bml-lake", "name": "뷰티풀 민트 라이프 2025", "venue": "lake", "date": "2025-06-14", "start": "13:40", "end": "21:40", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013", "note": "종료는 마지막 공연 시작+60분(타임테이블 표기)으로 계산" },
+  { "id": "20250615-bml", "name": "뷰티풀 민트 라이프 2025", "venue": "lawn88", "date": "2025-06-15", "start": "13:00", "end": "21:20", "linkedName": "뷰티풀 민트 라이프 2025", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013" },
+  { "id": "20250615-bml-lake", "name": "뷰티풀 민트 라이프 2025", "venue": "lake", "date": "2025-06-15", "start": "13:40", "end": "21:40", "sourceUrl": "https://sports.khan.co.kr/article/202505152000013", "note": "종료는 마지막 공연 시작+60분(타임테이블 표기)으로 계산" },
+
+  { "id": "20250628-pmf", "name": "2025 서울파크뮤직페스티벌", "venue": "lawn88", "date": "2025-06-28", "start": "14:00", "end": "21:20", "linkedName": "2025 서울파크뮤직페스티벌", "sourceUrl": "https://www.slist.kr/news/articleView.html?idxno=645612", "note": "예매처 운영시간은 21:30까지" },
+  { "id": "20250629-pmf", "name": "2025 서울파크뮤직페스티벌", "venue": "lawn88", "date": "2025-06-29", "start": "14:00", "end": "21:20", "linkedName": "2025 서울파크뮤직페스티벌", "sourceUrl": "https://www.slist.kr/news/articleView.html?idxno=645612", "note": "예매처 운영시간은 21:30까지" },
+
+  { "id": "20250906-someday", "name": "Someday Festival 2025 week 1", "venue": "lawn88", "date": "2025-09-06", "linkedName": "Someday Festival 2025 - week 1", "sourceUrl": "https://ticket.yes24.com/Perf/54933", "note": "12:00~ 표기가 입장인지 공연 시작인지 불분명, 종료 미확인" },
+  { "id": "20250907-someday", "name": "Someday Festival 2025 week 1", "venue": "lawn88", "date": "2025-09-07", "linkedName": "Someday Festival 2025 - week 1", "sourceUrl": "https://ticket.yes24.com/Perf/54933", "note": "12:00~ 표기가 입장인지 공연 시작인지 불분명, 종료 미확인" },
+
+  { "id": "20250920-joyolpark", "name": "KB 조이올팍 페스티벌", "venue": "lawn88", "date": "2025-09-20", "start": "13:00", "end": "21:00", "sourceUrl": "https://www.heraldk.com/article/2025080717091597672", "note": "기사의 운영시간. 첫 공연 시작인지 불분명" },
+  { "id": "20250921-joyolpark", "name": "KB 조이올팍 페스티벌", "venue": "lawn88", "date": "2025-09-21", "start": "13:30", "end": "21:00", "sourceUrl": "https://www.heraldk.com/article/2025080717091597672", "note": "기사의 운영시간. 첫 공연 시작인지 불분명" },
+
+  { "id": "20251018-gmf", "name": "그랜드 민트 페스티벌 2025", "venue": "lawn88", "date": "2025-10-18", "sourceUrl": "https://news.tf.co.kr/read/ogmeta/2247544.htm", "note": "첫 공연 12:50, 종료 미확인(마지막 공연 20:20 시작)" },
+  { "id": "20251018-gmf-lake", "name": "그랜드 민트 페스티벌 2025", "venue": "lake", "date": "2025-10-18", "sourceUrl": "https://news.tf.co.kr/read/ogmeta/2247544.htm", "note": "첫 공연 13:20, 종료 미확인(마지막 공연 20:10 시작)" },
+  { "id": "20251019-gmf", "name": "그랜드 민트 페스티벌 2025", "venue": "lawn88", "date": "2025-10-19", "sourceUrl": "https://news.tf.co.kr/read/ogmeta/2247544.htm", "note": "첫 공연 12:50, 종료 미확인(마지막 공연 20:20 시작)" },
+  { "id": "20251019-gmf-lake", "name": "그랜드 민트 페스티벌 2025", "venue": "lake", "date": "2025-10-19", "sourceUrl": "https://news.tf.co.kr/read/ogmeta/2247544.htm", "note": "첫 공연 13:20, 종료 미확인(마지막 공연 20:20 시작)" }
+]
