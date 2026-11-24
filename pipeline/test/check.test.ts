@@ -1,6 +1,25 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { test } from 'node:test'
-import { checkClosures, checkEvents, checkForecast, checkSize, isClock, isDate, MAX_BYTES } from '../check/check.ts'
+import { checkClosures, checkEvents, checkForecast, checkShrink, checkSize, isClock, isDate, MAX_BYTES } from '../check/check.ts'
+
+test('checkShrink: 이전보다 10% 넘게 줄면 오류, 이전 파일이 없거나 깨지면 통과', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'check-test-'))
+  try {
+    const prev = join(dir, 'events.json')
+    writeFileSync(prev, JSON.stringify(Array(40).fill(0)))
+    assert.deepEqual(checkShrink(Array(36).fill(0), prev), [])
+    assert.equal(checkShrink(Array(35).fill(0), prev).length, 1)
+    assert.match(checkShrink(Array(35).fill(0), prev)[0], /40건에서 35건/)
+    assert.deepEqual(checkShrink([], join(dir, 'none.json')), [])
+    writeFileSync(prev, '{')
+    assert.deepEqual(checkShrink([], prev), [])
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
 
 const ev = {
   id: '20250614-bml',
