@@ -14,6 +14,7 @@ export function parseEnv(text: string): Record<string, string> {
     const name = line.slice(0, eq).trim()
     let value = line.slice(eq + 1).trim()
     if (/^(".*"|'.*')$/.test(value)) value = value.slice(1, -1)
+    else value = value.replace(/\s+#.*$/, '') // 줄 끝 주석. 공백 없이 붙은 #은 값으로 둔다
     out[name] = value
   }
   return out
