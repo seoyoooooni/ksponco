@@ -46,6 +46,7 @@ jobs:
             echo "변경 없음"
           else
             git commit -m "chore(data): 데이터 자동 갱신"
+            git pull --rebase # 실행 중 다른 push가 있으면 그 위에 올린다
             git push
           fi
 
