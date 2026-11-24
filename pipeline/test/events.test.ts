@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
-import { buildEvents, type ManualEvent } from '../clean/events.ts'
+import { mock, test } from 'node:test'
+import { buildEvents, mergeEvents, scheduleToManual, type ManualEvent } from '../clean/events.ts'
+import { venuesOf } from '../collect/olympicpark.ts'
 
 const base = { name: 'A', venue: 'lawn88', sourceUrl: 'https://x' } as const
 const linked = {
@@ -71,4 +72,48 @@ test('note, linkedName은 출력에 없고 날짜·장소 순으로 정렬한다
   ])
   assert.deepEqual(out.map((e) => e.id), ['c', 'a', 'b'])
   assert.ok(out.every((e) => !('note' in e) && !('linkedName' in e)))
+})
+
+const item = (evtSeq: number, plc: string, beginDt: string, endDt: string) => ({ evtSeq, title: `공연${evtSeq}`, plc, beginDt, endDt })
+
+test('venuesOf: 88잔디마당, 수변무대 문자열로 장소를 가른다', () => {
+  assert.deepEqual(venuesOf('올림픽공원 88잔디마당, 티켓링크 라이브 아레나'), ['lawn88'])
+  assert.deepEqual(venuesOf('KSPO DOME, 88잔디마당, 88호수수변무대'), ['lawn88', 'lake'])
+  assert.deepEqual(venuesOf('올림픽홀'), [])
+})
+
+test('scheduleToManual: 기간을 하루씩, 두 무대면 무대마다 펼치고 id·출처를 만든다', () => {
+  const out = scheduleToManual([item(5148, '88잔디마당, 88호수수변무대', '2026-10-17', '2026-10-18')])
+  assert.deepEqual(out.map((e) => [e.id, e.venue, e.date]), [
+    ['20261017-5148', 'lawn88', '2026-10-17'],
+    ['20261017-5148-lake', 'lake', '2026-10-17'],
+    ['20261018-5148', 'lawn88', '2026-10-18'],
+    ['20261018-5148-lake', 'lake', '2026-10-18'],
+  ])
+  assert.match(out[0].sourceUrl, /evtSeq=5148$/)
+  assert.ok(out.every((e) => e.start === undefined && e.end === undefined))
+})
+
+test('scheduleToManual: 다른 장소, 잘못된 날짜, 31일 초과 기간은 건너뛴다', () => {
+  const warn = mock.method(console, 'warn', () => {})
+  const out = scheduleToManual([
+    item(1, '올림픽홀', '2026-11-01', '2026-11-02'),
+    item(2, '88잔디마당', '2026-13-01', '2026-13-02'),
+    item(3, '88잔디마당', '2026-11-03', '2026-11-01'),
+    item(4, '88잔디마당', '2026-11-28', '2027-01-03'),
+    item(5, '88잔디마당', '2026-12-01', '2026-12-31'),
+  ])
+  warn.mock.restore()
+  assert.equal(warn.mock.callCount(), 3)
+  assert.equal(out.length, 31)
+  assert.ok(out.every((e) => e.id.includes('-5')))
+})
+
+test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리는 먼저 온 것이 이긴다', () => {
+  const m = { ...base, id: 'm', date: '2026-09-05' }
+  const a1 = { ...base, id: 'a1', date: '2026-09-05' }
+  const a2 = { ...base, id: 'a2', date: '2026-09-06' }
+  const a3 = { ...base, id: 'a3', date: '2026-09-06' }
+  const a4 = { ...base, id: 'a4', venue: 'lake', date: '2026-09-05' }
+  assert.deepEqual(mergeEvents([m], [a1, a2, a3, a4]).map((e) => e.id), ['m', 'a2', 'a4'])
 })
