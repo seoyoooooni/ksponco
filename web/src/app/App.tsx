@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { loadClosures, loadEvents, loadForecast, loadLayout, loadVenueBundle } from '../data/load'
 import { useLoad } from '../data/useLoad'
 import type { Closure, EventItem, Forecast, Layout } from '../data/types'
@@ -28,6 +28,7 @@ import { Legend } from './Legend'
 import { SourcesSheet } from './SourcesSheet'
 import { useAnalysis } from './useAnalysis'
 import { usePlayback } from './usePlayback'
+import { LoadingScreen } from '../ui/LoadingScreen'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
@@ -81,11 +82,31 @@ export function App() {
     return { bundle, events, closures, forecast }
   }, [venue])
 
-  if (base.status !== 'ready') {
-    return <p style={{ padding: 'var(--space-5)' }}>{base.status === 'error' ? base.error.message : '3D 장면을 불러오는 중…'}</p>
-  }
-  return <Main ready={base.data} />
+  const sceneReady = useScene((s) => s.sceneReady)
+  const [covered, setCovered] = useState(true)
+
+  useEffect(() => {
+    sceneStore.set({ sceneReady: false })
+    setCovered(true)
+  }, [venue])
+
+  return (
+    <>
+      {base.status === 'ready' && <Main ready={base.data} />}
+      {covered && (
+        <LoadingScreen
+          place={VENUE_NAMES[venue] ?? ''}
+          error={base.status === 'error' ? base.error.message : null}
+          leaving={base.status === 'ready' && sceneReady}
+          onRetry={() => window.location.reload()}
+          onLeft={() => setCovered(false)}
+        />
+      )}
+    </>
+  )
 }
+
+const VENUE_NAMES: Record<string, string> = { lawn88: '88잔디마당', lake: '88호수 수변무대' }
 
 function Main({ ready }: { ready: Base }) {
   const venue = useScene((s) => s.venue)
