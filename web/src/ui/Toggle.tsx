@@ -1,6 +1,9 @@
+import type { ReactNode } from 'react'
+
 type Option<T extends string | number> = {
   value: T
   label: string
+  icon?: ReactNode
   disabled?: boolean
 }
 
@@ -20,9 +23,11 @@ export function Toggle<T extends string | number>({ label, options, value, onCha
           key={String(o.value)}
           type="button"
           aria-pressed={o.value === value}
+          data-value={String(o.value)}
           disabled={o.disabled}
           onClick={() => onChange(o.value)}
         >
+          {o.icon}
           {o.label}
         </button>
       ))}

@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { PauseIcon, PlayIcon } from './icons'
+import { PauseIcon, PlayIcon, SunsetIcon } from './icons'
 
 export type StripState = 0 | 1 | 2
 
@@ -16,6 +16,7 @@ type Props = {
   onCursor?: (hour: number) => void
   playing?: boolean
   onPlay?: () => void
+  sunset?: { at: number; label: string } | null
 }
 
 const STATE_CLASS = ['is-night', 'is-shade', 'is-sun'] as const
@@ -43,6 +44,7 @@ export function TimeRange({
   onCursor,
   playing = false,
   onPlay,
+  sunset = null,
 }: Props) {
   const track = useRef<HTMLDivElement>(null)
   const span = max - min
@@ -83,7 +85,7 @@ export function TimeRange({
   }
 
   return (
-    <div className="timerange">
+    <div className={`timerange${sunset ? ' timerange--marked' : ''}`}>
       {onPlay && (
         <button
           type="button"
@@ -111,6 +113,15 @@ export function TimeRange({
           ))}
           <i className="timerange__seg is-off" style={{ flex: (max - to) / step }} />
         </div>
+        {sunset && sunset.at > min && sunset.at < max && (
+          <>
+            <i className="timerange__dusk" style={{ left: pct(sunset.at) }} aria-hidden="true" />
+            <span className="timerange__mark" style={{ left: pct(sunset.at) }} aria-label={`해 지는 시각 ${sunset.label}`}>
+              <SunsetIcon size={12} />
+              {sunset.label}
+            </span>
+          </>
+        )}
         {cursor !== null && cursor >= from && cursor <= to && (
           <i className="timerange__cursor" style={{ left: pct(cursor) }} aria-hidden="true" />
         )}

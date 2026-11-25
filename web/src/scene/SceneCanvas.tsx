@@ -68,28 +68,52 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
   const radius = Math.max(terrain.nx, terrain.nz) * terrain.cell * 0.62
 
+  const fitKey = `${venue.id}|${layout?.id ?? ''}`
+  const fit = useRef<{ key: string; pts: Vec2[] } | null>(null)
+  if (markers?.length && fit.current?.key !== fitKey) fit.current = { key: fitKey, pts: markers.map((m) => [m.x, m.z] as Vec2) }
+  const fitPts = fit.current?.key === fitKey ? fit.current.pts : null
+
   const home = useMemo(() => {
-    if (!stage) return { target: center, position: [center[0] + 62, 105, center[2] + 128] as [number, number, number] }
-    const a = (stage.azimuth * Math.PI) / 180
+    const seats = layout?.zones.filter((z) => z.type === 'picnic' || z.type === 'standing') ?? []
+    const a = stage ? (stage.azimuth * Math.PI) / 180 : 0
     const fx = Math.sin(a)
     const fz = -Math.cos(a)
-    const seats = layout?.zones.filter((z) => z.type === 'picnic' || z.type === 'standing') ?? []
-    let ax = stage.x + fx * 25
-    let az = stage.z + fz * 25
-    if (seats.length) {
-      const bs = seats.map((z) => bounds(z.poly))
-      ax = (Math.min(...bs.map((b) => b.x0)) + Math.max(...bs.map((b) => b.x1))) / 2
-      az = (Math.min(...bs.map((b) => b.z0)) + Math.max(...bs.map((b) => b.z1))) / 2
-    }
-    const tx = stage.x * 0.4 + ax * 0.6
-    const tz = stage.z * 0.4 + az * 0.6
     const side = 0.35
-    const dx = fx * Math.cos(side) - fz * Math.sin(side)
-    const dz = fz * Math.cos(side) + fx * Math.sin(side)
+    if (stage && seats.length) {
+      const bs = seats.map((z) => bounds(z.poly))
+      const ax = (Math.min(...bs.map((b) => b.x0)) + Math.max(...bs.map((b) => b.x1))) / 2
+      const az = (Math.min(...bs.map((b) => b.z0)) + Math.max(...bs.map((b) => b.z1))) / 2
+      const tx = stage.x * 0.4 + ax * 0.6
+      const tz = stage.z * 0.4 + az * 0.6
+      const dx = fx * Math.cos(side) - fz * Math.sin(side)
+      const dz = fz * Math.cos(side) + fx * Math.sin(side)
+      const target: [number, number, number] = [tx, heightAt(terrain, tx, tz), tz]
+      const position: [number, number, number] = [tx + dx * 72, target[1] + 82, tz + dz * 72]
+      return { target, position }
+    }
+    const pts: Vec2[] = [...(fitPts ?? [])]
+    if (stage) pts.push([stage.x, stage.z])
+    if (!pts.length) return { target: center, position: [center[0] + 62, 105, center[2] + 128] as [number, number, number] }
+    const xs = pts.map((p) => p[0])
+    const zs = pts.map((p) => p[1])
+    const x0 = Math.min(...xs)
+    const x1 = Math.max(...xs)
+    const z0 = Math.min(...zs)
+    const z1 = Math.max(...zs)
+    const tx = (x0 + x1) / 2
+    const tz = (z0 + z1) / 2
+    const extent = Math.max(x1 - x0, z1 - z0, 40)
+    const reach = Math.min(150, extent * 0.95 + 24)
+    let dx = 62 / Math.hypot(62, 128)
+    let dz = 128 / Math.hypot(62, 128)
+    if (stage) {
+      dx = fx * Math.cos(side) - fz * Math.sin(side)
+      dz = fz * Math.cos(side) + fx * Math.sin(side)
+    }
     const target: [number, number, number] = [tx, heightAt(terrain, tx, tz), tz]
-    const position: [number, number, number] = [tx + dx * 72, target[1] + 82, tz + dz * 72]
+    const position: [number, number, number] = [tx + dx * reach, target[1] + reach * 1.15, tz + dz * reach]
     return { target, position }
-  }, [stage, layout, center, terrain])
+  }, [stage, layout, center, terrain, fitPts])
 
   const performerTarget = useMemo<[number, number, number] | null>(() => {
     if (!layout?.performer || !stage) return null
@@ -125,7 +149,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const canPlace = useCallback((x: number, z: number) => reason(x, z) === null, [reason])
 
   const handleMove = useCallback(
-    (p: { x: number; z: number }) => sceneStore.set({ mat: p, matTouched: true, notice: null }),
+    (p: { x: number; z: number }) => sceneStore.set({ mat: p, anchor: p, matTouched: true, notice: null }),
     [],
   )
 
@@ -133,7 +157,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
     (x: number, z: number) => {
       const why = reason(x, z)
       if (why) sceneStore.set({ notice: why })
-      else sceneStore.set({ mat: { x, z }, matTouched: true, notice: null })
+      else sceneStore.set({ mat: { x, z }, anchor: { x, z }, matTouched: true, notice: null })
     },
     [reason],
   )

@@ -41,6 +41,10 @@ export function hourLabel(h: number): string {
   return mm ? `${h12}시 ${mm}분` : `${h12}시`
 }
 
+export function clockLabel(h: number): string {
+  return `${h < 12 ? '오전' : '오후'} ${hourLabel(h)}`
+}
+
 export function timeLabel(h: number): string {
   const total = Math.round(h * 60)
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`

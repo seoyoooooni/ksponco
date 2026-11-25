@@ -7,8 +7,8 @@ import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
 
 export type SpotItem = {
-  name: string
-  meta: string
+  label: string
+  selected: boolean
 }
 
 type Props = {
@@ -18,7 +18,6 @@ type Props = {
   closure: { title: string; sub: string } | null
   spots: SpotItem[]
   onSpot: (i: number) => void
-  sunsetText: string
   duration: number | 'custom'
   onDuration: (h: number) => void
   stay: [number, number]
@@ -33,6 +32,7 @@ type Props = {
   onHour: (h: number) => void
   playing: boolean
   onPlay: () => void
+  sunset: { at: number; label: string } | null
 }
 
 export function EverydaySheet(p: Props) {
@@ -60,7 +60,7 @@ export function EverydaySheet(p: Props) {
             <span>머무는 시간</span>
             <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
           </div>
-          <TimeRange from={p.stay[0]} to={p.stay[1]} strip={p.strip} cursor={p.hour} onChange={p.onStay} onCursor={p.onHour} playing={p.playing} onPlay={p.onPlay} />
+          <TimeRange from={p.stay[0]} to={p.stay[1]} strip={p.strip} cursor={p.hour} onChange={p.onStay} onCursor={p.onHour} playing={p.playing} onPlay={p.onPlay} sunset={p.sunset} />
           <PillButton
             variant="primary"
             style={{ height: 52, fontSize: 16, fontWeight: 700, marginTop: 8 }}
@@ -82,20 +82,21 @@ export function EverydaySheet(p: Props) {
         ]}
         onChange={p.onPref}
       />
-      <h1 className="headline">{p.headline}</h1>
-      {p.spots.length > 0 && (
-        <div className="spot-btns" role="group" aria-label="추천 자리">
-          {p.spots.map((s, i) => (
-            <button key={i} type="button" className="spot-btn" aria-label={`${i + 1}번 추천 자리로 옮기기, ${s.meta}`} onClick={() => p.onSpot(i)}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="headline-row">
+        <h1 className="headline">{p.headline}</h1>
+        {p.spots.length > 0 && (
+          <div className="spot-btns" role="group" aria-label="추천 자리">
+            {p.spots.map((s, i) => (
+              <button key={i} type="button" className="spot-btn" aria-pressed={s.selected} aria-label={`${i + 1}번 추천 자리로 옮기기, ${s.label}`} onClick={() => p.onSpot(i)}>
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {p.spots.length === 0 && (
         <p className="plain-line">{p.pref === 'shade' ? '이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.' : '이 시간엔 계속 볕이 드는 곳이 없어요. 시간을 바꿔 보세요.'}</p>
       )}
-      <p className="plain-line">{p.sunsetText}</p>
       <Toggle
         label="머무는 시간"
         value={p.duration}

@@ -7,7 +7,7 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { chipDateLabel, dateLabel, durationLabel, hourLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
+import { chipDateLabel, clockLabel, dateLabel, durationLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { planKey, rectPoly, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
@@ -28,21 +28,22 @@ import { Legend } from './Legend'
 import { SourcesSheet } from './SourcesSheet'
 import { useAnalysis } from './useAnalysis'
 import { usePlayback } from './usePlayback'
+import { directionName } from '../lib/shadeGrid'
 import { LoadingScreen } from '../ui/LoadingScreen'
 import { BrandMark } from '../ui/BrandMark'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
+function nowStart(date: string): number | null {
+  if (date !== TODAY) return null
+  const now = new Date()
+  const h = now.getHours() + now.getMinutes() / 60
+  return h >= 9 && h <= 20 ? Math.ceil(h * 4) / 4 : null
+}
+
 function defaultEverydayStay(date: string, hours: number): [number, number] {
-  if (date === TODAY) {
-    const now = new Date()
-    const h = now.getHours() + now.getMinutes() / 60
-    if (h >= 9 && h <= 20) {
-      const from = Math.ceil(h * 4) / 4
-      return [from, Math.min(22, from + hours)]
-    }
-  }
-  return [14, 14 + hours]
+  const from = nowStart(date) ?? 14
+  return [from, Math.min(22, from + hours)]
 }
 
 function defaultMat(layout: Layout | null, center: { x: number; z: number }) {
@@ -115,6 +116,7 @@ function Main({ ready }: { ready: Base }) {
   const hour = useScene((s) => s.hour)
   const stay = useScene((s) => s.stay)
   const mat = useScene((s) => s.mat)
+  const anchor = useScene((s) => s.anchor)
   const matTouched = useScene((s) => s.matTouched)
   const eyeHeight = useScene((s) => s.eyeHeight)
   const fpAway = useScene((s) => s.fpAway)
@@ -178,7 +180,7 @@ function Main({ ready }: { ready: Base }) {
   const tempMax = dayTempMax(date, ready.forecast, event?.tempMax ?? null)
   const pref = chosenPref ?? autoPref(tempMax)
   const sunWeight = prefWeight(tempMax, chosenPref !== null)
-  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight })
+  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, anchor, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight })
   const sold = soldKey in soldMap ? soldMap[soldKey] : (event?.people ?? null)
   const forecastDay = ready.forecast?.days.find((d) => d.date === date) ?? null
   const wet: Wet = forecastDay && forecastDay.rainPrevDay >= 1 ? { heavy: forecastDay.rainPrevDay >= 10 } : null
@@ -195,7 +197,10 @@ function Main({ ready }: { ready: Base }) {
     if (!layoutReady) return
     const current = sceneStore.get().mat
     const valid = current && (layout ? zoneAt(layout.zones, current.x, current.z)?.type === 'picnic' : true)
-    if (!valid) sceneStore.set({ mat: defaultMat(layout, analysis.lawnCenter), matTouched: false, camera: 'orbit' })
+    if (!valid) {
+      const m = defaultMat(layout, analysis.lawnCenter)
+      sceneStore.set({ mat: m, anchor: m, matTouched: false, camera: 'orbit' })
+    }
   }, [layoutReady, layout, analysis.lawnCenter])
 
   useEffect(() => {
@@ -270,7 +275,7 @@ function Main({ ready }: { ready: Base }) {
         crowd={analysis.crowd}
         overlay={analysis.overlay}
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
-        markers={mode === 'everyday' && !closure ? analysis.spots.map((s, i) => ({ x: s.x, z: s.z, label: String(i + 1) })) : undefined}
+        markers={mode === 'everyday' && !closure ? analysis.spots.map((s, i) => ({ x: s.x, z: s.z, label: String(i + 1) })).filter((m) => !mat || Math.hypot(mat.x - m.x, mat.z - m.z) >= 0.5) : undefined}
         overlayOverride={operator && opResult && opResult.wetCells.length ? opResult.wetCells.map((c) => ({ ...c, size: 4, color: '#7fa6c6' })) : undefined}
         operator={operator ? { tents, palms, suggestion: opResult?.suggestion ?? null, zoneStart, onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator, onTent: opTool === 'erase' ? (id) => sceneStore.set({ tents: sceneStore.get().tents.filter((t) => t.id !== id) }) : undefined } : undefined}
       />
@@ -372,6 +377,7 @@ function Main({ ready }: { ready: Base }) {
               onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
+              sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
             />
           ) : (
             <EverydaySheet
@@ -379,15 +385,14 @@ function Main({ ready }: { ready: Base }) {
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
               closure={closure ? { title: `${dateLabel(date)}은 ${closure.reason}로 출입이 제한돼요`, sub: `${dateLabel(closure.from)}부터 ${dateLabel(closure.to)}까지예요. 다른 날짜를 골라 보세요.` } : null}
-              headline={`${date === TODAY && stay[0] === defaultEverydayStay(date, duration)[0] ? '지금부터' : `${hourLabel(stay[0])}부터`} ${durationLabel(duration)}\n${pref === 'shade' ? '그늘이 이어지는 곳' : '볕이 드는 곳'}`}
+              headline={`${stay[0] === nowStart(date) ? '지금부터' : `${clockLabel(stay[0])}부터`} ${durationLabel(duration)}\n${pref === 'shade' ? '그늘이 이어지는 곳' : '볕이 드는 곳'}`}
               pref={pref}
               onPref={(v) => sceneStore.set({ pref: v })}
-              spots={analysis.spots.map((s) => ({ name: s.name, meta: `${Math.round(s.distance)}m` }))}
+              spots={analysis.spots.map((s) => ({ label: `${directionName(anchor ?? analysis.lawnCenter, s)} ${Math.round(s.distance)}m`, selected: Boolean(mat && Math.hypot(mat.x - s.x, mat.z - s.z) < 0.5) }))}
               onSpot={(i) => {
                 const s = analysis.spots[i]
                 if (s) sceneStore.set({ mat: { x: s.x, z: s.z }, matTouched: true })
               }}
-              sunsetText={sunset ? `해 지는 시각 ${timeLabel(sunset)}` : '해 지는 시각을 계산하지 못했어요'}
               duration={durationValue}
               onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(22, stay[0] + h)] })}
               stay={stay}
@@ -399,6 +404,7 @@ function Main({ ready }: { ready: Base }) {
               onHour={(h) => sceneStore.set({ hour: h })}
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
+              sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
             />
           )}
           {import.meta.env.DEV && <DevTools />}
@@ -409,7 +415,7 @@ function Main({ ready }: { ready: Base }) {
         open={pickerOpen}
         onClose={closePicker}
         venue={venue}
-        onVenue={(v) => sceneStore.set({ venue: v, mat: null, zoneStart: null })}
+        onVenue={(v) => sceneStore.set({ venue: v, mat: null, anchor: null, zoneStart: null })}
         venuesReady={[...VENUES_READY]}
         date={date}
         today={TODAY}

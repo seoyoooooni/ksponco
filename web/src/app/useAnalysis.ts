@@ -35,6 +35,7 @@ type Input = {
   date: string
   stay: [number, number]
   mat: MatPosition | null
+  anchor: MatPosition | null
   eyeHeight: number
   crowdScale: number
   seats: boolean
@@ -61,7 +62,7 @@ function shadeColor(f: number): string {
   return SHADE_COLORS[k]
 }
 
-export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats, pref, sunWeight }: Input): Analysis {
+export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, eyeHeight, crowdScale, seats, pref, sunWeight }: Input): Analysis {
   const { terrain, trees, venue } = bundle
   const [from, to] = stay
   const stage = layout ? (layout.stage ?? venue.fixedStage ?? null) : null
@@ -95,7 +96,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
 
   const spots = useMemo(() => {
     if (layout || !shade) return []
-    const origin = mat ?? lawnCenter
+    const origin = anchor ?? lawnCenter
     const want = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
     const suffix = pref === 'shade' ? '나무 그늘' : '양지'
     const picks = shadeSpots(want, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} ${suffix}` }))
@@ -108,7 +109,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       })
     }
     return picks
-  }, [layout, shade, mat, lawnCenter, pref])
+  }, [layout, shade, anchor, lawnCenter, pref])
 
   const overlay = useMemo<OverlayCell[] | null>(() => {
     if (!layout && shade) {

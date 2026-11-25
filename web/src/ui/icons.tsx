@@ -40,6 +40,13 @@ export const CalendarIcon = (p: IconProps) => (
   </Svg>
 )
 
+export const SunsetIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 17a5 5 0 0 1 10 0" />
+    <path d="M3 17h18M12 4v5M9.5 6.5 12 9l2.5-2.5M4.6 11.6l1.4 1M19.4 11.6l-1.4 1" />
+  </Svg>
+)
+
 export const ChevronDown = (p: IconProps) => (
   <Svg {...p}>
     <path d="m6 9 6 6 6-6" />
