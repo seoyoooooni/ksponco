@@ -18,6 +18,9 @@ import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
 import { Water } from './Water'
+import { Tents } from './Tents'
+import type { ClosedArea, Tent } from '../lib/operator'
+import type { Vec2 } from '../data/types'
 
 type Props = {
   bundle: VenueBundle
@@ -26,6 +29,15 @@ type Props = {
   overlay: OverlayCell[] | null
   bubble: string | null
   markers?: SpotMarker[]
+  overlayOverride?: OverlayCell[]
+  operator?: {
+    tents: Tent[]
+    palms: ClosedArea[]
+    suggestion: { x: number; z: number } | null
+    zoneStart: Vec2 | null
+    onPick: (x: number, z: number) => void
+    onTent?: (id: number) => void
+  }
 }
 
 const BLOCKED: Record<string, string> = {
@@ -37,7 +49,8 @@ const BLOCKED: Record<string, string> = {
 
 const DEFAULT_MAT = { w: 1.8, d: 1.8, people: 2 }
 
-export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }: Props) {
+export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, markers, operator, overlayOverride }: Props) {
+  const overlay = overlayOverride ?? baseOverlay
   const { venue, terrain, trees, buildings } = bundle
   const mat = useScene((s) => s.mat)
   const eyeHeight = useScene((s) => s.eyeHeight)
@@ -113,7 +126,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
       <fog attach="fog" args={[sceneColors.fog, 220, 560]} />
       <SunLight center={center} radius={radius} />
 
-      <Terrain terrain={terrain} layout={layout} onPick={handlePick} />
+      <Terrain terrain={terrain} layout={layout} onPick={operator ? operator.onPick : handlePick} />
       {venue.water && <Water poly={venue.water} />}
       <Trees trees={trees} terrain={terrain} />
       <Buildings buildings={buildings} />
@@ -131,7 +144,9 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
       {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
 
-      {mat && (
+      {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
+
+      {mat && !operator && (
         <MyMat
           position={mat}
           spec={layout?.mat ?? DEFAULT_MAT}

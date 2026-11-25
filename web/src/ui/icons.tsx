@@ -101,3 +101,31 @@ export const ClipboardIcon = (p: IconProps) => (
     <path d="m9 13 2 2 4-4" />
   </Svg>
 )
+
+export const TentIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 9h18l-2-4H5z" />
+    <path d="M5 9v10M19 9v10" />
+  </Svg>
+)
+
+export const ZoneIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="4" width="16" height="16" rx="1.5" strokeDasharray="3 3" />
+    <path d="M9 9l6 6M15 9l-6 6" />
+  </Svg>
+)
+
+export const EraseIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M16 4l4 4-10 10H6l-2-2z" />
+    <path d="M12 8l4 4M10 20h10" />
+  </Svg>
+)
+
+export const MatIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="7" width="18" height="10" rx="1.5" />
+    <path d="M7 7v10M11 7v10M15 7v10M19 7v10" />
+  </Svg>
+)
