@@ -1,10 +1,1 @@
-{
-  "id": "lawn88",
-  "name": "88잔디마당",
-  "origin5186": [210000.0, 547000.0],
-  "originNote": "목업: 시연판 좌표계 그대로 (원점은 임시 무대 앞)",
-  "stage": "temporary",
-  "fixedStage": null,
-  "seating": "lawn",
-  "defaultLayout": "layout_default.json"
-}
+{"id":"lawn88","name":"88잔디마당","origin5186":[211033.33,546628.31],"originNote":"가운데 원형 광장 중심 (점군 광장 고리를 위성 영상에 맞춘 점)","lat":37.5190731,"lon":127.1248073,"northRotationDeg":225.0,"stage":"temporary","fixedStage":null,"seating":"lawn","defaultLayout":"layout_default.json"}
