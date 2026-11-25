@@ -91,7 +91,7 @@ export function indexHeads(crowd: Crowd, terrain: Terrain, scale: number, skipNe
   return map
 }
 
-function headBlocked(e: Vec3, t: Vec3, heads: HeadIndex): boolean {
+export function headBlocked(e: Vec3, t: Vec3, heads: HeadIndex): boolean {
   const dx = t[0] - e[0]
   const dy = t[1] - e[1]
   const dz = t[2] - e[2]
