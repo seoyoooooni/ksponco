@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { PerspectiveCamera, TOUCH, Vector3 } from 'three'
+import { PerspectiveCamera, Spherical, TOUCH, Vector3 } from 'three'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { useWide } from '../ui/useMediaQuery'
 
@@ -18,10 +18,89 @@ const FIRST_PERSON_FOV = 58
 const ORBIT_HFOV = 34
 const PANEL_SHIFT = (400 + 32) / 2
 const PAN_LIMIT = 90
-const MAP_TOUCHES = { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }
+const MAP_TOUCHES = { ONE: TOUCH.PAN, TWO: -1 as unknown as TOUCH }
 const ORBIT_TOUCHES = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }
 
 type Controls = { target: Vector3; object: { position: Vector3 } }
+
+const MIN_DIST = 15
+const MAX_DIST = 320
+const MIN_POLAR = 0.12
+const MAX_POLAR = Math.PI * 0.47
+const TILT_SPEED = 1.4
+
+function TwoFingerMap() {
+  const camera = useThree((s) => s.camera) as PerspectiveCamera
+  const gl = useThree((s) => s.gl)
+  const controls = useThree((s) => s.controls) as unknown as (Controls & { enabled: boolean; update: () => void }) | null
+  const pts = useRef(new Map<number, { x: number; y: number }>())
+  const last = useRef<{ d: number; a: number; y0: number; y1: number } | null>(null)
+  const sph = useMemo(() => new Spherical(), [])
+  const off = useMemo(() => new Vector3(), [])
+
+  useEffect(() => {
+    const el = gl.domElement
+    const map = pts.current
+    const down = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return
+      map.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      last.current = null
+    }
+    const move = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch' || !map.has(e.pointerId)) return
+      map.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    }
+    const up = (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') return
+      map.delete(e.pointerId)
+      last.current = null
+    }
+    el.addEventListener('pointerdown', down)
+    el.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    return () => {
+      el.removeEventListener('pointerdown', down)
+      el.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      map.clear()
+    }
+  }, [gl])
+
+  useFrame(() => {
+    const map = pts.current
+    if (map.size !== 2 || !controls || !controls.enabled) {
+      last.current = null
+      return
+    }
+    const [p, q] = [...map.values()]
+    const now = { d: Math.hypot(q.x - p.x, q.y - p.y), a: Math.atan2(q.y - p.y, q.x - p.x), y0: p.y, y1: q.y }
+    const prev = last.current
+    last.current = now
+    if (!prev) return
+    const t = controls.target
+    off.copy(camera.position).sub(t)
+    sph.setFromVector3(off)
+    if (now.d > 0 && prev.d > 0) sph.radius = Math.min(MAX_DIST, Math.max(MIN_DIST, (sph.radius * prev.d) / now.d))
+    let da = now.a - prev.a
+    if (da > Math.PI) da -= 2 * Math.PI
+    if (da < -Math.PI) da += 2 * Math.PI
+    sph.theta += da
+    const dy0 = now.y0 - prev.y0
+    const dy1 = now.y1 - prev.y1
+    if (dy0 !== 0 && Math.sign(dy0) === Math.sign(dy1)) {
+      const dy = Math.sign(dy0) * Math.min(Math.abs(dy0), Math.abs(dy1))
+      sph.phi = Math.min(MAX_POLAR, Math.max(MIN_POLAR, sph.phi - (dy / gl.domElement.clientHeight) * TILT_SPEED))
+    }
+    off.setFromSpherical(sph)
+    camera.position.copy(t).add(off)
+    camera.lookAt(t)
+    controls.update()
+  })
+
+  return null
+}
 
 function uiZoom(): number {
   const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-zoom'))
@@ -193,16 +272,19 @@ export function CameraRig({ eye, lookAt, orbitTarget, home }: Props) {
 
   if (view) return <FirstPersonLook eye={view.eye} lookAt={view.lookAt} />
   return (
-    <OrbitControls
-      makeDefault
-      target={orbitTarget}
-      touches={coarse ? MAP_TOUCHES : ORBIT_TOUCHES}
-      screenSpacePanning={!coarse}
-      onChange={keepNear}
-      maxPolarAngle={Math.PI * 0.47}
-      minDistance={15}
-      maxDistance={320}
-      enableDamping
-    />
+    <>
+      {coarse && <TwoFingerMap />}
+      <OrbitControls
+        makeDefault
+        target={orbitTarget}
+        touches={coarse ? MAP_TOUCHES : ORBIT_TOUCHES}
+        screenSpacePanning={!coarse}
+        onChange={keepNear}
+        maxPolarAngle={MAX_POLAR}
+        minDistance={MIN_DIST}
+        maxDistance={MAX_DIST}
+        enableDamping
+      />
+    </>
   )
 }
