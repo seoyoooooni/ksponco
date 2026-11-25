@@ -164,7 +164,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       {layout && crowd && <Crowd crowd={crowd} layout={layout} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
-      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} />}
+      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
 
       {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
