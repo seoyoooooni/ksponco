@@ -3,6 +3,9 @@ import type { SunState } from './analysis'
 
 export type SunPref = 'shade' | 'sun'
 
+const SHADE_FROM = 20
+const HOT_FROM = 25
+
 const SEOUL_NORMAL_MAX = [2.1, 5.1, 11.0, 17.9, 23.6, 27.6, 29.0, 30.0, 26.2, 20.2, 11.9, 4.2]
 
 export function dayTempMax(date: string, forecast: Forecast | null, eventTemp: number | null): number {
@@ -13,11 +16,11 @@ export function dayTempMax(date: string, forecast: Forecast | null, eventTemp: n
 }
 
 export function autoPref(tempMax: number): SunPref {
-  return tempMax < 15 ? 'sun' : 'shade'
+  return tempMax < SHADE_FROM ? 'sun' : 'shade'
 }
 
 export function prefWeight(tempMax: number, chosen: boolean): number {
-  if (chosen || tempMax >= 25 || tempMax < 15) return 0.4
+  if (chosen || tempMax >= HOT_FROM || tempMax < SHADE_FROM) return 0.4
   return 0.2
 }
 
