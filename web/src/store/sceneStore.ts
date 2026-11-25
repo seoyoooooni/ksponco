@@ -30,6 +30,7 @@ export type SceneState = {
   personStyle: PersonStyleId
   sheetSnap: SheetSnap
   sheetH: number
+  sceneReady: boolean
   pickerOpen: boolean
   sourcesOpen: boolean
   seats: boolean
@@ -111,6 +112,7 @@ let state: SceneState = {
   personStyle: 'chibi',
   sheetSnap: 1,
   sheetH: 0,
+  sceneReady: false,
   pickerOpen: false,
   sourcesOpen: false,
   seats: false,

@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { useCallback, useMemo, useRef } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import type { VenueBundle } from '../data/load'
 import type { Layout } from '../data/types'
 import type { Crowd as CrowdData } from '../lib/crowd'
@@ -184,6 +184,17 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       )}
 
       <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
+      <FirstFrame />
     </Canvas>
   )
+}
+
+function FirstFrame() {
+  const frames = useRef(0)
+  useFrame(() => {
+    if (frames.current > 2) return
+    frames.current += 1
+    if (frames.current === 2) sceneStore.set({ sceneReady: true })
+  })
+  return null
 }
