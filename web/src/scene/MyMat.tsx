@@ -1,9 +1,9 @@
-import { useMemo, useRef, useState } from 'react'
-import { CanvasTexture, Mesh, NearestFilter, RepeatWrapping, SRGBColorSpace, Vector2 } from 'three'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { BufferGeometry, CanvasTexture, Mesh, NearestFilter, PlaneGeometry, RepeatWrapping, RingGeometry, SRGBColorSpace, Vector2 } from 'three'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import type { MatSpec, Terrain } from '../data/types'
-import { heightAt, slopeAt } from '../lib/terrainSample'
+import { heightAt } from '../lib/terrainSample'
 import type { MatPosition } from '../store/sceneStore'
 import { sceneColors } from './colors'
 
@@ -14,9 +14,9 @@ function useGinghamTexture() {
     canvas.width = size
     canvas.height = size
     const ctx = canvas.getContext('2d')!
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = '#fbf7ef'
     ctx.fillRect(0, 0, size, size)
-    ctx.fillStyle = 'rgba(226, 87, 76, 0.6)'
+    ctx.fillStyle = 'rgba(214, 72, 62, 0.72)'
     ctx.fillRect(0, 0, size / 2, size)
     ctx.fillRect(0, 0, size, size / 2)
     const tex = new CanvasTexture(canvas)
@@ -42,6 +42,17 @@ type Props = {
 }
 
 const GRAB_RADIUS = 3.5
+const MAT_LIFT = 0.05
+
+function drape(g: BufferGeometry, terrain: Terrain, x: number, z: number, lift: number) {
+  g.rotateX(-Math.PI / 2)
+  g.translate(x, 0, z)
+  const p = g.attributes.position
+  for (let i = 0; i < p.count; i++) p.setY(i, heightAt(terrain, p.getX(i), p.getZ(i)) + lift)
+  g.computeVertexNormals()
+  g.computeBoundingSphere()
+  return g
+}
 
 export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bubble, canPlace, onMove }: Props) {
   const texture = useGinghamTexture()
@@ -55,7 +66,6 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
 
   const pos = drag ?? position
   const g = heightAt(terrain, pos.x, pos.z)
-  const s = slopeAt(terrain, pos.x, pos.z)
 
   useFrame(({ clock }) => {
     if (pin.current) pin.current.position.y = (drag ? 4.4 : 3.4) + Math.sin(clock.elapsedTime * 3) * 0.3
@@ -104,19 +114,46 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
   const eye: [number, number, number] = [pos.x, g + eyeHeight, pos.z]
   const ring = Math.max(spec.w, spec.d)
 
+  const cloth = useMemo(() => drape(new PlaneGeometry(spec.w, spec.d, 12, 12), terrain, pos.x, pos.z, MAT_LIFT), [spec.w, spec.d, terrain, pos.x, pos.z])
+  const under = useMemo(
+    () => drape(new PlaneGeometry(spec.w + 0.5, spec.d + 0.5, 12, 12), terrain, pos.x, pos.z, MAT_LIFT * 0.4),
+    [spec.w, spec.d, terrain, pos.x, pos.z],
+  )
+  const hem = useMemo(
+    () => drape(new PlaneGeometry(spec.w + 0.14, spec.d + 0.14, 12, 12), terrain, pos.x, pos.z, MAT_LIFT * 0.7),
+    [spec.w, spec.d, terrain, pos.x, pos.z],
+  )
+  const halo = useMemo(
+    () => drape(new RingGeometry(ring * 0.85, ring * 1.25, 48, 2), terrain, pos.x, pos.z, MAT_LIFT + 0.03),
+    [ring, terrain, pos.x, pos.z],
+  )
+  useEffect(
+    () => () => {
+      cloth.dispose()
+      hem.dispose()
+      under.dispose()
+      halo.dispose()
+    },
+    [cloth, hem, under, halo],
+  )
+
   return (
     <>
-      <group position={[pos.x, g + 0.03, pos.z]} rotation={[-Math.atan(s.dz), 0, Math.atan(s.dx)]}>
-        <mesh receiveShadow renderOrder={1}>
-          <boxGeometry args={[spec.w, 0.06, spec.d]} />
-          <meshLambertMaterial map={texture} transparent />
+      <mesh geometry={under} renderOrder={1} raycast={() => null} userData={{ noAO: true }}>
+        <meshBasicMaterial color="#1f2a22" transparent opacity={0.16} depthWrite={false} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-2} />
+      </mesh>
+      <mesh geometry={hem} receiveShadow renderOrder={2} raycast={() => null}>
+        <meshLambertMaterial color={sceneColors.matHem} polygonOffset polygonOffsetFactor={-1.5} polygonOffsetUnits={-3} />
+      </mesh>
+      <mesh geometry={cloth} receiveShadow renderOrder={3} raycast={() => null}>
+        <meshLambertMaterial map={texture} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-4} />
+      </mesh>
+      {showPin && (
+        <mesh geometry={halo} renderOrder={4} raycast={() => null} userData={{ noAO: true }}>
+          <meshBasicMaterial color={sceneColors.mark} transparent opacity={drag ? 1 : 0.9} depthWrite={false} polygonOffset polygonOffsetFactor={-3} polygonOffsetUnits={-6} />
         </mesh>
-        {showPin && (
-          <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2} userData={{ noAO: true }}>
-            <ringGeometry args={[ring * 0.85, ring * 1.25, 40]} />
-            <meshBasicMaterial color={sceneColors.mark} transparent opacity={drag ? 1 : 0.9} />
-          </mesh>
-        )}
+      )}
+      <group position={[pos.x, g, pos.z]}>
         {showPin && (
           <mesh ref={pin} rotation-x={Math.PI} position-y={2.8}>
             <coneGeometry args={[1, 2.4, 14]} />

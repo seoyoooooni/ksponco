@@ -34,6 +34,7 @@ export const sceneColors = {
   sun: '#ffefd6',
   ink: '#1f3b27',
   mark: '#e2574c',
+  matHem: '#b8433a',
 } as const
 
 export const matTones = ['#e8e3d6', '#dde4d8', '#e1e5e8', '#ebe5dd'] as const

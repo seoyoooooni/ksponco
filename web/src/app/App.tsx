@@ -10,6 +10,8 @@ import { PlacePicker } from '../features/picker/PlacePicker'
 import { chipDateLabel, clockLabel, dateLabel, durationLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
+import { offLimits } from '../lib/offLimits'
+import { sourceAt } from '../lib/terrainSample'
 import { planKey, rectPoly, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
 import { OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
@@ -46,8 +48,22 @@ function defaultEverydayStay(date: string, hours: number): [number, number] {
   return [from, Math.min(22, from + hours)]
 }
 
-function defaultMat(layout: Layout | null, center: { x: number; z: number }) {
-  if (!layout) return { x: center.x + 6, z: center.z + 6 }
+function freeSpot(bundle: VenueBundle, center: { x: number; z: number }) {
+  const ok = (x: number, z: number) => sourceAt(bundle.terrain, x, z) === 0 && !offLimits(bundle.venue, x, z)
+  if (ok(center.x + 6, center.z + 6)) return { x: center.x + 6, z: center.z + 6 }
+  for (let r = 4; r <= 40; r += 2) {
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2 + Math.PI / 4
+      const x = center.x + Math.cos(a) * r
+      const z = center.z + Math.sin(a) * r
+      if (ok(x, z)) return { x, z }
+    }
+  }
+  return { x: center.x + 6, z: center.z + 6 }
+}
+
+function defaultMat(layout: Layout | null, center: { x: number; z: number }, bundle: VenueBundle) {
+  if (!layout) return freeSpot(bundle, center)
   const picnic = layout.zones.find((z) => z.type === 'picnic')
   if (!picnic) return null
   const xs = picnic.poly.map((p) => p[0])
@@ -196,12 +212,15 @@ function Main({ ready }: { ready: Base }) {
   useEffect(() => {
     if (!layoutReady) return
     const current = sceneStore.get().mat
-    const valid = current && (layout ? zoneAt(layout.zones, current.x, current.z)?.type === 'picnic' : true)
+    const valid =
+      current &&
+      !offLimits(ready.bundle.venue, current.x, current.z) &&
+      (layout ? zoneAt(layout.zones, current.x, current.z)?.type === 'picnic' : true)
     if (!valid) {
-      const m = defaultMat(layout, analysis.lawnCenter)
+      const m = defaultMat(layout, analysis.lawnCenter, ready.bundle)
       sceneStore.set({ mat: m, anchor: m, matTouched: false, camera: 'orbit' })
     }
-  }, [layoutReady, layout, analysis.lawnCenter])
+  }, [layoutReady, layout, analysis.lawnCenter, ready.bundle])
 
   useEffect(() => {
     document.documentElement.dataset.view = camera === 'firstPerson' ? 'fp' : 'main'
