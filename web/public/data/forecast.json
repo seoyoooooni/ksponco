@@ -1,20 +1,6 @@
 {
-  "updated": "2026-11-24T05:00+09:00",
+  "updated": "2026-11-25T05:00+09:00",
   "days": [
-    {
-      "date": "2026-11-24",
-      "sky": "맑음",
-      "rain": false,
-      "rainPrevDay": 5.1,
-      "tempMax": 4
-    },
-    {
-      "date": "2026-11-25",
-      "sky": "구름많음",
-      "rain": false,
-      "rainPrevDay": 0,
-      "tempMax": 7
-    },
     {
       "date": "2026-11-26",
       "sky": "맑음",
@@ -24,10 +10,17 @@
     },
     {
       "date": "2026-11-27",
-      "sky": "구름많음",
+      "sky": "흐림",
       "rain": true,
       "rainPrevDay": 0,
-      "tempMax": 16
+      "tempMax": 17
+    },
+    {
+      "date": "2026-11-28",
+      "sky": "맑음",
+      "rain": false,
+      "rainPrevDay": 3,
+      "tempMax": 9
     }
   ]
 }
