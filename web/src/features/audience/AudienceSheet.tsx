@@ -3,6 +3,8 @@ import { PillButton } from '../../ui/Buttons'
 import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { rangeLabel } from '../../lib/format'
+import type { SunPref } from '../../lib/comfort'
+import { Toggle } from '../../ui/Toggle'
 
 export type AudienceStats = {
   stage: string
@@ -16,6 +18,8 @@ type Props = {
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   headline: string
+  pref: SunPref
+  onPref: (v: SunPref) => void
   stats: AudienceStats | null
   stay: [number, number]
   strip: StripState[]
@@ -65,6 +69,15 @@ export function AudienceSheet(p: Props) {
         </>
       }
     >
+      <Toggle
+        label="찾는 자리"
+        value={p.pref}
+        options={[
+          { value: 'shade', label: '그늘' },
+          { value: 'sun', label: '볕' },
+        ]}
+        onChange={p.onPref}
+      />
       <h1 className="headline">{p.headline}</h1>
       <div className="stats">
         <div className="stat">

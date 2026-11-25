@@ -56,6 +56,13 @@ export function seatGrade(score: number): 0 | 1 | 2 {
 
 const VERDICT = ['아쉬운 자리예요', '무난한 자리예요', '좋은 자리예요'] as const
 
-export function seatVerdict(view: number, comfortScore: number, sunWeight: number): string {
-  return VERDICT[seatGrade(seatScore(view, comfortScore, sunWeight))]
+export function seatVerdict(view: number, shadeOfDaylight: number | null, pref: SunPref, sunWeight: number): string {
+  const c = comfort(shadeOfDaylight, pref)
+  const grade = seatGrade(seatScore(view, c, sunWeight))
+  if (grade === 2 || shadeOfDaylight === null) return VERDICT[grade]
+  const sightGood = view >= 0.6
+  const comfortGood = c >= 0.5
+  if (sightGood && !comfortGood) return pref === 'shade' ? '잘 보이지만 볕이 세요' : '잘 보이지만 그늘져요'
+  if (!sightGood && comfortGood) return pref === 'shade' ? '그늘은 좋지만 잘 안 보여요' : '볕은 좋지만 잘 안 보여요'
+  return VERDICT[grade]
 }
