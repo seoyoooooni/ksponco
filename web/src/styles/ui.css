@@ -24,9 +24,6 @@
   position: fixed;
   top: calc(10px + var(--safe-top));
   left: var(--space-3);
-  right: var(--space-3);
-  max-width: var(--sheet-max);
-  margin-inline: auto;
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -151,73 +148,42 @@
 }
 
 .searchbar {
-  flex: 1;
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.searchbar__field {
-  flex: 1;
-  min-width: 0;
-  height: var(--bar-height);
-  border-radius: var(--radius-btn);
+.placechip {
+  height: var(--touch);
+  max-width: calc(100vw - 2 * var(--space-3));
+  padding: 0 14px 0 12px;
+  border: none;
+  border-radius: 999px;
   background: var(--color-surface);
   box-shadow: var(--shadow-float);
-  display: flex;
+  color: var(--color-ink);
+  display: inline-flex;
   align-items: center;
-  overflow: hidden;
-}
-
-.searchbar__part {
-  height: 100%;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 14px;
+  gap: 6px;
   white-space: nowrap;
-  text-align: left;
-}
-
-.searchbar__part:focus-visible {
-  outline-offset: -3px;
-}
-
-.searchbar__part--place {
-  flex: 1.2 1 0;
-}
-
-.searchbar__part--date {
-  flex: 1 1 0;
-}
-
-.searchbar__part--date svg {
-  flex: 0 0 auto;
-  color: var(--color-mute);
-}
-
-.searchbar__divider {
-  flex: 0 0 1px;
-  height: 22px;
-  background: #e5e8eb;
-}
-
-.searchbar__place {
   font-size: 15px;
+}
+
+.placechip__place {
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.searchbar__date {
-  font-size: 15px;
+.placechip__date {
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.placechip__caret {
+  flex: 0 0 auto;
+  color: var(--color-mute);
 }
 
 .sheet {
@@ -622,33 +588,26 @@
 
 @media (min-width: 900px) {
   :root {
-    --topbar-h: calc(var(--bar-height) + 2 * var(--space-4));
+    --topbar-h: calc(var(--touch) + 2 * var(--space-4));
   }
 
   .topbar {
     top: var(--space-4);
     left: var(--space-5);
-    right: var(--space-4);
-    max-width: none;
-    margin: 0;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    height: var(--bar-height);
-    padding: 0 20px;
-    border-radius: var(--radius-btn);
+    height: var(--touch);
+    padding: 0 18px;
+    border-radius: 999px;
     background: var(--color-surface);
     box-shadow: var(--shadow-float);
   }
 
   .sheet > .link-small {
     order: 99;
-  }
-
-  .searchbar {
-    flex: 0 1 480px;
   }
 
   .sheet {
