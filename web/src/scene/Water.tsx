@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Shape, ShapeGeometry, Vector2 } from 'three'
+import { Line } from '@react-three/drei'
 import type { Terrain, Vec2 } from '../data/types'
 import { pointInPolygon } from '../lib/polygon'
 import { sceneColors } from './colors'
@@ -24,9 +25,16 @@ export function Water({ poly, terrain }: { poly: Vec2[]; terrain: Terrain }) {
     g.rotateX(-Math.PI / 2)
     return g
   }, [poly])
+  const outline = useMemo<[number, number, number][]>(
+    () => [...poly, poly[0]].map(([x, z]) => [x, level + 0.03, z]),
+    [poly, level],
+  )
   return (
-    <mesh geometry={geometry} position-y={level} receiveShadow raycast={() => null}>
-      <meshLambertMaterial color={sceneColors.water} />
-    </mesh>
+    <>
+      <mesh geometry={geometry} position-y={level} receiveShadow raycast={() => null} userData={{ noAO: true }}>
+        <meshPhongMaterial color={sceneColors.water} emissive={sceneColors.waterGlow} specular={sceneColors.waterGlint} shininess={60} />
+      </mesh>
+      <Line points={outline} color={sceneColors.shore} lineWidth={2.5} transparent opacity={0.9} userData={{ noAO: true }} />
+    </>
   )
 }
