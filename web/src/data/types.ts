@@ -79,9 +79,24 @@ export type GridMeta = {
 
 export type TerrainSource = 0 | 1 | 2
 
+export type Terrace = {
+  x: number
+  z: number
+  mid: number
+  half: number
+  rIn: number
+  depth: number
+  n: number
+  rise: number
+  walk: number
+  floor: number
+  top: number
+}
+
 export type Terrain = GridMeta & {
   h: number[]
   src: TerrainSource[]
+  terrace?: Terrace | null
 }
 
 export type TreeSource = 'scan' | 'satellite'

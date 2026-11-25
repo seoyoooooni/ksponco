@@ -4,6 +4,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Html, Line } from '@react-three/drei'
 import type { MatSpec, Terrain } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
+import { terraceHeight } from '../lib/terrace'
 import type { MatPosition } from '../store/sceneStore'
 import { sceneColors } from './colors'
 
@@ -44,11 +45,26 @@ type Props = {
 const GRAB_RADIUS = 3.5
 const MAT_LIFT = 0.05
 
+const REACH = 0.22
+
+function coverHeight(terrain: Terrain, x: number, z: number) {
+  let y = -Infinity
+  for (const dx of [-REACH, 0, REACH]) for (const dz of [-REACH, 0, REACH]) y = Math.max(y, heightAt(terrain, x + dx, z + dz))
+  return y
+}
+
+function facing(terrain: Terrain, x: number, z: number) {
+  const tr = terrain.terrace
+  if (!tr || terraceHeight(tr, x, z) === null) return 0
+  return Math.atan2(x - tr.x, z - tr.z)
+}
+
 function drape(g: BufferGeometry, terrain: Terrain, x: number, z: number, lift: number) {
   g.rotateX(-Math.PI / 2)
+  g.rotateY(facing(terrain, x, z))
   g.translate(x, 0, z)
   const p = g.attributes.position
-  for (let i = 0; i < p.count; i++) p.setY(i, heightAt(terrain, p.getX(i), p.getZ(i)) + lift)
+  for (let i = 0; i < p.count; i++) p.setY(i, coverHeight(terrain, p.getX(i), p.getZ(i)) + lift)
   g.computeVertexNormals()
   g.computeBoundingSphere()
   return g
@@ -114,13 +130,13 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
   const eye: [number, number, number] = [pos.x, g + eyeHeight, pos.z]
   const ring = Math.max(spec.w, spec.d)
 
-  const cloth = useMemo(() => drape(new PlaneGeometry(spec.w, spec.d, 12, 12), terrain, pos.x, pos.z, MAT_LIFT), [spec.w, spec.d, terrain, pos.x, pos.z])
+  const cloth = useMemo(() => drape(new PlaneGeometry(spec.w, spec.d, 18, 18), terrain, pos.x, pos.z, MAT_LIFT), [spec.w, spec.d, terrain, pos.x, pos.z])
   const under = useMemo(
-    () => drape(new PlaneGeometry(spec.w + 0.5, spec.d + 0.5, 12, 12), terrain, pos.x, pos.z, MAT_LIFT * 0.4),
+    () => drape(new PlaneGeometry(spec.w + 0.5, spec.d + 0.5, 18, 18), terrain, pos.x, pos.z, MAT_LIFT * 0.4),
     [spec.w, spec.d, terrain, pos.x, pos.z],
   )
   const hem = useMemo(
-    () => drape(new PlaneGeometry(spec.w + 0.14, spec.d + 0.14, 12, 12), terrain, pos.x, pos.z, MAT_LIFT * 0.7),
+    () => drape(new PlaneGeometry(spec.w + 0.14, spec.d + 0.14, 18, 18), terrain, pos.x, pos.z, MAT_LIFT * 0.7),
     [spec.w, spec.d, terrain, pos.x, pos.z],
   )
   const halo = useMemo(
