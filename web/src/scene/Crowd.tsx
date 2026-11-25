@@ -112,7 +112,7 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
   return (
     <>
       {n > 0 && (
-        <instancedMesh key={`b-${styleId}`} ref={bodies} args={[undefined, undefined, n]}>
+        <instancedMesh key={`b-${styleId}`} ref={bodies} args={[undefined, undefined, n]} userData={{ noAO: faded }}>
           {body.kind === 'cylinder' ? (
             <cylinderGeometry args={[body.top, body.bottom, 1, body.segments]} />
           ) : (
@@ -122,19 +122,19 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
         </instancedMesh>
       )}
       {n > 0 && style.head && (
-        <instancedMesh key={`h-${styleId}`} ref={heads} args={[undefined, undefined, n]}>
+        <instancedMesh key={`h-${styleId}`} ref={heads} args={[undefined, undefined, n]} userData={{ noAO: faded }}>
           <sphereGeometry args={[style.head.radius, 12, 8]} />
           <meshLambertMaterial color={style.head.color ?? '#ffffff'} transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
         </instancedMesh>
       )}
       {n > 0 && style.head && style.ears && (
-        <instancedMesh key={`e-${styleId}`} ref={ears} args={[undefined, undefined, n * 2]}>
+        <instancedMesh key={`e-${styleId}`} ref={ears} args={[undefined, undefined, n * 2]} userData={{ noAO: faded }}>
           <coneGeometry args={[style.ears.radius, style.ears.height, 4]} />
           <meshLambertMaterial transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
         </instancedMesh>
       )}
       {m > 0 && (
-        <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow renderOrder={1}>
+        <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow renderOrder={1} userData={{ noAO: faded }}>
           <boxGeometry args={[layout.mat.w, 0.04, layout.mat.d]} />
           <meshLambertMaterial transparent opacity={faded ? 0.3 : 1} />
         </instancedMesh>

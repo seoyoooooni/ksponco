@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Color, Float32BufferAttribute, PlaneGeometry } from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { Layout, Terrain as TerrainData, ZoneType } from '../data/types'
 import { zoneAt } from '../lib/polygon'
 import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
+import { grassTexture } from './grassTexture'
 
 const zoneColor: Record<ZoneType, string> = {
   standing: sceneColors.standing,
@@ -16,6 +17,8 @@ const zoneColor: Record<ZoneType, string> = {
 
 const PATH_W = 3.5
 const FADE = 28
+const TILE = 22
+const OUTER = 1200
 
 function edgeDistance(t: TerrainData): Float32Array {
   const { nx, nz } = t
@@ -91,6 +94,20 @@ export function Terrain({ terrain, layout, onPick }: Props) {
     return g
   }, [terrain, layout])
 
+  const textures = useMemo(() => {
+    const w = (terrain.nx - 1) * terrain.cell
+    const d = (terrain.nz - 1) * terrain.cell
+    return { inner: grassTexture(w / TILE, d / TILE), outer: grassTexture(OUTER / TILE, OUTER / TILE) }
+  }, [terrain])
+
+  useEffect(
+    () => () => {
+      textures.inner.dispose()
+      textures.outer.dispose()
+    },
+    [textures],
+  )
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!onPick || e.delta > 6) return
     e.stopPropagation()
@@ -100,11 +117,11 @@ export function Terrain({ terrain, layout, onPick }: Props) {
   return (
     <>
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.05, 40]} receiveShadow>
-        <planeGeometry args={[1200, 1200]} />
-        <meshLambertMaterial color={sceneColors.outerGrass} />
+        <planeGeometry args={[OUTER, OUTER]} />
+        <meshLambertMaterial color={sceneColors.outerGrass} map={textures.outer} />
       </mesh>
       <mesh name="terrain" geometry={geometry} receiveShadow onClick={handleClick}>
-        <meshLambertMaterial vertexColors />
+        <meshLambertMaterial vertexColors map={textures.inner} />
       </mesh>
     </>
   )

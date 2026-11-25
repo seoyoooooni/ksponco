@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
-import { Color, Fog, Object3D } from 'three'
+import { CanvasTexture, Color, Fog, Object3D, SRGBColorSpace } from 'three'
 import { sunPosition } from '../lib/sun'
 import { useScene } from '../store/sceneStore'
 import { sceneColors } from './colors'
@@ -36,10 +36,32 @@ export function SunLight({ center, radius }: Props) {
     [day, strength],
   )
 
+  const zenith = useMemo(
+    () => (day ? sky.clone().lerp(new Color(sceneColors.skyTop), strength) : new Color(sceneColors.skyNightTop)),
+    [day, sky, strength],
+  )
+
+  const gradient = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 2
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')!
+    const g = ctx.createLinearGradient(0, 0, 0, 256)
+    g.addColorStop(0, `#${zenith.getHexString()}`)
+    g.addColorStop(0.75, `#${sky.getHexString()}`)
+    g.addColorStop(1, `#${sky.getHexString()}`)
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 2, 256)
+    const tex = new CanvasTexture(canvas)
+    tex.colorSpace = SRGBColorSpace
+    return tex
+  }, [sky, zenith])
+
   useEffect(() => {
-    scene.background = sky
+    scene.background = gradient
     if (scene.fog instanceof Fog) scene.fog.color.copy(sky)
-  }, [scene, sky])
+    return () => gradient.dispose()
+  }, [scene, sky, gradient])
 
   const [dx, dy, dz] = sun.direction
   const up = Math.max(dy, 0.03)
@@ -47,11 +69,11 @@ export function SunLight({ center, radius }: Props) {
   return (
     <>
       <primitive object={target} />
-      <hemisphereLight args={[sceneColors.hemiSky, sceneColors.hemiGround, day ? 0.85 : 0.35]} />
+      <hemisphereLight args={[sceneColors.hemiSky, sceneColors.hemiGround, day ? 0.62 : 0.35]} />
       <directionalLight
         target={target}
         position={[cx + dx * DISTANCE, cy + up * DISTANCE, cz + dz * DISTANCE]}
-        intensity={day ? 0.5 + 1.7 * strength : 0}
+        intensity={day ? 0.6 + 2.3 * strength : 0}
         color={sceneColors.sun}
         castShadow
         shadow-mapSize={[2048, 2048]}

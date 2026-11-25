@@ -112,7 +112,7 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
           <meshLambertMaterial map={texture} transparent />
         </mesh>
         {showPin && (
-          <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2}>
+          <mesh rotation-x={-Math.PI / 2} position-y={0.05} renderOrder={2} userData={{ noAO: true }}>
             <ringGeometry args={[ring * 0.85, ring * 1.25, 40]} />
             <meshBasicMaterial color={sceneColors.mark} transparent opacity={drag ? 1 : 0.9} />
           </mesh>
@@ -131,12 +131,13 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
         {showPin && (
           <mesh
             position-y={1.6}
+            userData={{ noAO: true }}
             onPointerDown={startDrag}
             onPointerOver={hover(true)}
             onPointerOut={hover(false)}
           >
             <cylinderGeometry args={[GRAB_RADIUS, GRAB_RADIUS, 3.4, 20]} />
-            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+            <meshBasicMaterial colorWrite={false} depthWrite={false} />
           </mesh>
         )}
       </group>
