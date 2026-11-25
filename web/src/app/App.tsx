@@ -7,7 +7,7 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { dateLabel, durationLabel, hourLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
+import { chipDateLabel, dateLabel, durationLabel, hourLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { planKey, rectPoly, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
@@ -271,12 +271,13 @@ function Main({ ready }: { ready: Base }) {
             <SearchBar
               place={ready.bundle.venue.name}
               date={dateLabel(date)}
+              dateShort={chipDateLabel(date)}
               onOpen={() => sceneStore.set({ pickerOpen: true })}
               right={
                 operator ? (
                   <PillButton
                     variant="primary"
-                    style={{ height: 52 }}
+                    style={{ height: 44 }}
                     className="op-exit"
                     aria-label="운영자 모드 끝내기"
                     icon={<CloseIcon size={16} />}
