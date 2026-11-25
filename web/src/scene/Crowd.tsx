@@ -90,9 +90,11 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
     crowd.mats.forEach((m, i) => {
       const s = hidden.has(i) || !isShown(m, scale) ? 0.0001 : 1
       o.position.set(m.x, ground.mats[i] + 0.03, m.z)
+      o.rotation.set(0, m.rot, 0)
       o.scale.set(s, 1, s)
       o.updateMatrix()
       mats.current?.setMatrixAt(i, o.matrix)
+      o.rotation.set(0, 0, 0)
     })
 
     for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {

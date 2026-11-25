@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import type { VenueBundle } from '../data/load'
 import type { Layout } from '../data/types'
 import type { Crowd as CrowdData } from '../lib/crowd'
-import { zoneAt } from '../lib/polygon'
+import { bounds, zoneAt } from '../lib/polygon'
 import { heightAt, sourceAt } from '../lib/terrainSample'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { Buildings } from './Buildings'
@@ -68,6 +68,29 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
   const radius = Math.max(terrain.nx, terrain.nz) * terrain.cell * 0.62
 
+  const home = useMemo(() => {
+    if (!stage) return { target: center, position: [center[0] + 62, 105, center[2] + 128] as [number, number, number] }
+    const a = (stage.azimuth * Math.PI) / 180
+    const fx = Math.sin(a)
+    const fz = -Math.cos(a)
+    const seats = layout?.zones.filter((z) => z.type === 'picnic' || z.type === 'standing') ?? []
+    let ax = stage.x + fx * 25
+    let az = stage.z + fz * 25
+    if (seats.length) {
+      const bs = seats.map((z) => bounds(z.poly))
+      ax = (Math.min(...bs.map((b) => b.x0)) + Math.max(...bs.map((b) => b.x1))) / 2
+      az = (Math.min(...bs.map((b) => b.z0)) + Math.max(...bs.map((b) => b.z1))) / 2
+    }
+    const tx = stage.x * 0.4 + ax * 0.6
+    const tz = stage.z * 0.4 + az * 0.6
+    const side = 0.35
+    const dx = fx * Math.cos(side) - fz * Math.sin(side)
+    const dz = fz * Math.cos(side) + fx * Math.sin(side)
+    const target: [number, number, number] = [tx, heightAt(terrain, tx, tz), tz]
+    const position: [number, number, number] = [tx + dx * 72, target[1] + 82, tz + dz * 72]
+    return { target, position }
+  }, [stage, layout, center, terrain])
+
   const performerTarget = useMemo<[number, number, number] | null>(() => {
     if (!layout?.performer || !stage) return null
     const floor = heightAt(terrain, stage.x, stage.z) + stage.deckH
@@ -127,7 +150,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <SunLight center={center} radius={radius} />
 
       <Terrain terrain={terrain} layout={layout} onPick={operator ? operator.onPick : handlePick} />
-      {venue.water && <Water poly={venue.water} />}
+      {venue.water && <Water poly={venue.water} terrain={terrain} />}
       <Trees trees={trees} terrain={terrain} />
       <Buildings buildings={buildings} />
 
@@ -160,7 +183,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         />
       )}
 
-      <CameraRig eye={eye} lookAt={lookAt} orbitTarget={center} />
+      <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
     </Canvas>
   )
 }
