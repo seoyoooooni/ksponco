@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import { InstancedMesh, Object3D } from 'three'
+import { useLayoutEffect, useRef } from 'react'
+import { Color, InstancedMesh, Object3D } from 'three'
 import type { Terrain, Tree } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
@@ -9,21 +9,28 @@ type Props = {
   terrain: Terrain
 }
 
-function Canopies({ trees, terrain, color, opacity }: Props & { color: string; opacity: number }) {
+const TONES = ['#a3cf80', '#8cc070', '#78b062', '#669e54', '#578c49']
+
+function Canopies({ trees, terrain }: Props) {
   const ref = useRef<InstancedMesh>(null)
 
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
     const o = new Object3D()
+    const c = new Color()
     trees.forEach((t, i) => {
       const g = heightAt(terrain, t.x, t.z)
       const half = Math.max(0.5, (t.h - t.base) / 2)
       o.position.set(t.x, g + t.base + half, t.z)
       o.scale.set(t.r, half, t.r)
+      o.rotation.set(0, ((i * 2.399) % (Math.PI * 2)), 0)
       o.updateMatrix()
       mesh.setMatrixAt(i, o.matrix)
+      const tone = Math.abs(Math.floor(t.x * 7.3 + t.z * 3.1)) % TONES.length
+      mesh.setColorAt(i, c.set(TONES[tone]))
     })
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     mesh.instanceMatrix.needsUpdate = true
     mesh.computeBoundingSphere()
   }, [trees, terrain])
@@ -32,7 +39,7 @@ function Canopies({ trees, terrain, color, opacity }: Props & { color: string; o
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, trees.length]} castShadow receiveShadow>
       <icosahedronGeometry args={[1, 2]} />
-      <meshLambertMaterial color={color} flatShading transparent={opacity < 1} opacity={opacity} />
+      <meshLambertMaterial color="#ffffff" flatShading />
     </instancedMesh>
   )
 }
@@ -66,13 +73,10 @@ function Trunks({ trees, terrain }: Props) {
 }
 
 export function Trees({ trees, terrain }: Props) {
-  const scan = useMemo(() => trees.filter((t) => t.source === 'scan'), [trees])
-  const satellite = useMemo(() => trees.filter((t) => t.source !== 'scan'), [trees])
   return (
     <>
       <Trunks trees={trees} terrain={terrain} />
-      <Canopies trees={scan} terrain={terrain} color={sceneColors.canopy} opacity={1} />
-      <Canopies trees={satellite} terrain={terrain} color={sceneColors.canopySatellite} opacity={0.72} />
+      <Canopies trees={trees} terrain={terrain} />
     </>
   )
 }

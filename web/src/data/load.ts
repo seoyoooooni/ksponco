@@ -9,6 +9,7 @@ import type {
   Venue,
   VenueId,
 } from './types'
+import { rng } from '../lib/rng'
 
 export class DataError extends Error {
   readonly path: string
@@ -56,7 +57,35 @@ export async function loadVenueBundle(id: VenueId): Promise<VenueBundle> {
     fetchJson<Tree[]>(`${id}/trees.json`),
     fetchJson<Building[]>(`${id}/buildings.json`),
   ])
-  return { venue, terrain, trees, buildings }
+  return grounded({ venue, terrain, trees, buildings })
+}
+
+function grounded(bundle: VenueBundle): VenueBundle {
+  let low = Infinity
+  for (const v of bundle.terrain.h) if (v < low) low = v
+  if (!Number.isFinite(low) || low === 0) return { ...bundle, trees: natural(bundle.trees) }
+  return {
+    ...bundle,
+    terrain: { ...bundle.terrain, h: bundle.terrain.h.map((v) => v - low) },
+    trees: natural(bundle.trees),
+    buildings: bundle.buildings.map((b) => ({ ...b, base: b.base - low })),
+  }
+}
+
+function natural(trees: Tree[]): Tree[] {
+  const r = rng(29)
+  return trees.map((t) => {
+    if (t.source !== 'satellite') return t
+    const k = 0.82 + r() * 0.36
+    return {
+      ...t,
+      x: t.x + (r() - 0.5) * 4,
+      z: t.z + (r() - 0.5) * 4,
+      r: t.r * (0.66 + r() * 0.3),
+      h: t.h * k,
+      base: t.base * (0.85 + r() * 0.3),
+    }
+  })
 }
 
 export async function loadLayout(venue: Venue, file: string | null): Promise<Layout> {

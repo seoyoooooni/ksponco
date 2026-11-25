@@ -3,7 +3,7 @@ import { Color, Float32BufferAttribute, PlaneGeometry } from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { Layout, Terrain as TerrainData, ZoneType } from '../data/types'
 import { zoneAt } from '../lib/polygon'
-import { heightAt, sourceAt } from '../lib/terrainSample'
+import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
 
 const zoneColor: Record<ZoneType, string> = {
@@ -12,6 +12,40 @@ const zoneColor: Record<ZoneType, string> = {
   aisle: sceneColors.aisle,
   booth: sceneColors.booth,
   closed: sceneColors.closed,
+}
+
+const PATH_W = 3.5
+const FADE = 28
+
+function edgeDistance(t: TerrainData): Float32Array {
+  const { nx, nz } = t
+  const d = new Float32Array(nx * nz)
+  for (let k = 0; k < d.length; k++) d[k] = t.src[k] === 0 ? 0 : 1e9
+  const D = Math.SQRT2
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      const k = j * nx + i
+      if (i > 0) d[k] = Math.min(d[k], d[k - 1] + 1)
+      if (j > 0) {
+        d[k] = Math.min(d[k], d[k - nx] + 1)
+        if (i > 0) d[k] = Math.min(d[k], d[k - nx - 1] + D)
+        if (i < nx - 1) d[k] = Math.min(d[k], d[k - nx + 1] + D)
+      }
+    }
+  }
+  for (let j = nz - 1; j >= 0; j--) {
+    for (let i = nx - 1; i >= 0; i--) {
+      const k = j * nx + i
+      if (i < nx - 1) d[k] = Math.min(d[k], d[k + 1] + 1)
+      if (j < nz - 1) {
+        d[k] = Math.min(d[k], d[k + nx] + 1)
+        if (i < nx - 1) d[k] = Math.min(d[k], d[k + nx + 1] + D)
+        if (i > 0) d[k] = Math.min(d[k], d[k + nx - 1] + D)
+      }
+    }
+  }
+  for (let k = 0; k < d.length; k++) d[k] *= t.cell
+  return d
 }
 
 type Props = {
@@ -30,7 +64,10 @@ export function Terrain({ terrain, layout, onPick }: Props) {
     const pos = g.attributes.position
     const colors: number[] = []
     const c = new Color()
-    const edge = new Color(sceneColors.outerGrass)
+    const outer = new Color(sceneColors.outerGrass)
+    const park = new Color(sceneColors.parkGrass)
+    const path = new Color(sceneColors.path)
+    const dist = edgeDistance(terrain)
     const xMax = terrain.x0 + w
     const zMax = terrain.z0 + d
     for (let i = 0; i < pos.count; i++) {
@@ -40,8 +77,13 @@ export function Terrain({ terrain, layout, onPick }: Props) {
         x <= terrain.x0 + 1e-6 || x >= xMax - 1e-6 || z <= terrain.z0 + 1e-6 || z >= zMax - 1e-6
       pos.setY(i, onBorder ? 0 : heightAt(terrain, x, z))
       const zone = layout ? zoneAt(layout.zones, x, z) : null
-      c.set(zone ? zoneColor[zone.type] : sceneColors.lawn)
-      if (sourceAt(terrain, x, z) === 1) c.lerp(edge, 0.55)
+      const gi = Math.min(terrain.nx - 1, Math.max(0, Math.round((x - terrain.x0) / terrain.cell)))
+      const gj = Math.min(terrain.nz - 1, Math.max(0, Math.round((z - terrain.z0) / terrain.cell)))
+      const e = dist[gj * terrain.nx + gi]
+      if (zone) c.set(zoneColor[zone.type])
+      else if (e === 0) c.set(sceneColors.lawn)
+      else if (e <= PATH_W) c.copy(path)
+      else c.copy(park).lerp(outer, Math.min(1, (e - PATH_W) / FADE))
       colors.push(c.r, c.g, c.b)
     }
     g.setAttribute('color', new Float32BufferAttribute(colors, 3))
