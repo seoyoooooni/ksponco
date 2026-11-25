@@ -12,7 +12,7 @@ export type OverlayCell = {
 
 const LIFT = 0.15
 
-export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain: Terrain }) {
+export function HeatOverlay({ cells, terrain, opacity = 0.9 }: { cells: OverlayCell[]; terrain: Terrain; opacity?: number }) {
   const geometry = useMemo(() => {
     const pos: number[] = []
     const col: number[] = []
@@ -43,7 +43,7 @@ export function HeatOverlay({ cells, terrain }: { cells: OverlayCell[]; terrain:
   if (cells.length === 0) return null
   return (
     <mesh geometry={geometry} raycast={() => null}>
-      <meshLambertMaterial vertexColors transparent opacity={0.9} depthWrite={false} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
+      <meshLambertMaterial vertexColors transparent opacity={opacity} depthWrite={false} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-2} />
     </mesh>
   )
 }
