@@ -119,6 +119,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
         const x = shade.x0 + (i + 0.5) * shade.cell
         const z = shade.z0 + (j + 0.5) * shade.cell
         if (sourceAt(terrain, x, z) !== 0) return
+        if (pref === 'shade' ? f < 0.6 : f >= 0.35) return
         cells.push({ x, z, size: shade.cell, color: shadeColor(f) })
       })
       return cells

@@ -7,9 +7,15 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { dateLabel, durationLabel, hourLabel, parseClock, timeLabel } from '../lib/format'
+import { dateLabel, durationLabel, hourLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
+import { planKey, rectPoly, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
+import { OperatorSheet } from '../features/operator/OperatorSheet'
+import { OperatorTools } from '../features/operator/OperatorTools'
+import { useOperator } from '../features/operator/useOperator'
+import { PillButton } from '../ui/Buttons'
+import { CloseIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
 import { SceneCanvas } from '../scene/SceneCanvas'
 import { sceneStore, TODAY, useScene } from '../store/sceneStore'
@@ -99,6 +105,23 @@ function Main({ ready }: { ready: Base }) {
   const seats = useScene((s) => s.seats)
   const playing = useScene((s) => s.playing)
   const chosenPref = useScene((s) => s.pref)
+  const operator = useScene((s) => s.operator)
+  const opTool = useScene((s) => s.opTool)
+  const variant = useScene((s) => s.variant)
+  const compare = useScene((s) => s.compare)
+  const plan = planKey(venue, date, variant)
+  const planA = planKey(venue, date, 'A')
+  const planB = planKey(venue, date, 'B')
+  const allTents = useScene((s) => s.tents)
+  const allClosed = useScene((s) => s.closed)
+  const allPalms = useScene((s) => s.palms)
+  const pick = <T extends { plan: string }>(list: T[], key: string) => list.filter((t) => t.plan === key)
+  const tents = useMemo(() => pick(allTents, plan), [allTents, plan])
+  const closedAreas = useMemo(() => pick(allClosed, plan), [allClosed, plan])
+  const palms = useMemo(() => pick(allPalms, plan), [allPalms, plan])
+  const zoneStart = useScene((s) => s.zoneStart)
+  const soldMap = useScene((s) => s.sold)
+  const soldKey = `${venue}|${date}`
 
   const event = useMemo(
     () => ready.events.find((e) => e.venue === venue && e.date === date) ?? null,
@@ -110,10 +133,11 @@ function Main({ ready }: { ready: Base }) {
   )
 
   const layoutState = useLoad(
-    async () => (event ? loadLayout(ready.bundle.venue, event.layout) : null),
-    [ready, event?.id],
+    async () => (event ? loadLayout(ready.bundle.venue, event.layout) : operator ? loadLayout(ready.bundle.venue, null) : null),
+    [ready, event?.id, operator],
   )
-  const layout = layoutState.status === 'ready' ? layoutState.data : null
+  const baseLayout = layoutState.status === 'ready' ? layoutState.data : null
+  const layout = useMemo(() => (operator && baseLayout ? withClosed(baseLayout, closedAreas) : baseLayout), [operator, baseLayout, closedAreas])
   const layoutReady = layoutState.status === 'ready'
 
   useEffect(() => {
@@ -121,16 +145,29 @@ function Main({ ready }: { ready: Base }) {
       const from = Math.max(9, parseClock(event.start))
       const to = Math.min(22, parseClock(event.end))
       sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetSnap: 1, pref: null })
+    } else if (operator) {
+      sceneStore.set({ stay: [12, 21], hour: 14.5, seats: false, sheetSnap: 1, pref: null })
     } else {
       const s = defaultEverydayStay(date, 2)
       sceneStore.set({ stay: s, hour: s[0], seats: false, sheetSnap: 1, pref: null })
     }
-  }, [event?.id, date])
+  }, [event?.id, date, operator])
 
   const tempMax = dayTempMax(date, ready.forecast, event?.tempMax ?? null)
   const pref = chosenPref ?? autoPref(tempMax)
   const sunWeight = prefWeight(tempMax, chosenPref !== null)
-  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats, pref, sunWeight })
+  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight })
+  const sold = soldKey in soldMap ? soldMap[soldKey] : (event?.people ?? null)
+  const forecastDay = ready.forecast?.days.find((d) => d.date === date) ?? null
+  const wet: Wet = forecastDay && forecastDay.rainPrevDay >= 1 ? { heavy: forecastDay.rainPrevDay >= 10 } : null
+  const wetText = forecastDay && wet ? `전날 비 ${forecastDay.rainPrevDay}mm · 젖은 바닥은 추정이에요` : null
+  const planInputs = useMemo(() => {
+    const make = (key: string, suggest: boolean) => ({ key, tents: pick(allTents, key), closed: pick(allClosed, key), palms: pick(allPalms, key), suggest })
+    return compare ? [make(planA, false), make(planB, false)] : [make(plan, true)]
+  }, [compare, plan, planA, planB, allTents, allClosed, allPalms])
+  const op = useOperator({ on: operator, bundle: ready.bundle, baseLayout, plans: planInputs, wet, date, stay })
+  const opResult = compare ? null : (op.results[plan] ?? null)
+  const countsOf = (key: string) => ({ tents: pick(allTents, key).length, zones: pick(allClosed, key).length, palms: pick(allPalms, key).length })
 
   useEffect(() => {
     if (!layoutReady) return
@@ -149,7 +186,44 @@ function Main({ ready }: { ready: Base }) {
   const closePicker = useCallback(() => sceneStore.set({ pickerOpen: false }), [])
   const closeSources = useCallback(() => sceneStore.set({ sourcesOpen: false }), [])
 
-  const mode = event ? 'event' : 'everyday'
+  const mode = operator ? 'operator' : event ? 'event' : 'everyday'
+
+  const pickOperator = (x: number, z: number) => {
+    const s = sceneStore.get()
+    if (s.opTool === 'tent') {
+      sceneStore.set({ tents: [...s.tents, { id: s.nextId, plan, x, z }], nextId: s.nextId + 1 })
+    } else if (s.opTool === 'zone') {
+      if (!s.zoneStart) sceneStore.set({ zoneStart: [x, z], notice: '반대쪽 꼭짓점을 눌러 주세요' })
+      else {
+        sceneStore.set({ closed: [...s.closed, { id: s.nextId, plan, poly: rectPoly(s.zoneStart, [x, z]) }], nextId: s.nextId + 1, zoneStart: null, notice: null })
+      }
+    } else if (s.opTool === 'palm') {
+      if (!s.zoneStart) sceneStore.set({ zoneStart: [x, z], notice: '반대쪽 꼭짓점을 눌러 주세요' })
+      else {
+        sceneStore.set({ palms: [...s.palms, { id: s.nextId, plan, poly: rectPoly(s.zoneStart, [x, z]) }], nextId: s.nextId + 1, zoneStart: null, notice: null })
+      }
+    } else if (s.opTool === 'erase') {
+      const inArea = (c: ClosedArea) => c.plan === plan && zoneAt([{ type: 'closed', poly: c.poly }], x, z)
+      const tent = s.tents.find((t) => t.plan === plan && Math.hypot(t.x - x, t.z - z) < 4)
+      const palm = s.palms.find(inArea)
+      const area = s.closed.find(inArea)
+      if (tent) sceneStore.set({ tents: s.tents.filter((t) => t !== tent) })
+      else if (palm) sceneStore.set({ palms: s.palms.filter((c) => c !== palm) })
+      else if (area) sceneStore.set({ closed: s.closed.filter((c) => c !== area) })
+    } else {
+      sceneStore.set({ notice: '왼쪽 도구를 먼저 골라 주세요' })
+    }
+  }
+
+  const TOOL_HINT = { tent: '잔디를 눌러 그늘막을 놓으세요', zone: '출입 금지 구역의 한쪽 꼭짓점을 눌러 주세요', palm: '야자매트를 깔 곳의 한쪽 꼭짓점을 눌러 주세요', erase: '지울 그늘막·구역·매트를 눌러 주세요' } as const
+  const copyAtoB = () => {
+    const s = sceneStore.get()
+    let id = s.nextId
+    const tentsB: Tent[] = s.tents.filter((t) => t.plan === planA).map((t) => ({ ...t, id: id++, plan: planB }))
+    const closedB = s.closed.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
+    const palmsB = s.palms.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
+    sceneStore.set({ tents: [...s.tents, ...tentsB], closed: [...s.closed, ...closedB], palms: [...s.palms, ...palmsB], nextId: id })
+  }
   const firstPerson = camera === 'firstPerson'
   const sunset = sunsetHour(date)
   const duration = stay[1] - stay[0]
@@ -175,6 +249,8 @@ function Main({ ready }: { ready: Base }) {
         overlay={analysis.overlay}
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
         markers={mode === 'everyday' && !closure ? analysis.spots.map((s, i) => ({ x: s.x, z: s.z, label: String(i + 1) })) : undefined}
+        overlayOverride={operator && opResult && opResult.wetCells.length ? opResult.wetCells.map((c) => ({ ...c, size: 4, color: '#7fa6c6' })) : undefined}
+        operator={operator ? { tents, palms, suggestion: opResult?.suggestion ?? null, zoneStart, onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator, onTent: opTool === 'erase' ? (id) => sceneStore.set({ tents: sceneStore.get().tents.filter((t) => t.id !== id) }) : undefined } : undefined}
       />
 
       {firstPerson ? (
@@ -196,14 +272,63 @@ function Main({ ready }: { ready: Base }) {
               place={ready.bundle.venue.name}
               date={dateLabel(date)}
               onOpen={() => sceneStore.set({ pickerOpen: true })}
+              right={
+                operator ? (
+                  <PillButton
+                    variant="primary"
+                    style={{ height: 52 }}
+                    className="op-exit"
+                    aria-label="운영자 모드 끝내기"
+                    icon={<CloseIcon size={16} />}
+                    onClick={() => sceneStore.set({ operator: false, opTool: null, zoneStart: null })}
+                  >
+                    <span className="op-exit__text">운영자</span>
+                  </PillButton>
+                ) : undefined
+              }
             />
           </header>
+          {operator && !compare && (
+            <OperatorTools
+              tool={opTool}
+              wet={wet !== null}
+              onTool={(t) => sceneStore.set({ opTool: t, zoneStart: null, notice: t ? TOOL_HINT[t] : null })}
+            />
+          )}
           {mode === 'event' && seats && <Legend kind="seats" />}
           {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
             데이터 출처
           </button>
-          {mode === 'event' ? (
+          {mode === 'operator' ? (
+            <OperatorSheet
+              onVisibleHeight={setSheetH}
+              view={compare ? 'compare' : variant}
+              onView={(v) => sceneStore.set(v === 'compare' ? { compare: true, opTool: null, zoneStart: null } : { compare: false, variant: v, zoneStart: null })}
+              result={opResult}
+              resultA={op.results[planA] ?? null}
+              resultB={op.results[planB] ?? null}
+              counts={countsOf(plan)}
+              countsA={countsOf(planA)}
+              countsB={countsOf(planB)}
+              sold={sold}
+              onSold={(v) => {
+                const next = { ...sceneStore.get().sold }
+                if (v === null) delete next[soldKey]
+                else next[soldKey] = v
+                sceneStore.set({ sold: next })
+              }}
+              rangeText={rangeLabel(stay[0], stay[1])}
+              wetText={wetText}
+              busy={op.busy}
+              canCopy={variant === 'B' && countsOf(planB).tents + countsOf(planB).zones + countsOf(planB).palms === 0 && countsOf(planA).tents + countsOf(planA).zones + countsOf(planA).palms > 0}
+              onCopy={copyAtoB}
+              onSuggest={() => {
+                const s = sceneStore.get()
+                if (opResult?.suggestion) sceneStore.set({ tents: [...s.tents, { id: s.nextId, plan, ...opResult.suggestion }], nextId: s.nextId + 1 })
+              }}
+            />
+          ) : mode === 'event' ? (
             <AudienceSheet
               snap={sheetSnap}
               onSnap={setSnap}
@@ -258,14 +383,14 @@ function Main({ ready }: { ready: Base }) {
         open={pickerOpen}
         onClose={closePicker}
         venue={venue}
-        onVenue={(v) => sceneStore.set({ venue: v, mat: null })}
+        onVenue={(v) => sceneStore.set({ venue: v, mat: null, zoneStart: null })}
         venuesReady={[...VENUES_READY]}
         date={date}
         today={TODAY}
         events={ready.events}
         closures={ready.closures}
-        onApply={(d) => sceneStore.set({ date: d, pickerOpen: false, camera: 'orbit' })}
-        onOperator={() => sceneStore.set({ pickerOpen: false, notice: '운영자 모드는 준비 중이에요' })}
+        onApply={(d) => sceneStore.set({ date: d, pickerOpen: false, camera: 'orbit', zoneStart: null })}
+        onOperator={() => sceneStore.set({ pickerOpen: false, operator: true, opTool: null, camera: 'orbit', seats: false, notice: null })}
       />
       <SourcesSheet
         open={sourcesOpen}

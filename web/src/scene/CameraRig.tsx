@@ -11,6 +11,7 @@ type Props = {
   eye: Vec3 | null
   lookAt: Vec3 | null
   orbitTarget: Vec3
+  home: Vec3
 }
 
 const FIRST_PERSON_FOV = 58
@@ -119,7 +120,7 @@ function orbitFov(aspect: number): number {
   return Math.min(68, Math.max(50, v))
 }
 
-export function CameraRig({ eye, lookAt, orbitTarget }: Props) {
+export function CameraRig({ eye, lookAt, orbitTarget, home }: Props) {
   const mode = useScene((s) => s.camera)
   const camera = useThree((s) => s.camera) as PerspectiveCamera
   const size = useThree((s) => s.size)
@@ -128,6 +129,13 @@ export function CameraRig({ eye, lookAt, orbitTarget }: Props) {
   const saved = useRef<{ position: Vector3; fov: number } | null>(null)
   const view = mode === 'firstPerson' && eye && lookAt ? { eye, lookAt } : null
   const key = view ? `${view.eye.join(',')}|${view.lookAt.join(',')}` : 'orbit'
+
+  const homeKey = home.join(',')
+  useEffect(() => {
+    if (view) return
+    camera.position.set(home[0], home[1], home[2])
+    camera.updateProjectionMatrix()
+  }, [homeKey])
 
   useEffect(() => {
     if (view) {

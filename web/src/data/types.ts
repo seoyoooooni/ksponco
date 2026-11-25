@@ -3,12 +3,14 @@ export type VenueId = 'lawn88' | 'lake'
 export type Vec2 = [number, number]
 
 export type StageSpec = {
+  shape?: 'rect' | 'circle'
   x: number
   z: number
   w: number
   d: number
+  r?: number
   deckH: number
-  roofH: number
+  roofH: number | null
   azimuth: number
 }
 

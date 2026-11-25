@@ -28,8 +28,8 @@ function BuildingMesh({ building }: { building: Building }) {
 export function Buildings({ buildings }: { buildings: Building[] }) {
   return (
     <>
-      {buildings.map((b) => (
-        <BuildingMesh key={b.name} building={b} />
+      {buildings.map((b, i) => (
+        <BuildingMesh key={i} building={b} />
       ))}
     </>
   )
