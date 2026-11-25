@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { PerspectiveCamera, Vector3 } from 'three'
+import { PerspectiveCamera, TOUCH, Vector3 } from 'three'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { useWide } from '../ui/useMediaQuery'
 
@@ -17,6 +17,11 @@ type Props = {
 const FIRST_PERSON_FOV = 58
 const ORBIT_HFOV = 34
 const PANEL_SHIFT = (400 + 32) / 2
+const PAN_LIMIT = 90
+const MAP_TOUCHES = { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE }
+const ORBIT_TOUCHES = { ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }
+
+type Controls = { target: Vector3; object: { position: Vector3 } }
 
 function uiZoom(): number {
   const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-zoom'))
@@ -167,11 +172,33 @@ export function CameraRig({ eye, lookAt, orbitTarget, home }: Props) {
     camera.updateProjectionMatrix()
   }, [key, size.width, size.height, wide, sheetH])
 
+  const coarse = useMemo(() => window.matchMedia('(pointer: coarse)').matches, [])
+
+  const keepNear = (e?: { target: unknown }) => {
+    const c = e?.target as Controls | undefined
+    if (!c) return
+    const t = c.target
+    const dx = t.x - orbitTarget[0]
+    const dz = t.z - orbitTarget[2]
+    const d = Math.hypot(dx, dz)
+    if (d <= PAN_LIMIT) return
+    const k = PAN_LIMIT / d
+    const nx = orbitTarget[0] + dx * k
+    const nz = orbitTarget[2] + dz * k
+    c.object.position.x += nx - t.x
+    c.object.position.z += nz - t.z
+    t.x = nx
+    t.z = nz
+  }
+
   if (view) return <FirstPersonLook eye={view.eye} lookAt={view.lookAt} />
   return (
     <OrbitControls
       makeDefault
       target={orbitTarget}
+      touches={coarse ? MAP_TOUCHES : ORBIT_TOUCHES}
+      screenSpacePanning={!coarse}
+      onChange={keepNear}
       maxPolarAngle={Math.PI * 0.47}
       minDistance={15}
       maxDistance={320}
