@@ -190,7 +190,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         <PerformerMesh performer={layout.performer} floor={heightAt(terrain, stage.x, stage.z) + stage.deckH} />
       )}
 
-      {layout && crowd && <Crowd crowd={crowd} layout={layout} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
+      {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
       {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}

@@ -1,16 +1,14 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Color, InstancedMesh, Object3D, Quaternion, Vector3 } from 'three'
-import type { Layout, Terrain } from '../data/types'
+import { Color, InstancedMesh, Object3D } from 'three'
+import type { Terrain } from '../data/types'
 import { countShown, isShown, type Crowd as CrowdData } from '../lib/crowd'
-import { heightAt, slopeAt } from '../lib/terrainSample'
-import { terraceHeight } from '../lib/terrace'
+import { heightAt } from '../lib/terrainSample'
 import { sceneStore, type MatPosition } from '../store/sceneStore'
-import { clothTones, matTones } from './colors'
+import { clothTones } from './colors'
 import { personStyles, type PersonStyleId } from './personStyles'
 
 type Props = {
   crowd: CrowdData
-  layout: Layout
   terrain: Terrain
   myMat: MatPosition | null
   scale: number
@@ -19,19 +17,16 @@ type Props = {
 }
 
 const HIDE_R = 2.2
-const UP = new Vector3(0, 1, 0)
 
-export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = false }: Props) {
+export function Crowd({ crowd, terrain, myMat, scale, styleId, faded = false }: Props) {
   const bodies = useRef<InstancedMesh>(null)
   const heads = useRef<InstancedMesh>(null)
   const ears = useRef<InstancedMesh>(null)
-  const mats = useRef<InstancedMesh>(null)
   const style = personStyles[styleId]
 
   const ground = useMemo(
     () => ({
       people: crowd.people.map((p) => heightAt(terrain, p.x, p.z)),
-      mats: crowd.mats.map((m) => heightAt(terrain, m.x, m.z)),
     }),
     [crowd, terrain],
   )
@@ -48,17 +43,13 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
         ears.current?.setColorAt(i * 2 + 1, c)
       }
     })
-    crowd.mats.forEach((m, i) => mats.current?.setColorAt(i, c.set(matTones[m.tone % matTones.length])))
-    for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {
+    for (const mesh of [bodies.current, heads.current, ears.current]) {
       if (mesh?.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   }, [crowd, style])
 
   useLayoutEffect(() => {
     const o = new Object3D()
-    const normal = new Vector3()
-    const tilt = new Quaternion()
-    const yaw = new Quaternion()
     const hidden = new Set<number>()
     if (myMat) {
       crowd.mats.forEach((m, i) => {
@@ -92,37 +83,15 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
       }
     })
 
-    crowd.mats.forEach((m, i) => {
-      const s = hidden.has(i) || !isShown(m, scale) ? 0.0001 : 1
-      const onSteps = terrain.terrace ? terraceHeight(terrain.terrace, m.x, m.z) !== null : false
-      const sl = onSteps ? { dx: 0, dz: 0 } : slopeAt(terrain, m.x, m.z)
-      normal.set(-sl.dx, 1, -sl.dz).normalize()
-      tilt.setFromUnitVectors(UP, normal)
-      yaw.setFromAxisAngle(UP, m.rot)
-      o.quaternion.copy(tilt).multiply(yaw)
-      let base = ground.mats[i]
-      if (onSteps) {
-        const hw = layout.mat.w / 2
-        const hd = layout.mat.d / 2
-        for (const [dx, dz] of [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]]) base = Math.max(base, heightAt(terrain, m.x + dx, m.z + dz))
-      }
-      o.position.set(m.x, base + 0.06, m.z)
-      o.scale.set(s, 1, s)
-      o.updateMatrix()
-      mats.current?.setMatrixAt(i, o.matrix)
-      o.quaternion.identity()
-    })
-
-    for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {
+    for (const mesh of [bodies.current, heads.current, ears.current]) {
       if (!mesh) continue
       mesh.instanceMatrix.needsUpdate = true
       mesh.computeBoundingSphere()
     }
     sceneStore.set({ crowdCount: countShown(crowd, scale) })
-  }, [crowd, ground, myMat, scale, style, terrain, layout])
+  }, [crowd, ground, myMat, scale, style])
 
   const n = crowd.people.length
-  const m = crowd.mats.length
   const body = style.body
 
   return (
@@ -147,12 +116,6 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
         <instancedMesh key={`e-${styleId}`} ref={ears} args={[undefined, undefined, n * 2]} userData={{ noAO: faded }}>
           <coneGeometry args={[style.ears.radius, style.ears.height, 4]} />
           <meshLambertMaterial transparent opacity={faded ? 0.18 : 1} depthWrite={!faded} />
-        </instancedMesh>
-      )}
-      {m > 0 && (
-        <instancedMesh ref={mats} args={[undefined, undefined, m]} receiveShadow renderOrder={1} userData={{ noAO: faded }}>
-          <boxGeometry args={[layout.mat.w, 0.04, layout.mat.d]} />
-          <meshLambertMaterial transparent opacity={faded ? 0.3 : 1} />
         </instancedMesh>
       )}
     </>

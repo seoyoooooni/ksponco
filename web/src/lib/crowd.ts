@@ -1,6 +1,7 @@
-import type { Layout } from '../data/types'
+import type { Layout, Terrace } from '../data/types'
 import { bounds, pointInPolygon, zoneAt } from './polygon'
 import { rng } from './rng'
+import { terraceHeight } from './terrace'
 
 export const MAX_CROWD_SCALE = 1.5
 
@@ -32,7 +33,7 @@ export function isShown(item: { keep: number; cap: number }, scale: number): boo
   return item.keep < item.cap * scale
 }
 
-export function buildCrowd(layout: Layout, seed = 11): Crowd {
+export function buildCrowd(layout: Layout, terrace: Terrace | null = null, seed = 11): Crowd {
   const r = rng(seed)
   const people: Person[] = []
   const mats: MatSpot[] = []
@@ -66,22 +67,28 @@ export function buildCrowd(layout: Layout, seed = 11): Crowd {
       const sx = w + 0.6
       const sz = d + 0.6
       const cap = Math.min(1, (zone.density * sx * sz) / per)
-      const spots = layout.performer ? arcSpots(b, layout.performer, sx, sz) : gridSpots(b, sx, sz)
-      for (const spot of spots) {
-        const mx = spot.x + (r() - 0.5) * 0.3
-        const mz = spot.z + (r() - 0.5) * 0.3
+      const onSteps = (x: number, z: number) => terrace !== null && terraceHeight(terrace, x, z) !== null
+      const ground = (layout.performer ? arcSpots(b, layout.performer, sx, sz) : gridSpots(b, sx, sz))
+        .map((spot) => ({ ...spot, x: spot.x + (r() - 0.5) * 0.3, z: spot.z + (r() - 0.5) * 0.3, bare: false }))
+        .filter((spot) => !onSteps(spot.x, spot.z))
+      const steps = terrace ? treadSpots(terrace, sx).map((spot) => ({ ...spot, bare: true })) : []
+      const stepCap = terrace ? Math.min(1, (zone.density * sx * terrace.depth) / per) : cap
+      for (const spot of [...ground, ...steps]) {
+        const mx = spot.x
+        const mz = spot.z
         if (zoneAt(layout.zones, mx, mz) !== zone) continue
-        const rot = spot.rot + (r() - 0.5) * 0.12
+        const rot = spot.rot + (spot.bare ? 0 : (r() - 0.5) * 0.12)
+        const groupCap = spot.bare ? stepCap : cap
         const tx = Math.cos(rot)
         const tz = -Math.sin(rot)
         const fx = Math.sin(rot)
         const fz = Math.cos(rot)
         const id = mats.length
         const keep = r()
-        mats.push({ x: mx, z: mz, rot, tone: Math.floor(r() * 4), keep, cap })
+        mats.push({ x: mx, z: mz, rot, tone: Math.floor(r() * 4), keep, cap: groupCap })
         for (let k = 0; k < per; k++) {
           const off = -w / 2 + ((k + 0.5) * w) / per
-          const j = (r() - 0.5) * d * 0.3
+          const j = spot.bare ? 0 : (r() - 0.5) * d * 0.3
           people.push({
             x: mx + tx * off + fx * j,
             z: mz + tz * off + fz * j,
@@ -89,7 +96,7 @@ export function buildCrowd(layout: Layout, seed = 11): Crowd {
             mat: id,
             tone: Math.floor(r() * 7),
             keep,
-            cap,
+            cap: groupCap,
           })
         }
       }
@@ -100,6 +107,23 @@ export function buildCrowd(layout: Layout, seed = 11): Crowd {
 }
 
 type Spot = { x: number; z: number; rot: number }
+
+function treadSpots(tr: Terrace, sx: number): Spot[] {
+  const out: Spot[] = []
+  for (let k = 1; k < tr.n; k++) {
+    const rad = tr.rIn + (k - 0.5) * tr.depth
+    const span = 2 * tr.half * rad - sx
+    const count = Math.max(1, Math.floor(span / sx) + 1)
+    const start = tr.mid - (((count - 1) * sx) / rad) / 2
+    for (let i = 0; i < count; i++) {
+      const a = start + (i * sx) / rad
+      const x = tr.x + Math.sin(a) * rad
+      const z = tr.z - Math.cos(a) * rad
+      out.push({ x, z, rot: Math.atan2(tr.x - x, tr.z - z) })
+    }
+  }
+  return out
+}
 type Box = { x0: number; x1: number; z0: number; z1: number }
 
 function gridSpots(b: Box, sx: number, sz: number): Spot[] {
