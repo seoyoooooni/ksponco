@@ -1,0 +1,12 @@
+{
+  "name": "@kspo/engine",
+  "version": "0.1.0",
+  "description": "올림픽공원 야외 공연장 시야·햇볕 계산 엔진 (프론트 Worker·백엔드 사전계산 공용)",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "tsc -p . && node --test dist/test/*.test.js"
+  }
+}
