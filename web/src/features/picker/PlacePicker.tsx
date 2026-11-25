@@ -123,13 +123,11 @@ export function PlacePicker(p: Props) {
           {info.sub && ` · ${info.sub}`}
         </span>
       </div>
-      <button
-        type="button"
-        className={`pill-btn ${same ? 'pill-btn--soft' : 'pill-btn--primary'} confirm-btn`}
-        onClick={() => (same ? p.onClose() : p.onApply(selected))}
-      >
-        {same ? '지금 보고 있는 날짜예요' : `${sel.m}월 ${sel.d}일로 보기`}
-      </button>
+      {!same && (
+        <button type="button" className="pill-btn pill-btn--primary confirm-btn" onClick={() => p.onApply(selected)}>
+          {`${sel.m}월 ${sel.d}일로 보기`}
+        </button>
+      )}
       <button type="button" className="operator-link" onClick={p.onOperator}>
         <ClipboardIcon size={16} />
         운영자 모드로 보기

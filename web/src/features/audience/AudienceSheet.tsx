@@ -30,6 +30,7 @@ type Props = {
   onFirstPerson: () => void
   playing: boolean
   onPlay: () => void
+  sunset: { at: number; label: string } | null
 }
 
 export function AudienceSheet(p: Props) {
@@ -55,6 +56,7 @@ export function AudienceSheet(p: Props) {
               onCursor={p.onHour}
               playing={p.playing}
               onPlay={p.onPlay}
+              sunset={p.sunset}
             />
           </div>
           <PillButton
