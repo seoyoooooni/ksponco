@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import type { VenueBundle } from '../data/load'
 import type { Layout } from '../data/types'
 import type { Crowd as CrowdData } from '../lib/crowd'
-import { zoneAt } from '../lib/polygon'
+import { bounds, zoneAt } from '../lib/polygon'
 import { heightAt, sourceAt } from '../lib/terrainSample'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { Buildings } from './Buildings'
@@ -18,6 +18,9 @@ import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
 import { Water } from './Water'
+import { Tents } from './Tents'
+import type { ClosedArea, Tent } from '../lib/operator'
+import type { Vec2 } from '../data/types'
 
 type Props = {
   bundle: VenueBundle
@@ -26,6 +29,15 @@ type Props = {
   overlay: OverlayCell[] | null
   bubble: string | null
   markers?: SpotMarker[]
+  overlayOverride?: OverlayCell[]
+  operator?: {
+    tents: Tent[]
+    palms: ClosedArea[]
+    suggestion: { x: number; z: number } | null
+    zoneStart: Vec2 | null
+    onPick: (x: number, z: number) => void
+    onTent?: (id: number) => void
+  }
 }
 
 const BLOCKED: Record<string, string> = {
@@ -37,7 +49,8 @@ const BLOCKED: Record<string, string> = {
 
 const DEFAULT_MAT = { w: 1.8, d: 1.8, people: 2 }
 
-export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }: Props) {
+export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, markers, operator, overlayOverride }: Props) {
+  const overlay = overlayOverride ?? baseOverlay
   const { venue, terrain, trees, buildings } = bundle
   const mat = useScene((s) => s.mat)
   const eyeHeight = useScene((s) => s.eyeHeight)
@@ -54,6 +67,29 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
   }, [terrain])
 
   const radius = Math.max(terrain.nx, terrain.nz) * terrain.cell * 0.62
+
+  const home = useMemo(() => {
+    if (!stage) return { target: center, position: [center[0] + 62, 105, center[2] + 128] as [number, number, number] }
+    const a = (stage.azimuth * Math.PI) / 180
+    const fx = Math.sin(a)
+    const fz = -Math.cos(a)
+    const seats = layout?.zones.filter((z) => z.type === 'picnic' || z.type === 'standing') ?? []
+    let ax = stage.x + fx * 25
+    let az = stage.z + fz * 25
+    if (seats.length) {
+      const bs = seats.map((z) => bounds(z.poly))
+      ax = (Math.min(...bs.map((b) => b.x0)) + Math.max(...bs.map((b) => b.x1))) / 2
+      az = (Math.min(...bs.map((b) => b.z0)) + Math.max(...bs.map((b) => b.z1))) / 2
+    }
+    const tx = stage.x * 0.4 + ax * 0.6
+    const tz = stage.z * 0.4 + az * 0.6
+    const side = 0.35
+    const dx = fx * Math.cos(side) - fz * Math.sin(side)
+    const dz = fz * Math.cos(side) + fx * Math.sin(side)
+    const target: [number, number, number] = [tx, heightAt(terrain, tx, tz), tz]
+    const position: [number, number, number] = [tx + dx * 72, target[1] + 82, tz + dz * 72]
+    return { target, position }
+  }, [stage, layout, center, terrain])
 
   const performerTarget = useMemo<[number, number, number] | null>(() => {
     if (!layout?.performer || !stage) return null
@@ -113,8 +149,8 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
       <fog attach="fog" args={[sceneColors.fog, 220, 560]} />
       <SunLight center={center} radius={radius} />
 
-      <Terrain terrain={terrain} layout={layout} onPick={handlePick} />
-      {venue.water && <Water poly={venue.water} />}
+      <Terrain terrain={terrain} layout={layout} onPick={operator ? operator.onPick : handlePick} />
+      {venue.water && <Water poly={venue.water} terrain={terrain} />}
       <Trees trees={trees} terrain={terrain} />
       <Buildings buildings={buildings} />
 
@@ -128,10 +164,12 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
 
       {layout && crowd && <Crowd crowd={crowd} layout={layout} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
-      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} />}
+      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
 
-      {mat && (
+      {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
+
+      {mat && !operator && (
         <MyMat
           position={mat}
           spec={layout?.mat ?? DEFAULT_MAT}
@@ -145,7 +183,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay, bubble, markers }:
         />
       )}
 
-      <CameraRig eye={eye} lookAt={lookAt} orbitTarget={center} />
+      <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
     </Canvas>
   )
 }

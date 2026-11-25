@@ -26,9 +26,25 @@ function Box({ size, position, color }: BoxProps) {
 export function StageMesh({ stage, terrain }: { stage: StageSpec; terrain: Terrain }) {
   const g = heightAt(terrain, stage.x, stage.z)
   const { w, d, deckH, roofH } = stage
+  if (stage.shape === 'circle') {
+    const r = stage.r ?? w / 2
+    return (
+      <mesh position={[stage.x, g + deckH / 2, stage.z]} castShadow receiveShadow>
+        <cylinderGeometry args={[r, r, Math.max(deckH, 0.05), 48]} />
+        <meshLambertMaterial color={sceneColors.stageDeck} />
+      </mesh>
+    )
+  }
+  if (roofH == null) {
+    return (
+      <group position={[stage.x, g, stage.z]} rotation-y={facingRotation(stage.azimuth)}>
+        <Box size={[w, deckH, d]} position={[0, deckH / 2, 0]} color={sceneColors.stageDeck} />
+      </group>
+    )
+  }
   return (
     <group position={[stage.x, g, stage.z]} rotation-y={facingRotation(stage.azimuth)}>
-      <Box size={[w, deckH, d]} position={[0, deckH / 2, 0]} color={sceneColors.stage} />
+      <Box size={[w, deckH, d]} position={[0, deckH / 2, 0]} color={sceneColors.stageDeck} />
       <Box
         size={[w, roofH - deckH, 0.6]}
         position={[0, deckH + (roofH - deckH) / 2, -d / 2]}
@@ -36,7 +52,7 @@ export function StageMesh({ stage, terrain }: { stage: StageSpec; terrain: Terra
       />
       <Box size={[0.6, roofH, 0.6]} position={[-w / 2, roofH / 2, d / 2 - 0.3]} color={sceneColors.stageFrame} />
       <Box size={[0.6, roofH, 0.6]} position={[w / 2, roofH / 2, d / 2 - 0.3]} color={sceneColors.stageFrame} />
-      <Box size={[w + 1, 0.8, d + 1]} position={[0, roofH, 0]} color={sceneColors.stageFrame} />
+      <Box size={[w + 1, 0.8, d + 1]} position={[0, roofH, 0]} color={sceneColors.stageRoof} />
     </group>
   )
 }

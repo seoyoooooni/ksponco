@@ -17,6 +17,7 @@ export type Person = {
 export type MatSpot = {
   x: number
   z: number
+  rot: number
   tone: number
   keep: number
   cap: number
@@ -65,31 +66,71 @@ export function buildCrowd(layout: Layout, seed = 11): Crowd {
       const sx = w + 0.6
       const sz = d + 0.6
       const cap = Math.min(1, (zone.density * sx * sz) / per)
-      for (let z = b.z0 + sz / 2; z < b.z1; z += sz) {
-        for (let x = b.x0 + sx / 2; x < b.x1; x += sx) {
-          const mx = x + (r() - 0.5) * 0.4
-          const mz = z + (r() - 0.5) * 0.4
-          if (zoneAt(layout.zones, mx, mz) !== zone) continue
-          const id = mats.length
-          const keep = r()
-          mats.push({ x: mx, z: mz, tone: Math.floor(r() * 4), keep, cap })
-          for (let k = 0; k < per; k++) {
-            people.push({
-              x: mx - w / 2 + ((k + 0.5) * w) / per,
-              z: mz + (r() - 0.5) * d * 0.3,
-              seated: true,
-              mat: id,
-              tone: Math.floor(r() * 7),
-              keep,
-              cap,
-            })
-          }
+      const spots = layout.performer ? arcSpots(b, layout.performer, sx, sz) : gridSpots(b, sx, sz)
+      for (const spot of spots) {
+        const mx = spot.x + (r() - 0.5) * 0.3
+        const mz = spot.z + (r() - 0.5) * 0.3
+        if (zoneAt(layout.zones, mx, mz) !== zone) continue
+        const rot = spot.rot + (r() - 0.5) * 0.12
+        const tx = Math.cos(rot)
+        const tz = -Math.sin(rot)
+        const fx = Math.sin(rot)
+        const fz = Math.cos(rot)
+        const id = mats.length
+        const keep = r()
+        mats.push({ x: mx, z: mz, rot, tone: Math.floor(r() * 4), keep, cap })
+        for (let k = 0; k < per; k++) {
+          const off = -w / 2 + ((k + 0.5) * w) / per
+          const j = (r() - 0.5) * d * 0.3
+          people.push({
+            x: mx + tx * off + fx * j,
+            z: mz + tz * off + fz * j,
+            seated: true,
+            mat: id,
+            tone: Math.floor(r() * 7),
+            keep,
+            cap,
+          })
         }
       }
     }
   }
 
   return { people, mats }
+}
+
+type Spot = { x: number; z: number; rot: number }
+type Box = { x0: number; x1: number; z0: number; z1: number }
+
+function gridSpots(b: Box, sx: number, sz: number): Spot[] {
+  const out: Spot[] = []
+  for (let z = b.z0 + sz / 2; z < b.z1; z += sz) {
+    for (let x = b.x0 + sx / 2; x < b.x1; x += sx) out.push({ x, z, rot: 0 })
+  }
+  return out
+}
+
+function arcSpots(b: Box, c: { x: number; z: number }, sx: number, sz: number): Spot[] {
+  const out: Spot[] = []
+  const nx = Math.max(Math.abs(b.x0 - c.x), Math.abs(b.x1 - c.x))
+  const nz = Math.max(Math.abs(b.z0 - c.z), Math.abs(b.z1 - c.z))
+  const far = Math.hypot(nx, nz)
+  const dx = Math.max(b.x0 - c.x, 0, c.x - b.x1)
+  const dz = Math.max(b.z0 - c.z, 0, c.z - b.z1)
+  const near = Math.max(sz, Math.hypot(dx, dz))
+  let ring = 0
+  for (let rad = near + sz / 2; rad < far; rad += sz, ring++) {
+    const n = Math.max(1, Math.floor((2 * Math.PI * rad) / sx))
+    const step = (2 * Math.PI) / n
+    for (let i = 0; i < n; i++) {
+      const a = (i + (ring % 2) * 0.5) * step
+      const x = c.x + Math.sin(a) * rad
+      const z = c.z + Math.cos(a) * rad
+      if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) continue
+      out.push({ x, z, rot: Math.atan2(c.x - x, c.z - z) })
+    }
+  }
+  return out
 }
 
 export function countShown(crowd: Crowd, scale: number): number {
