@@ -68,7 +68,6 @@ export function PlacePicker(p: Props) {
 
   return (
     <ModalSheet label="장소와 날짜 고르기" open={p.open} onClose={p.onClose}>
-      <h2 className="picker-title">어디서, 언제 볼까요?</h2>
       <Toggle
         label="장소"
         value={p.venue}
@@ -133,7 +132,7 @@ export function PlacePicker(p: Props) {
       </button>
       <button type="button" className="operator-link" onClick={p.onOperator}>
         <ClipboardIcon size={16} />
-        행사 운영자이신가요? 운영자 모드로 보기
+        운영자 모드로 보기
       </button>
     </ModalSheet>
   )
