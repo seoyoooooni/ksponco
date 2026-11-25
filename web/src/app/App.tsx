@@ -29,6 +29,7 @@ import { SourcesSheet } from './SourcesSheet'
 import { useAnalysis } from './useAnalysis'
 import { usePlayback } from './usePlayback'
 import { LoadingScreen } from '../ui/LoadingScreen'
+import { BrandMark } from '../ui/BrandMark'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
@@ -288,7 +289,10 @@ function Main({ ready }: { ready: Base }) {
       ) : (
         <>
           <header className="topbar">
-            <span className="brand">app name</span>
+            <span className="brand">
+              <BrandMark />
+              <span className="sr-only">app name</span>
+            </span>
             <SearchBar
               place={ready.bundle.venue.name}
               date={dateLabel(date)}

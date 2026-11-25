@@ -599,8 +599,11 @@
   .brand {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: var(--touch);
     height: var(--touch);
-    padding: 0 18px;
+    padding: 0;
+    overflow: hidden;
     border-radius: 999px;
     background: var(--color-surface);
     box-shadow: var(--shadow-float);
