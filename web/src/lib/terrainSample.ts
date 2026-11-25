@@ -1,8 +1,17 @@
 import type { Terrain } from '../data/types'
+import { terraceHeight } from './terrace'
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 export function heightAt(t: Terrain, x: number, z: number): number {
+  if (t.terrace) {
+    const v = terraceHeight(t.terrace, x, z)
+    if (v !== null) return v
+  }
+  return gridHeightAt(t, x, z)
+}
+
+export function gridHeightAt(t: Terrain, x: number, z: number): number {
   const fx = (x - t.x0) / t.cell
   const fz = (z - t.z0) / t.cell
   const i = clamp(Math.floor(fx), 0, t.nx - 2)

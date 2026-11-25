@@ -10,6 +10,7 @@ import type {
   VenueId,
 } from './types'
 import { rng } from '../lib/rng'
+import { terraceOf } from '../lib/terrace'
 
 export class DataError extends Error {
   readonly path: string
@@ -60,7 +61,7 @@ export async function loadVenueBundle(id: VenueId): Promise<VenueBundle> {
   return grounded({ venue, terrain, trees, buildings })
 }
 
-function smoothed(t: Terrain): number[] {
+function despiked(t: Terrain): number[] {
   const { nx, nz, h } = t
   const at = (i: number, j: number) => h[Math.min(nz - 1, Math.max(0, j)) * nx + Math.min(nx - 1, Math.max(0, i))]
   const med = new Array<number>(h.length)
@@ -73,29 +74,20 @@ function smoothed(t: Terrain): number[] {
       med[j * nx + i] = win[4]
     }
   }
-  const out = new Array<number>(h.length)
-  const W = [1, 2, 1]
-  const m = (i: number, j: number) => med[Math.min(nz - 1, Math.max(0, j)) * nx + Math.min(nx - 1, Math.max(0, i))]
-  for (let j = 0; j < nz; j++) {
-    for (let i = 0; i < nx; i++) {
-      let sum = 0
-      for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) sum += W[a + 1] * W[b + 1] * m(i + a, j + b)
-      out[j * nx + i] = sum / 16
-    }
-  }
-  return out
+  return med
 }
 
 function grounded(raw: VenueBundle): VenueBundle {
-  const bundle = { ...raw, terrain: { ...raw.terrain, h: smoothed(raw.terrain) } }
+  const bundle = { ...raw, terrain: { ...raw.terrain, h: despiked(raw.terrain) } }
   let low = Infinity
   for (const v of bundle.terrain.h) if (v < low) low = v
-  if (!Number.isFinite(low) || low === 0) return { ...bundle, trees: natural(bundle.trees) }
+  const shifted = Number.isFinite(low) && low !== 0
+  const terrain = shifted ? { ...bundle.terrain, h: bundle.terrain.h.map((v) => v - low) } : bundle.terrain
   return {
     ...bundle,
-    terrain: { ...bundle.terrain, h: bundle.terrain.h.map((v) => v - low) },
+    terrain: { ...terrain, terrace: terraceOf(bundle.venue, terrain) },
     trees: natural(bundle.trees),
-    buildings: bundle.buildings.map((b) => ({ ...b, base: b.base - low })),
+    buildings: shifted ? bundle.buildings.map((b) => ({ ...b, base: b.base - low })) : bundle.buildings,
   }
 }
 

@@ -177,7 +177,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <fog attach="fog" args={[sceneColors.fog, 260, 700]} />
       <SunLight center={center} radius={radius} />
 
-      <Terrain terrain={terrain} layout={layout} onPick={operator ? operator.onPick : handlePick} />
+      <Terrain terrain={terrain} venue={venue} layout={layout} onPick={operator ? operator.onPick : handlePick} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
       <Trees trees={trees} terrain={terrain} />
       <Buildings buildings={buildings} />

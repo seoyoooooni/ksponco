@@ -3,6 +3,7 @@ import { Color, InstancedMesh, Object3D, Quaternion, Vector3 } from 'three'
 import type { Layout, Terrain } from '../data/types'
 import { countShown, isShown, type Crowd as CrowdData } from '../lib/crowd'
 import { heightAt, slopeAt } from '../lib/terrainSample'
+import { terraceHeight } from '../lib/terrace'
 import { sceneStore, type MatPosition } from '../store/sceneStore'
 import { clothTones, matTones } from './colors'
 import { personStyles, type PersonStyleId } from './personStyles'
@@ -93,12 +94,19 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
 
     crowd.mats.forEach((m, i) => {
       const s = hidden.has(i) || !isShown(m, scale) ? 0.0001 : 1
-      const sl = slopeAt(terrain, m.x, m.z)
+      const onSteps = terrain.terrace ? terraceHeight(terrain.terrace, m.x, m.z) !== null : false
+      const sl = onSteps ? { dx: 0, dz: 0 } : slopeAt(terrain, m.x, m.z)
       normal.set(-sl.dx, 1, -sl.dz).normalize()
       tilt.setFromUnitVectors(UP, normal)
       yaw.setFromAxisAngle(UP, m.rot)
       o.quaternion.copy(tilt).multiply(yaw)
-      o.position.set(m.x, ground.mats[i] + 0.06, m.z)
+      let base = ground.mats[i]
+      if (onSteps) {
+        const hw = layout.mat.w / 2
+        const hd = layout.mat.d / 2
+        for (const [dx, dz] of [[-hw, -hd], [hw, -hd], [-hw, hd], [hw, hd]]) base = Math.max(base, heightAt(terrain, m.x + dx, m.z + dz))
+      }
+      o.position.set(m.x, base + 0.06, m.z)
       o.scale.set(s, 1, s)
       o.updateMatrix()
       mats.current?.setMatrixAt(i, o.matrix)
@@ -111,7 +119,7 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
       mesh.computeBoundingSphere()
     }
     sceneStore.set({ crowdCount: countShown(crowd, scale) })
-  }, [crowd, ground, myMat, scale, style, terrain])
+  }, [crowd, ground, myMat, scale, style, terrain, layout])
 
   const n = crowd.people.length
   const m = crowd.mats.length

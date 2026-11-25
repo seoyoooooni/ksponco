@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react'
 import { Color, Float32BufferAttribute, PlaneGeometry } from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
-import type { Layout, Terrain as TerrainData, ZoneType } from '../data/types'
+import type { Layout, Terrain as TerrainData, Venue, ZoneType } from '../data/types'
+import { pavedWeight, tuckedHeight } from '../lib/terrace'
+import { TerraceSteps } from './TerraceSteps'
 import { zoneAt } from '../lib/polygon'
 import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
@@ -53,11 +55,14 @@ function edgeDistance(t: TerrainData): Float32Array {
 
 type Props = {
   terrain: TerrainData
+  venue: Venue
   layout: Layout | null
   onPick?: (x: number, z: number) => void
 }
 
-export function Terrain({ terrain, layout, onPick }: Props) {
+export function Terrain({ terrain, venue, layout, onPick }: Props) {
+  const terrace = terrain.terrace ?? null
+
   const geometry = useMemo(() => {
     const w = (terrain.nx - 1) * terrain.cell
     const d = (terrain.nz - 1) * terrain.cell
@@ -67,6 +72,7 @@ export function Terrain({ terrain, layout, onPick }: Props) {
     const pos = g.attributes.position
     const colors: number[] = []
     const c = new Color()
+    const stone = new Color(sceneColors.paving)
     const outer = new Color(sceneColors.outerGrass)
     const park = new Color(sceneColors.parkGrass)
     const path = new Color(sceneColors.path)
@@ -78,7 +84,8 @@ export function Terrain({ terrain, layout, onPick }: Props) {
       const z = pos.getZ(i)
       const onBorder =
         x <= terrain.x0 + 1e-6 || x >= xMax - 1e-6 || z <= terrain.z0 + 1e-6 || z >= zMax - 1e-6
-      pos.setY(i, onBorder ? 0 : heightAt(terrain, x, z))
+      const tucked = terrace && !onBorder ? tuckedHeight(terrace, x, z) : null
+      pos.setY(i, onBorder ? 0 : (tucked ?? heightAt(terrain, x, z)))
       const zone = layout ? zoneAt(layout.zones, x, z) : null
       const gi = Math.min(terrain.nx - 1, Math.max(0, Math.round((x - terrain.x0) / terrain.cell)))
       const gj = Math.min(terrain.nz - 1, Math.max(0, Math.round((z - terrain.z0) / terrain.cell)))
@@ -87,12 +94,14 @@ export function Terrain({ terrain, layout, onPick }: Props) {
       else if (e === 0) c.set(sceneColors.lawn)
       else if (e <= PATH_W) c.copy(path)
       else c.copy(park).lerp(outer, Math.min(1, (e - PATH_W) / FADE))
+      const pw = terrace && !onBorder ? pavedWeight(terrace, venue, pos.getY(i), x, z) : 0
+      if (pw > 0) c.lerp(stone, zone ? pw * 0.55 : pw)
       colors.push(c.r, c.g, c.b)
     }
     g.setAttribute('color', new Float32BufferAttribute(colors, 3))
     g.computeVertexNormals()
     return g
-  }, [terrain, layout])
+  }, [terrain, layout, terrace, venue])
 
   const textures = useMemo(() => {
     const w = (terrain.nx - 1) * terrain.cell
@@ -107,6 +116,8 @@ export function Terrain({ terrain, layout, onPick }: Props) {
     },
     [textures],
   )
+
+
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!onPick || e.delta > 6) return
@@ -123,6 +134,7 @@ export function Terrain({ terrain, layout, onPick }: Props) {
       <mesh name="terrain" geometry={geometry} receiveShadow onClick={handleClick}>
         <meshLambertMaterial vertexColors map={textures.inner} />
       </mesh>
+      {terrace && <TerraceSteps terrace={terrace} />}
     </>
   )
 }
