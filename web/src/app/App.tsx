@@ -209,6 +209,8 @@ function Main({ ready }: { ready: Base }) {
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
               headline={analysis.headline}
+              pref={pref}
+              onPref={(v) => sceneStore.set({ pref: v })}
               stats={analysis.stats}
               stay={stay}
               strip={analysis.strip}

@@ -15,7 +15,7 @@ import {
 } from '../lib/analysis'
 import { buildCrowd, type Crowd } from '../lib/crowd'
 import { hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
-import { comfort, stripShade, type SunPref } from '../lib/comfort'
+import { stripShade, type SunPref } from '../lib/comfort'
 import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
 import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots, type ShadeGrid, type ShadeSpot } from '../lib/shadeGrid'
 import { heightAt, sourceAt } from '../lib/terrainSample'
@@ -149,7 +149,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
       ? '피크닉존 잔디를 눌러 돗자리를 놓아 보세요'
       : '잔디를 눌러 돗자리를 놓아 보세요'
     : view
-      ? seatVerdict(view.stage, comfort(stripShade(strip), pref), sunWeight)
+      ? seatVerdict(view.stage, stripShade(strip), pref, sunWeight)
       : sunPhrase(strip, from, hourLabel)
 
   const detail = mat && view ? `${sightPhrase(view)} · ${sunPhrase(strip, from, hourLabel)}` : ''
