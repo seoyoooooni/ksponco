@@ -18,6 +18,7 @@ import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
 import { Water } from './Water'
+import { Effects } from './Effects'
 import { Tents } from './Tents'
 import type { ClosedArea, Tent } from '../lib/operator'
 import type { Vec2 } from '../data/types'
@@ -164,13 +165,13 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
   return (
     <Canvas
-      shadows
+      shadows="soft"
       dpr={[1, 2]}
       camera={{ position: [center[0] + 62, 105, center[2] + 128], fov: 44, near: 0.3, far: 1500 }}
       className="scene"
       style={{ position: 'fixed', touchAction: 'none' }}
     >
-      <fog attach="fog" args={[sceneColors.fog, 220, 560]} />
+      <fog attach="fog" args={[sceneColors.fog, 260, 700]} />
       <SunLight center={center} radius={radius} />
 
       <Terrain terrain={terrain} layout={layout} onPick={operator ? operator.onPick : handlePick} />
@@ -208,6 +209,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       )}
 
       <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
+      <Effects />
       <FirstFrame />
     </Canvas>
   )

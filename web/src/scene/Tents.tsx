@@ -50,7 +50,7 @@ export function Tents({ tents, palms, suggestion, zoneStart, terrain, onTent }: 
         )
       })}
       {suggestion && (
-        <mesh position={[suggestion.x, heightAt(terrain, suggestion.x, suggestion.z) + TENT_ROOF / 2, suggestion.z]} raycast={() => null}>
+        <mesh position={[suggestion.x, heightAt(terrain, suggestion.x, suggestion.z) + TENT_ROOF / 2, suggestion.z]} raycast={() => null} userData={{ noAO: true }}>
           <boxGeometry args={[TENT_SIZE, TENT_ROOF, TENT_SIZE]} />
           <meshBasicMaterial color={sceneColors.tentSuggest} transparent opacity={0.35} depthWrite={false} />
         </mesh>
