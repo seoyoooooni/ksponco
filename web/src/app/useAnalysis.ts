@@ -71,7 +71,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
   const canopies = useMemo(() => prepareCanopies(trees, terrain), [trees, terrain])
   const area = useMemo(() => scanBounds(terrain), [terrain])
   const lawnCenter = useMemo(() => ({ x: (area.x0 + area.x1) / 2, z: (area.z0 + area.z1) / 2 }), [area])
-  const crowd = useMemo(() => (layout ? buildCrowd(layout) : null), [layout])
+  const crowd = useMemo(() => (layout ? buildCrowd(layout, terrain.terrace ?? null) : null), [layout, terrain])
 
   const heads = useMemo<HeadIndex>(
     () => (crowd ? indexHeads(crowd, terrain, crowdScale, mat ?? undefined) : new Map()),
