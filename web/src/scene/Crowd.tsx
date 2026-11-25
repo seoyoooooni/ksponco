@@ -1,8 +1,8 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Color, InstancedMesh, Object3D } from 'three'
+import { Color, InstancedMesh, Object3D, Quaternion, Vector3 } from 'three'
 import type { Layout, Terrain } from '../data/types'
 import { countShown, isShown, type Crowd as CrowdData } from '../lib/crowd'
-import { heightAt } from '../lib/terrainSample'
+import { heightAt, slopeAt } from '../lib/terrainSample'
 import { sceneStore, type MatPosition } from '../store/sceneStore'
 import { clothTones, matTones } from './colors'
 import { personStyles, type PersonStyleId } from './personStyles'
@@ -18,6 +18,7 @@ type Props = {
 }
 
 const HIDE_R = 2.2
+const UP = new Vector3(0, 1, 0)
 
 export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = false }: Props) {
   const bodies = useRef<InstancedMesh>(null)
@@ -54,6 +55,9 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
 
   useLayoutEffect(() => {
     const o = new Object3D()
+    const normal = new Vector3()
+    const tilt = new Quaternion()
+    const yaw = new Quaternion()
     const hidden = new Set<number>()
     if (myMat) {
       crowd.mats.forEach((m, i) => {
@@ -89,12 +93,16 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
 
     crowd.mats.forEach((m, i) => {
       const s = hidden.has(i) || !isShown(m, scale) ? 0.0001 : 1
-      o.position.set(m.x, ground.mats[i] + 0.03, m.z)
-      o.rotation.set(0, m.rot, 0)
+      const sl = slopeAt(terrain, m.x, m.z)
+      normal.set(-sl.dx, 1, -sl.dz).normalize()
+      tilt.setFromUnitVectors(UP, normal)
+      yaw.setFromAxisAngle(UP, m.rot)
+      o.quaternion.copy(tilt).multiply(yaw)
+      o.position.set(m.x, ground.mats[i] + 0.06, m.z)
       o.scale.set(s, 1, s)
       o.updateMatrix()
       mats.current?.setMatrixAt(i, o.matrix)
-      o.rotation.set(0, 0, 0)
+      o.quaternion.identity()
     })
 
     for (const mesh of [bodies.current, heads.current, ears.current, mats.current]) {
@@ -103,7 +111,7 @@ export function Crowd({ crowd, layout, terrain, myMat, scale, styleId, faded = f
       mesh.computeBoundingSphere()
     }
     sceneStore.set({ crowdCount: countShown(crowd, scale) })
-  }, [crowd, ground, myMat, scale, style])
+  }, [crowd, ground, myMat, scale, style, terrain])
 
   const n = crowd.people.length
   const m = crowd.mats.length

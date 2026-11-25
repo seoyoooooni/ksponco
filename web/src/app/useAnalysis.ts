@@ -19,6 +19,7 @@ import { stripShade, type SunPref } from '../lib/comfort'
 import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
 import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots, type ShadeGrid, type ShadeSpot } from '../lib/shadeGrid'
 import { heightAt, sourceAt } from '../lib/terrainSample'
+import { offLimits } from '../lib/offLimits'
 import type { OverlayCell } from '../scene/HeatOverlay'
 import type { MatPosition } from '../store/sceneStore'
 import type { AudienceStats } from '../features/audience/AudienceSheet'
@@ -94,10 +95,20 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
     [needShade, terrain, canopies, date, from, to, area],
   )
 
+  const blocked = useMemo(() => {
+    if (!shade) return []
+    return shade.frac.map((_, k) => {
+      const x = shade.x0 + ((k % shade.nx) + 0.5) * shade.cell
+      const z = shade.z0 + (Math.floor(k / shade.nx) + 0.5) * shade.cell
+      return offLimits(venue, x, z) !== null
+    })
+  }, [shade, venue])
+
   const spots = useMemo(() => {
     if (layout || !shade) return []
     const origin = anchor ?? lawnCenter
-    const want = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
+    const base = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
+    const want = { ...base, frac: base.frac.map((f, k) => (blocked[k] ? 0 : f)) }
     const suffix = pref === 'shade' ? '나무 그늘' : '양지'
     const picks = shadeSpots(want, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} ${suffix}` }))
     const sides = ['서편', '가운데', '동편']
@@ -109,7 +120,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
       })
     }
     return picks
-  }, [layout, shade, anchor, lawnCenter, pref])
+  }, [layout, shade, anchor, lawnCenter, pref, blocked])
 
   const overlay = useMemo<OverlayCell[] | null>(() => {
     if (!layout && shade) {
@@ -119,7 +130,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
         const j = Math.floor(k / shade.nx)
         const x = shade.x0 + (i + 0.5) * shade.cell
         const z = shade.z0 + (j + 0.5) * shade.cell
-        if (sourceAt(terrain, x, z) !== 0) return
+        if (sourceAt(terrain, x, z) !== 0 || blocked[k]) return
         if (pref === 'shade' ? f < 0.6 : f >= 0.35) return
         cells.push({ x, z, size: shade.cell, color: shadeColor(f) })
       })
@@ -134,7 +145,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
       }))
     }
     return null
-  }, [layout, seats, shade, stage, terrain, heads, canopies, sunWeight, pref])
+  }, [layout, seats, shade, stage, terrain, heads, canopies, sunWeight, pref, blocked])
 
   const stats = useMemo<AudienceStats | null>(() => {
     if (!mat) return null

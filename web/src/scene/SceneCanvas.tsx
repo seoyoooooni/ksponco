@@ -5,6 +5,7 @@ import type { Layout } from '../data/types'
 import type { Crowd as CrowdData } from '../lib/crowd'
 import { bounds, zoneAt } from '../lib/polygon'
 import { heightAt, sourceAt } from '../lib/terrainSample'
+import { offLimits } from '../lib/offLimits'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { Buildings } from './Buildings'
 import { CameraRig } from './CameraRig'
@@ -138,13 +139,15 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
   const reason = useCallback(
     (x: number, z: number): string | null => {
+      const off = offLimits(venue, x, z)
+      if (off) return off
       if (!layout) return sourceAt(terrain, x, z) === 0 ? null : '잔디 안을 눌러 주세요'
       const zone = zoneAt(layout.zones, x, z)
       if (!zone) return '피크닉존 안을 눌러 주세요'
       if (zone.type !== 'picnic') return BLOCKED[zone.type]
       return null
     },
-    [layout, terrain],
+    [layout, terrain, venue],
   )
 
   const canPlace = useCallback((x: number, z: number) => reason(x, z) === null, [reason])
