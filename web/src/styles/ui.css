@@ -658,7 +658,7 @@
     left: auto;
     width: var(--panel-w);
     max-width: none;
-    max-height: calc(100vh - var(--topbar-h) - var(--space-4));
+    max-height: calc(100vh / var(--ui-zoom) - var(--topbar-h) - var(--space-4));
     margin: 0;
     border-radius: var(--radius-sheet);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
@@ -677,7 +677,7 @@
     left: auto;
     width: var(--panel-w);
     max-width: none;
-    max-height: calc(100vh - var(--topbar-h) - var(--space-4));
+    max-height: calc(100vh / var(--ui-zoom) - var(--topbar-h) - var(--space-4));
     margin: 0;
     border-radius: var(--radius-sheet);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
@@ -689,7 +689,23 @@
   }
 
   .toast {
-    left: calc((100vw - var(--panel-w) - 2 * var(--space-4)) / 2);
+    left: calc((100vw / var(--ui-zoom) - var(--panel-w) - 2 * var(--space-4)) / 2);
     top: calc(var(--topbar-h) + var(--space-4));
+  }
+}
+
+:root {
+  --ui-zoom: 1;
+}
+
+@media (pointer: fine) and (min-width: 900px) {
+  :root {
+    --ui-zoom: 0.75;
+  }
+
+  #root > :not(.scene),
+  .spot-marker,
+  .bubble {
+    zoom: var(--ui-zoom);
   }
 }

@@ -17,6 +17,11 @@ type Props = {
 const FIRST_PERSON_FOV = 58
 const ORBIT_HFOV = 34
 const PANEL_SHIFT = (400 + 32) / 2
+
+function uiZoom(): number {
+  const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-zoom'))
+  return Number.isFinite(v) && v > 0 ? v : 1
+}
 const MAX_PITCH = Math.PI / 6
 const AWAY = Math.PI / 4
 const TAU = Math.PI * 2
@@ -156,7 +161,7 @@ export function CameraRig({ eye, lookAt, orbitTarget, home }: Props) {
       camera.clearViewOffset()
     } else {
       camera.fov = orbitFov(size.width / size.height)
-      if (wide) camera.setViewOffset(size.width, size.height, PANEL_SHIFT, 0, size.width, size.height)
+      if (wide) camera.setViewOffset(size.width, size.height, PANEL_SHIFT * uiZoom(), 0, size.width, size.height)
       else camera.setViewOffset(size.width, size.height, 0, Math.min(sheetH, size.height * 0.6) / 2, size.width, size.height)
     }
     camera.updateProjectionMatrix()
