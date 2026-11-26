@@ -99,11 +99,19 @@ function discGeometry(disc: Disc) {
   return g
 }
 
-const SOIL = 3
-const DROP = 120
-const CUT = 0.9
-const RINGS_BELOW = 14
-const ROCK_SEGMENTS = 60
+const SOIL = 8
+const DROP = 140
+const CLIFF = 0.22
+const RINGS_BELOW = 18
+const ROCK_SEGMENTS = SEGMENTS
+
+const RIM_PULL = 0.7
+
+function inward(disc: Disc, x: number, z: number): [number, number] {
+  const r = Math.hypot(x - disc.x, z - disc.z)
+  const k = r > disc.r - RIM_PULL ? (disc.r - RIM_PULL) / r : 1
+  return [disc.x + (x - disc.x) * k, disc.z + (z - disc.z) * k]
+}
 
 function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Color[]) {
   const level = venue.water ? waterLevel(terrain, venue.water) : null
@@ -113,9 +121,10 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
     const a = (j / SEGMENTS) * Math.PI * 2
     const x = disc.x + Math.cos(a) * disc.r
     const z = disc.z + Math.sin(a) * disc.r
-    const inWater = level !== null && venue.water ? pointInPolygon(x, z, venue.water) : false
+    const [px, pz] = inward(disc, x, z)
+    const inWater = level !== null && venue.water ? pointInPolygon(px, pz, venue.water) : false
     const y = heightAt(terrain, x, z)
-    tops.push(inWater && level !== null ? Math.max(y, level) : y)
+    tops.push(inWater && level !== null ? level : y)
     wet.push(inWater)
   }
   const base = Math.min(...tops) - LIP - SOIL
@@ -131,24 +140,39 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
   const rockTop = new Color(sceneColors.rockTop)
   const rockBottom = new Color(sceneColors.rockBottom)
   const deep = new Color(sceneColors.waterDeep)
+  const surface = new Color(sceneColors.water)
+  const bedDeep = new Color(sceneColors.lakeBed)
   const c = new Color()
   const ring = (a: number) => [Math.cos(a), Math.sin(a)]
   const soilY = (a: number) => base + noise.noise3d(Math.cos(a) * 2.2, Math.sin(a) * 2.2, 0.3) * 0.6
 
   const band = { pos: [] as number[], col: [] as number[], index: [] as number[] }
-  const ROWS = 4
+  const ROWS = 6
+  const drapeGrass = new Color(sceneColors.drapeGrass)
   for (let j = 0; j <= SEGMENTS; j++) {
     const k = j % SEGMENTS
     const a = (k / SEGMENTS) * Math.PI * 2
     const [ca, sa] = ring(a)
-    const lip = wet[k] ? 1.4 : LIP
     const put = (r: number, y: number, color: Color) => {
       band.pos.push(disc.x + ca * r, y, disc.z + sa * r)
       band.col.push(color.r, color.g, color.b)
     }
-    put(disc.r, tops[k], wet[k] ? deep : rim[k])
-    put(disc.r, tops[k] - lip, wet[k] ? deep : c.copy(rim[k]).multiplyScalar(0.82))
-    put(disc.r, tops[k] - lip - 0.02, soilTop)
+    const top = tops[k]
+    if (wet[k]) {
+      put(disc.r, top, surface)
+      put(disc.r, top - 0.8, deep)
+      put(disc.r, top - 3.5, c.copy(deep).lerp(bedDeep, 0.5))
+      put(disc.r, top - 6.5, bedDeep)
+      put(disc.r * 0.995, top - 6.6, soilTop)
+    } else {
+      const scallop = noise.noise3d(ca * 9, sa * 9, 1.7) * 0.5 + noise.noise3d(ca * 23, sa * 23, 4.1) * 0.5
+      const drape = 1.5 + (scallop + 1) * 1.05
+      put(disc.r, top, rim[k])
+      put(disc.r + 0.55, top - 0.3, c.copy(rim[k]).multiplyScalar(0.94))
+      put(disc.r + 0.45, top - drape * 0.55, c.copy(rim[k]).lerp(drapeGrass, 0.6))
+      put(disc.r + 0.15, top - drape, c.copy(drapeGrass).multiplyScalar(0.82))
+      put(disc.r, top - drape - 0.05, soilTop)
+    }
     put(disc.r * 0.985, soilY(a), soilBottom)
   }
   for (let j = 0; j < SEGMENTS; j++) {
@@ -169,14 +193,17 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
   }
   const first = rock.pos.length / 3
   for (let i = 1; i <= RINGS_BELOW; i++) {
-    const t = (i / RINGS_BELOW) * CUT
+    const u = i / RINGS_BELOW
+    const cliff = u < CLIFF
     for (let j = 0; j <= ROCK_SEGMENTS; j++) {
       const a = ((j % ROCK_SEGMENTS) / ROCK_SEGMENTS) * Math.PI * 2 + (i % 2) * (Math.PI / ROCK_SEGMENTS) * 0.6
       const [ca, sa] = ring(a)
-      const n = noise.noise3d(ca * 1.4, sa * 1.4, t * 2.6) + 0.45 * noise.noise3d(ca * 3.2, sa * 3.2, t * 6)
-      const r = disc.r * 0.97 * Math.pow(1 - t, 1.15) * (1 - 0.35 * t * t) * (1 + n * 0.2)
-      const y = base - Math.pow(t, 1.25) * DROP + n * 4 * (1 - t)
-      c.copy(rockTop).lerp(rockBottom, Math.pow(t, 0.8)).multiplyScalar(i % 2 ? 1 : 0.94)
+      const n = noise.noise3d(ca * 1.4, sa * 1.4, u * 2.6) + 0.45 * noise.noise3d(ca * 3.6, sa * 3.6, u * 7)
+      const f = cliff ? 0.985 - 0.07 * (u / CLIFF) : 0.915 * Math.pow(1 - (u - CLIFF) / (1 - CLIFF), 1.35)
+      const r = disc.r * f * (1 + n * (cliff ? 0.045 : 0.16))
+      const y = base - Math.pow(u, 1.15) * DROP + n * 3 * (1 - u)
+      const stripe = Math.floor((base - y) / 7) % 2 === 0 ? 1 : 0.9
+      c.copy(rockTop).lerp(rockBottom, Math.pow(u, 0.8)).multiplyScalar(stripe * (0.94 + n * 0.06))
       if (i === 1) c.lerp(soilBottom, 0.45)
       rock.pos.push(disc.x + ca * Math.max(0.5, r), y, disc.z + sa * Math.max(0.5, r))
       rock.col.push(c.r, c.g, c.b)
@@ -184,11 +211,8 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
   }
   const at = (i: number, j: number) => first + (i - 1) * (ROCK_SEGMENTS + 1) + j
   for (let b = 0; b < ROCK_SEGMENTS; b++) {
-    for (let k = 0; k < step; k++) {
-      const s0 = b * step + k
-      rock.index.push(s0, s0 + 1, k < step / 2 ? at(1, b) : at(1, b + 1))
-    }
-    rock.index.push(b * step + step / 2, at(1, b + 1), at(1, b))
+    const s0 = b * step
+    rock.index.push(s0, s0 + 1, at(1, b), s0 + 1, at(1, b + 1), at(1, b))
   }
   for (let i = 1; i < RINGS_BELOW; i++) {
     for (let j = 0; j < ROCK_SEGMENTS; j++) {
@@ -200,7 +224,7 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
     }
   }
   const tip = rock.pos.length / 3
-  rock.pos.push(disc.x, base - Math.pow(CUT, 1.25) * DROP - 1.2, disc.z)
+  rock.pos.push(disc.x, base - DROP - 1.5, disc.z)
   c.copy(rockBottom).multiplyScalar(0.85)
   rock.col.push(c.r, c.g, c.b)
   for (let j = 0; j < ROCK_SEGMENTS; j++) rock.index.push(at(RINGS_BELOW, j), at(RINGS_BELOW, j + 1), tip)
@@ -231,6 +255,8 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
     const outer = new Color(sceneColors.outerGrass)
     const park = new Color(sceneColors.parkGrass)
     const path = new Color(sceneColors.path)
+    const bed = new Color(sceneColors.waterDeep)
+    const bedDeep = new Color(sceneColors.lakeBed)
     const dist = edgeDistance(terrain)
     const firstRim = pos.count - SEGMENTS
     const lake = venue.water ?? null
@@ -240,13 +266,15 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
       const z = pos.getZ(i)
       const tucked = terrace ? tuckedHeight(terrace, x, z) : null
       const y = tucked ?? heightAt(terrain, x, z)
-      const sunk = lake && level !== null && pointInPolygon(x, z, lake) && underwater(terrain, lake, level, x, z, y)
+      const [px, pz] = inward(disc, x, z)
+      const sunk = lake && level !== null && pointInPolygon(px, pz, lake) && underwater(terrain, lake, level, px, pz, y)
       pos.setY(i, sunk && level !== null ? Math.min(y, level - 0.5) : y)
       const zone = layout ? zoneAt(layout.zones, x, z) : null
       const gi = Math.min(terrain.nx - 1, Math.max(0, Math.round((x - terrain.x0) / terrain.cell)))
       const gj = Math.min(terrain.nz - 1, Math.max(0, Math.round((z - terrain.z0) / terrain.cell)))
       const e = dist[gj * terrain.nx + gi] + Math.max(0, Math.abs(x - terrain.x0 - (gi * terrain.cell)) + Math.abs(z - terrain.z0 - (gj * terrain.cell)) - 1)
-      if (zone) c.set(zoneColor[zone.type])
+      if (sunk && level !== null) c.copy(bed).lerp(bedDeep, Math.min(1, Math.max(0, level - y) / 4))
+      else if (zone) c.set(zoneColor[zone.type])
       else if (e === 0) c.set(sceneColors.lawn)
       else if (e <= PATH_W) c.copy(path)
       else c.copy(park).lerp(outer, Math.min(1, (e - PATH_W) / FADE))
@@ -289,7 +317,7 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
         <meshLambertMaterial vertexColors map={texture} />
       </mesh>
       <mesh geometry={skirt.band} raycast={() => null}>
-        <meshLambertMaterial vertexColors />
+        <meshLambertMaterial vertexColors side={DoubleSide} />
       </mesh>
       <mesh geometry={skirt.rock} raycast={() => null} userData={{ noAO: true }}>
         <meshLambertMaterial vertexColors flatShading side={DoubleSide} />

@@ -14,14 +14,16 @@ import { Crowd } from './Crowd'
 import { HeatOverlay, type OverlayCell } from './HeatOverlay'
 import { MyMat } from './MyMat'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
-import { SuggestMat } from './SuggestMat'
+import { SuggestStar } from './SuggestStar'
+import { CookieCrowd } from './CookieCrowd'
+import { SkyDecor } from './SkyDecor'
 import { Walkers } from './Walkers'
 import { Picnickers } from './Picnickers'
 import { SceneClock } from './sceneTime'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
-import { Water } from './Water'
+import { Water, Waterfall } from './Water'
 import { Paths, walkRoutes } from './Paths'
 import { Effects } from './Effects'
 import { Tents } from './Tents'
@@ -189,8 +191,10 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
+      {venue.water && <Waterfall poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
       <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
+      <SkyDecor terrain={terrain} />
       <SceneClock />
       {camera === 'orbit' && <Walkers routes={routes} seed={seed} />}
       {!layout && camera === 'orbit' && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
@@ -204,10 +208,14 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         <PerformerMesh performer={layout.performer} floor={heightAt(terrain, stage.x, stage.z) + stage.deckH} />
       )}
 
-      {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
+      {layout && crowd && (camera === 'orbit' && personStyle === 'cookie' ? (
+        <CookieCrowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} facing={layout.performer ?? stage} faded={Boolean(overlay)} />
+      ) : (
+        <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' || personStyle === 'cookie' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />
+      ))}
 
       {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={watching ? 0.12 : layout ? 0.9 : 0.62} />}
-      {suggestion && onSuggestion && camera === 'orbit' && <SuggestMat position={suggestion} spec={layout?.mat ?? DEFAULT_MAT} terrain={terrain} onTake={onSuggestion} />}
+      {suggestion && onSuggestion && camera === 'orbit' && <SuggestStar position={suggestion} terrain={terrain} onTake={onSuggestion} />}
 
       {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
 
