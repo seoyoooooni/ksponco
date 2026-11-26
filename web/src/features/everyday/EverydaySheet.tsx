@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
 import { EyeIcon } from '../../ui/icons'
@@ -35,12 +36,13 @@ type Props = {
   onPlay: () => void
   sunset: { at: number; label: string } | null
   notes: Note[]
+  footer?: ReactNode
 }
 
 export function EverydaySheet(p: Props) {
   if (p.closure) {
     return (
-      <BottomSheet label="출입 제한 안내" snap={1} onVisibleHeight={p.onVisibleHeight}>
+      <BottomSheet label="출입 제한 안내" snap={1} onVisibleHeight={p.onVisibleHeight} footer={p.footer}>
         <div className="closure">
           <span className="eyebrow">출입 제한</span>
           <h1 className="headline">{p.closure.title}</h1>
@@ -56,6 +58,7 @@ export function EverydaySheet(p: Props) {
       snap={p.snap}
       onSnap={p.onSnap}
       onVisibleHeight={p.onVisibleHeight}
+      footer={p.footer}
       more={
         <div className="section section--plain">
           <div className="section__head">

@@ -280,6 +280,11 @@ function Main({ ready }: { ready: Base }) {
     sceneStore.set({ tents: [...s.tents, ...tentsB], closed: [...s.closed, ...closedB], palms: [...s.palms, ...palmsB], nextId: id })
   }
   const firstPerson = camera === 'firstPerson'
+  const credit = (
+    <button type="button" className="sheet-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
+      데이터 출처
+    </button>
+  )
   const sunset = sunsetHour(date)
   const duration = stay[1] - stay[0]
   const durationValue = [1, 2, 3].includes(duration) ? duration : ('custom' as const)
@@ -364,6 +369,7 @@ function Main({ ready }: { ready: Base }) {
           {mode === 'operator' ? (
             <OperatorSheet
               onVisibleHeight={setSheetH}
+              footer={credit}
               view={compare ? 'compare' : variant}
               onView={(v) => sceneStore.set(v === 'compare' ? { compare: true, opTool: null, zoneStart: null } : { compare: false, variant: v, zoneStart: null })}
               result={opResult}
@@ -410,6 +416,7 @@ function Main({ ready }: { ready: Base }) {
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
               notes={analysis.notes}
               hours={barHours(event)}
+              footer={credit}
             />
           ) : (
             <EverydaySheet
@@ -438,6 +445,7 @@ function Main({ ready }: { ready: Base }) {
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
               notes={analysis.notes}
+              footer={credit}
             />
           )}
           {import.meta.env.DEV && <DevTools />}
@@ -460,7 +468,6 @@ function Main({ ready }: { ready: Base }) {
       <SourcesSheet
         open={sourcesOpen}
         onClose={closeSources}
-        layoutSource={layout?.source ?? null}
         estimates={mode === 'event' ? analysis.estimates : []}
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
