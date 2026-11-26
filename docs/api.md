@@ -23,25 +23,24 @@
 
 ### 1.1 `events.json`: 공연 목록
 
-- 생성: `pipeline/run.ts` (`events`), 매일 11:30 KST 자동 갱신(워크플로가 `main`에 병합된 뒤부터)
+- 생성: `pipeline/run.ts` (`events`), 매일 13:30 KST 자동 갱신
+- 입력: `pipeline/manual/events_manual.json`(2025년), KOPIS 자동 수집(2026-01부터, 2.3), 연계 스냅샷(관객 수·기온). 잘못 잡힌 KOPIS 공연은 `pipeline/manual/kopis_exclude.json`(`{id, reason}[]`)에 넣어 뺌
 - 로더: `loadEvents(): Promise<EventItem[]>`
 - 형태: `EventItem[]`, 날짜 → 장소 순 정렬, 빈 배열 불가, 이전 파일보다 10% 넘게 줄면 저장 안 함
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
-| `id` | string | 수동 `YYYYMMDD-슬러그`, 자동 수집 `YYYYMMDD-<evtSeq>`. 수변무대는 `-lake`가 붙음. 고유값 |
+| `id` | string | 수동 `YYYYMMDD-슬러그`, 자동 수집 `YYYYMMDD-<KOPIS 공연 ID>`(예: `20260522-PF286798`). 수변무대는 `-lake`가 붙음. 고유값 |
 | `name` | string | 공연명 |
 | `venue` | `'lawn88' \| 'lake'` | 장소 |
 | `date` | string | `YYYY-MM-DD`. 같은 `venue`+`date`는 한 건만 |
 | `start` / `end` | string | `HH:MM`, `start < end` |
-| `timeSource` | `'manual' \| 'default'` | 시각 출처. `default`면 12:00~21:00 |
+| `timeSource` | `'manual' \| 'api' \| 'default'` | 시각 출처. `api`는 KOPIS 공연시간·런타임으로 계산한 값, `default`는 기본값(12:00~21:00) 또는 KOPIS 시작 시각에 종료를 추정한 값 |
 | `people` | number \| null | 관객 수(0 이상 정수). 모르면 `null` |
 | `peopleSource` | `'manual' \| 'linked' \| 'default'` | 관객 수 출처. `null`이면 `default` |
 | `layout` | string \| null | `layout_<id>.json`. `web/public/data/<venue>/`에 그 파일이 있을 때만 값이 있음 |
-| `sourceUrl` | string | 근거 URL(`http(s)://`) |
+| `sourceUrl` | string | 근거 URL(`http(s)://`). 자동 수집분은 KOPIS 공연 상세 페이지 |
 | `tempMax` | number \| null | 그날 최고기온(°C, -30~45). 연계 스냅샷(2025년)에만 있음 |
-
-`ValueSource` 타입에는 `'api'`도 있지만 현재 파이프라인은 쓰지 않습니다.
 
 ```json
 {
@@ -76,7 +75,7 @@
 ### 1.3 `forecast.json`: 날씨 예보
 
 - 생성: `pipeline/run.ts` (`forecast`)
-- 로더: `loadForecast(): Promise<Forecast>` (작업 기록 기준 프론트에서 아직 호출하지 않음)
+- 로더: `loadForecast(): Promise<Forecast>`
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
@@ -93,6 +92,15 @@
 | `rainPrevDay` | number | 전날 강수량(mm, 0 이상). 오늘은 ASOS 관측값(ASOS가 실패하면 이전 파일의 오늘 값), 이후는 전날 예보 PCP 합. 05시 발표분은 06시부터라 내일 값에는 오늘 00~05시 강수가 빠짐 |
 | `tempMax` | number | 최고기온(°C, -30~45) |
 
+`rainHourly`: 시간별 강수. 파이프라인은 쓰지만 `types.ts`의 `Forecast`에는 아직 없음(파이프라인 안에서는 `ForecastOut` 타입)
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `start` | string | 첫 칸의 시각. 항상 `days` 첫날 전날 00시(`2026-11-26T00:00+09:00`) |
+| `mm` | (number \| null)[] | 1시간 강수량(mm, 0~300). `start`부터 `days` 마지막 날 23시까지, 길이 `(days 수 + 1) × 24`. `null`은 모름 |
+
+채우는 순서는 이전 `forecast.json`의 값 → 단기예보 PCP → 어제 ASOS 시간자료이고, 뒤의 값이 앞의 값을 덮습니다. `null`은 앞의 값을 지우지 않습니다. 단기예보 마지막 날은 3시간 간격이라 그 사이 칸은 `null`이고, 첫 실행이면 어제 칸 중 관측이 없는 시간도 `null`입니다.
+
 ### 1.4 장소 데이터 (`<venue>/…`)
 
 파이프라인이 만들지 않는 고정 파일입니다. 필드는 `types.ts`의 같은 이름 타입을 보세요.
@@ -105,11 +113,11 @@
 | `<venue>/buildings.json` | `Building[]` | `loadVenueBundle(id)` |
 | `<venue>/layout_*.json` | `Layout` | `loadLayout(venue, file)`: `file`이 없거나 404면 `venue.defaultLayout`을 읽음 |
 
-현재 `lawn88/`에만 파일이 있고 `lake/`는 비어 있습니다.
+`lawn88/`, `lake/` 모두 있습니다. `layout_*.json` 중 공연용은 현재 `lawn88/layout_20260620-parkmusic.json` 하나입니다.
 
 ## 2. 외부 API (파이프라인 → 공공 API)
 
-공통: `pipeline/collect/http.ts`의 `fetchText`를 씁니다. 기본은 타임아웃 30초, 429·5xx·네트워크 오류는 30초 간격으로 최대 2번 다시 시도합니다(올림픽공원 일정만 타임아웃 15초, 간격 5초). 리다이렉트는 따라가지 않고 오류로 봅니다. 오류 메시지에는 URL을 넣지 않습니다(쿼리에 키가 있음). 키는 환경변수가 우선이고, 없으면 `pipeline/.env`에서 읽습니다.
+공통: `pipeline/collect/http.ts`의 `fetchText`를 씁니다. 기본은 타임아웃 30초, 429·5xx·네트워크 오류는 30초 간격으로 최대 2번 다시 시도합니다(KOPIS만 타임아웃 15초, 간격 5초). 리다이렉트는 따라가지 않고 오류로 봅니다. 오류 메시지에는 URL을 넣지 않습니다(쿼리에 키가 있음). 키는 환경변수가 우선이고, 없으면 `pipeline/.env`에서 읽습니다.
 
 ### 2.1 기상청 단기예보 (API허브)
 
@@ -134,25 +142,37 @@
 | 키 | `ASOS_DAILY_KEY` (이미 인코딩된 키면 그대로 씀) |
 | 사용 항목 | `sumRn` (빈 문자열이면 0mm) |
 | 실패 조건 | HTTP ≠ 200, JSON 아님, `resultCode ≠ "00"`, 해당 날짜 행 없음, `sumRn` 필드 없음, `sumRn`이 숫자가 아니거나 음수. 실패하면 이전 `forecast.json`의 오늘 `rainPrevDay`로 대신해 저장하고 종료 코드 1(작업은 실패로 표시). 이전 값이 없거나 키가 없으면 forecast 실패 |
-| 참고 | 전날 자료는 11시 이후 조회 가능해서 갱신 시각을 11:30 KST로 잡음 |
+| 참고 | 전날 자료는 11시쯤 올라오지만 11:30에도 없는 날이 있어 갱신 시각을 13:30 KST로 잡음 |
 
-### 2.3 올림픽공원 공식 일정 (ksponco.or.kr)
+### 2.3 ASOS 시간자료 (공공데이터포털)
 
 | 항목 | 내용 |
 |---|---|
-| 코드 | `collect/olympicpark.ts` `fetchSchedule` |
-| 요청 | `POST https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoListAjax.es` |
-| 헤더 | `Content-Type: application/json;charset=UTF-8`, `User-Agent: ksponco-data-pipeline` |
-| 본문 | `{"nowYM":"YYYYMM","plcCd":""}` |
-| 키 | 없음 |
-| 호출 범위 | 2026-01부터 오늘(KST)+12개월까지 월마다, 0.3초 간격 |
-| 응답 | `[예정 공연[], 지난 공연[]]`. 사용 필드: `evtSeq`, `title`, `plc`, `beginDt`, `endDt` |
-| 장소 판별 | `plc`에 "88잔디마당"이면 `lawn88`, "수변무대"면 `lake`(둘 다면 둘 다). 나머지 행은 무시 |
-| 실패 조건 | 한 달이라도 HTTP ≠ 200, JSON 아님, 구조 다름(두 목록 중 하나라도 배열이 아님), 잔디·수변 행의 필드 누락 → 전체 실패. 전체 결과가 0건이어도 실패 |
-| 상세 링크 | `https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoView.es?mid=a20301010100&evtSeq=<evtSeq>` (`sourceUrl`로 씀) |
-| 참고 | 공개 문서가 없는 API라 형식이 바뀔 수 있음. 이용약관은 확인하지 않음 |
+| 코드 | `collect/kma.ts` `fetchAsosHourlyRain` |
+| 요청 | `GET https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList` |
+| 파라미터 | `serviceKey`, `numOfRows=30`, `pageNo=1`, `dataType=JSON`, `dataCd=ASOS`, `dateCd=HR`, `startDt=endDt=어제(YYYYMMDD)`, `startHh=00`, `endHh=23`, `stnIds=108`(서울) |
+| 키 | `ASOS_DAILY_KEY` 재사용 (이미 인코딩된 키면 그대로 씀) |
+| 사용 항목 | `tm`(`YYYY-MM-DD HH:00`), `rn`. `rn`이 빈 문자열이면 0mm, 그런데 `rnQcflg`가 `9`(결측)면 `null`. 응답에 없는 시각도 `null` |
+| 출력 | `forecast.json`의 `rainHourly` 어제 칸(24칸) |
+| 실패 조건 | HTTP ≠ 200, JSON 아님, `resultCode ≠ "00"`, 그날 행이 하나도 없음, `rn` 필드 없음, `rn`이 숫자가 아니거나 음수. 실패하면 어제 칸은 이전 파일 값을 쓰고 저장하되 종료 코드 1 |
 
-### 2.4 KCISA 연계 데이터 (API_CPM_009, 1회성)
+### 2.4 KOPIS 공연 목록·상세 (공연예술통합전산망)
+
+| 항목 | 내용 |
+|---|---|
+| 코드 | `collect/kopis.ts` `fetchShows` |
+| 주소 | `https://kopis.or.kr/openApi/restful`. `www.`가 붙은 주소는 이쪽으로 리다이렉트되는데 리다이렉트를 따라가지 않으므로 `www.` 없이 씀 |
+| 목록 요청 | `GET …/pblprfr?service=<키>&stdate=YYYYMM01&eddate=YYYYMM<말일>&cpage=1&rows=100&prfplccd=<공연장 코드>` |
+| 상세 요청 | `GET …/pblprfr/<공연 ID>?service=<키>` |
+| 키 | `KOPIS_KEY` |
+| 공연장 | 올림픽공원 시설 코드 `FC001247`. `-07` 야외(88잔디마당) → `lawn88`, `-08` 야외(수변무대) → `lake`, `-12` 일대 → 두 무대 모두(페스티벌만 인정, 상세의 `festival=Y`) |
+| 호출 범위 | 2026-01부터 오늘(KST)+12개월까지, 달마다 공연장 3곳의 목록. 그 뒤 나온 공연마다 상세 1번. 호출 사이 1초 간격 |
+| 응답 | XML. 목록: `mt20id`, `prfnm`, `prfpdfrom`, `prfpdto`(`YYYY.MM.DD`). 상세: `festival`, `dtguidance`(공연시간), `prfruntime` |
+| 재시도 | `fetchText` 재시도(429·5xx·네트워크 오류)에 더해, HTTP 400은 5초 뒤 최대 2번 다시 시도. Actions에서 앞단 웹서버가 간헐적으로 HTML 400을 줬음 |
+| 실패 조건 | 한 번이라도 HTTP ≠ 200(재시도 후), XML 아님(`<dbs` 없음), 목록 100건 이상, 목록 필드 누락, 상세의 공연 ID가 다름 → 전체 실패(이전 `events.json` 유지). 오류 메시지에는 응답 본문 앞 80자를 넣고 키는 `***`로 가림. 전체 결과가 0건이거나 남은 공연의 날짜를 하나도 못 읽어도 실패 |
+| 상세 링크 | `https://kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_00020&mt20Id=<공연 ID>` (`sourceUrl`로 씀) |
+
+### 2.5 KCISA 연계 데이터 (API_CPM_009, 1회성)
 
 | 항목 | 내용 |
 |---|---|
@@ -172,4 +192,4 @@ node run.ts [forecast|closures|events]
   실패한 대상은 이전 파일 유지, 종료 코드 1 (알 수 없는 대상 이름은 2)
 ```
 
-GitHub Actions(`.github/workflows/update.yml`): 매일 02:30 UTC(11:30 KST)와 수동 실행. 예약 실행은 기본 브랜치의 워크플로만 돌므로 `main`에 병합된 뒤부터 동작합니다. 테스트를 돌리고 `node run.ts`를 실행한 뒤(최대 10분), 바뀐 데이터 파일 3개를 봇이 커밋하고 push합니다. 생성이 일부 실패하거나 10분을 넘어도 그때까지 저장한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`입니다.
+GitHub Actions(`.github/workflows/update.yml`): 매일 04:30 UTC(13:30 KST)와 수동 실행. 예약 실행은 기본 브랜치(`main`)의 워크플로만 돕니다. 테스트를 돌리고 `node run.ts`를 실행한 뒤(최대 10분), 바뀐 데이터 파일 3개를 봇이 커밋하고 push합니다. 생성이 일부 실패하거나 10분을 넘어도 그때까지 저장한 파일은 커밋하고, 작업은 마지막에 실패로 표시합니다. Secrets는 `KMA_AUTH_KEY`, `ASOS_DAILY_KEY`, `KOPIS_KEY`입니다.
