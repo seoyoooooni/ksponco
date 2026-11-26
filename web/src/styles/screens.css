@@ -409,6 +409,20 @@
   opacity: 0.85;
 }
 
+.picker-links {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.picker-links__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #d1d6db;
+}
+
 .operator-link {
   align-self: center;
   height: 40px;
@@ -885,4 +899,127 @@
   color: var(--color-mute);
   display: grid;
   place-items: center;
+}
+
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.tour__shade {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.tour__pos {
+  position: absolute;
+  transition:
+    left 0.25s ease,
+    top 0.25s ease;
+}
+
+.tour__card {
+  zoom: var(--ui-zoom);
+  width: min(340px, calc(100vw / var(--ui-zoom) - 24px));
+  padding: 20px;
+  border-radius: var(--radius-sheet);
+  background: var(--color-surface);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body, inherit);
+  color: var(--color-ink);
+}
+
+.tour__progress {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-fill);
+  overflow: hidden;
+}
+
+.tour__progress i {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.25s ease;
+}
+
+.tour__title {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.tour__body {
+  margin-top: 6px;
+  font-size: var(--text-md);
+  line-height: 1.55;
+  color: var(--color-sub);
+  word-break: keep-all;
+}
+
+.tour__actions {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tour__grow {
+  flex: 1;
+}
+
+.tour__skip {
+  height: 40px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-faint);
+}
+
+.tour__arrow {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-fill);
+  color: var(--color-ink);
+}
+
+.tour__arrow--next {
+  background: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.tour__arrow:active,
+.tour__next:active {
+  transform: scale(0.94);
+}
+
+.tour__next {
+  height: 40px;
+  min-width: 64px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__pos,
+  .tour__progress i {
+    transition: none;
+  }
 }

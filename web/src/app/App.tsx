@@ -36,6 +36,8 @@ import { BrandMark } from '../ui/BrandMark'
 import { forgetShare, sameSpot, shareMessage, shareUrl, takeSharedStay } from '../lib/share'
 import { ShareSheet } from '../features/share/ShareSheet'
 import { SharedBanner } from '../features/share/SharedBanner'
+import { Tour } from '../features/tour/Tour'
+import { markTourSeen, tourSeen, tourSteps } from '../features/tour/steps'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
@@ -245,6 +247,17 @@ function Main({ ready }: { ready: Base }) {
         message: shareMessage(place, date, TODAY, stay[0]),
       }
     : null
+  const sceneReady = useScene((s) => s.sceneReady)
+  const [touring, setTouring] = useState(false)
+  useEffect(() => {
+    if (!sceneReady || tourSeen()) return
+    const t = window.setTimeout(() => setTouring(true), 900)
+    return () => window.clearTimeout(t)
+  }, [sceneReady])
+  const endTour = useCallback(() => {
+    markTourSeen()
+    setTouring(false)
+  }, [])
   const closeShare = useCallback(() => sceneStore.set({ shareOpen: false }), [])
   const showNotice = useCallback((text: string) => sceneStore.set({ notice: text }), [])
   const banner =
@@ -272,6 +285,7 @@ function Main({ ready }: { ready: Base }) {
   const closeSources = useCallback(() => sceneStore.set({ sourcesOpen: false }), [])
 
   const mode = operator ? 'operator' : event ? 'event' : 'everyday'
+  const steps = useMemo(() => tourSteps(mode === 'event'), [mode])
 
   const pickOperator = (x: number, z: number) => {
     const s = sceneStore.get()
@@ -509,6 +523,10 @@ function Main({ ready }: { ready: Base }) {
         closures={ready.closures}
         onApply={(d) => sceneStore.set({ date: d, pickerOpen: false, camera: 'orbit', zoneStart: null })}
         onOperator={() => sceneStore.set({ pickerOpen: false, operator: true, opTool: null, camera: 'orbit', seats: false, notice: null })}
+        onTour={() => {
+          sceneStore.set({ pickerOpen: false, operator: false, opTool: null, zoneStart: null, camera: 'orbit' })
+          setTouring(true)
+        }}
       />
       <SourcesSheet
         open={sourcesOpen}
@@ -517,6 +535,7 @@ function Main({ ready }: { ready: Base }) {
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
       <ShareSheet open={share !== null} onClose={closeShare} url={share?.url ?? ''} message={share?.message ?? ''} onNotice={showNotice} />
+      {touring && mode !== 'operator' && !firstPerson && !pickerOpen && !shareOpen && <Tour steps={steps} onDone={endTour} />}
       <Toast message={notice} onDone={clearNotice} />
     </>
   )

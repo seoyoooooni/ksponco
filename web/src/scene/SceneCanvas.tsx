@@ -13,6 +13,7 @@ import { sceneColors } from './colors'
 import { Crowd } from './Crowd'
 import { HeatOverlay, type OverlayCell } from './HeatOverlay'
 import { MyMat } from './MyMat'
+import { MatScreenTracker } from './MatScreenTracker'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
 import { SuggestStar } from './SuggestStar'
 import { CookieCrowd } from './CookieCrowd'
@@ -233,6 +234,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         />
       )}
 
+      <MatScreenTracker mat={mat && !operator ? mat : null} terrain={terrain} />
       <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
       <Effects />
       <FirstFrame />

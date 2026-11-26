@@ -18,6 +18,7 @@ type Props = {
   closures: Closure[]
   onApply: (date: string) => void
   onOperator: () => void
+  onTour: () => void
 }
 
 function closedOn(closures: Closure[], date: string): Closure | null {
@@ -128,10 +129,16 @@ export function PlacePicker(p: Props) {
           {`${sel.m}월 ${sel.d}일로 보기`}
         </button>
       )}
-      <button type="button" className="operator-link" onClick={p.onOperator}>
-        <ClipboardIcon size={16} />
-        운영자 모드로 보기
-      </button>
+      <div className="picker-links">
+        <button type="button" className="operator-link" onClick={p.onTour}>
+          사용법 다시 보기
+        </button>
+        <span className="picker-links__dot" aria-hidden="true" />
+        <button type="button" className="operator-link" onClick={p.onOperator}>
+          <ClipboardIcon size={16} />
+          운영자 모드로 보기
+        </button>
+      </div>
     </ModalSheet>
   )
 }
