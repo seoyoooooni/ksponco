@@ -63,6 +63,20 @@ test('재시도 한도를 넘은 오류는 URL 없이 던진다', async () => {
   )
 })
 
+test('연결 오류는 cause의 코드만 붙이고 cause 메시지는 넣지 않는다', async () => {
+  const fail = (cause: unknown) =>
+    fetchText('http://x', {
+      fetchFn: async () => {
+        throw new TypeError('fetch failed', { cause })
+      },
+      sleep: noSleep,
+    })
+  await assert.rejects(fail({ code: 'ETIMEDOUT', message: 'connect ETIMEDOUT 1.2.3.4:443' }), (err: Error) =>
+    err.message === '요청 실패 (TypeError: fetch failed, ETIMEDOUT)',
+  )
+  await assert.rejects(fail(undefined), (err: Error) => err.message === '요청 실패 (TypeError: fetch failed)')
+})
+
 test('리다이렉트는 따라가지 않도록 요청한다', async () => {
   let init: RequestInit | undefined
   await fetchText('http://x', { fetchFn: async (_u, i) => ((init = i), res(200)), sleep: noSleep })

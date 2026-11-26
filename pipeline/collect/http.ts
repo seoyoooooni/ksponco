@@ -25,8 +25,10 @@ export async function fetchText(url: string, options: FetchOptions = {}): Promis
       if (!retryable || attempt >= retries) return { status: res.status, text: await res.text() }
     } catch (err) {
       if (attempt >= retries) {
-        const e = err as Error
-        throw new Error(`요청 실패 (${e.name}: ${e.message})`)
+        const e = err as Error & { cause?: { code?: unknown } }
+        // 'fetch failed'만으로는 원인을 알 수 없어 cause의 오류 코드만 붙인다(메시지에는 주소가 들어갈 수 있음)
+        const code = typeof e.cause?.code === 'string' ? `, ${e.cause.code}` : ''
+        throw new Error(`요청 실패 (${e.name}: ${e.message}${code})`)
       }
     }
     await sleep(retryWaitMs)
