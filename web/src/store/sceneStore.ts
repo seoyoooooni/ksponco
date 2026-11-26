@@ -19,7 +19,6 @@ export type SceneState = {
   hour: number
   stay: [number, number]
   mat: MatPosition | null
-  anchor: MatPosition | null
   matTouched: boolean
   eyeHeight: number
   camera: CameraMode
@@ -36,6 +35,7 @@ export type SceneState = {
   sourcesOpen: boolean
   seats: boolean
   playing: boolean
+  peek: boolean
   pref: SunPref | null
   operator: boolean
   opTool: OpTool | null
@@ -102,7 +102,6 @@ let state: SceneState = {
   hour: 14,
   stay: [14, 16],
   mat: null,
-  anchor: null,
   matTouched: false,
   eyeHeight: 0.8,
   camera: 'orbit',
@@ -119,6 +118,7 @@ let state: SceneState = {
   sourcesOpen: false,
   seats: false,
   playing: false,
+  peek: false,
   pref: null,
   operator: false,
   opTool: null,

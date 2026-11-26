@@ -10,6 +10,7 @@ type Props = {
   onVisibleHeight?: (h: number) => void
   children: ReactNode
   more?: ReactNode
+  footer?: ReactNode
 }
 
 const TAP = 6
@@ -26,7 +27,7 @@ function nearest(heights: Heights, h: number): SheetSnap {
   return best
 }
 
-export function BottomSheet({ label, snap, onSnap, onVisibleHeight, children, more }: Props) {
+export function BottomSheet({ label, snap, onSnap, onVisibleHeight, children, more, footer }: Props) {
   const ref = useRef<HTMLElement>(null)
   const handleRef = useRef<HTMLButtonElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
@@ -169,10 +170,13 @@ export function BottomSheet({ label, snap, onSnap, onVisibleHeight, children, mo
           !wide && <span className="sheet__handle sheet__handle--static" aria-hidden="true" />
         )}
         {children}
-        {more && (
+        {more ? (
           <div ref={moreRef} className="sheet__more" inert={snappable && snap < 2 ? true : undefined}>
             {more}
+            {footer}
           </div>
+        ) : (
+          footer
         )}
       </section>
       {snappable && snap < 2 && (

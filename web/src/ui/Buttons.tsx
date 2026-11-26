@@ -15,16 +15,3 @@ export function PillButton({ variant = 'light', icon, className, children, ...re
     </button>
   )
 }
-
-type RoundProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'dark' | 'light'
-  label: string
-}
-
-export function RoundButton({ variant = 'light', label, className, children, ...rest }: RoundProps) {
-  return (
-    <button type="button" aria-label={label} title={label} className={`round-btn round-btn--${variant} ${className ?? ''}`} {...rest}>
-      {children}
-    </button>
-  )
-}

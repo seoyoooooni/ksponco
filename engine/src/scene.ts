@@ -67,8 +67,8 @@ export function prismOfBuilding(b: Building): Prism {
 }
 
 /** 장소 데이터(지형·나무·건물)만으로 만든 장면 */
-export function buildFixedScene(data: VenueData, opts: { terrain?: boolean } = {}): Scene {
-  const terrain = new Terrain(data.terrain);
+export function buildFixedScene(data: VenueData, opts: { terrain?: boolean; ground?: Terrain } = {}): Scene {
+  const terrain = opts.ground ?? new Terrain(data.terrain);
   const crowns = data.trees.map((t) => crownOf(t, terrain.heightAt(t.x, t.z)));
   const prisms = data.buildings.map(prismOfBuilding);
   // 고정 무대 지붕이 있으면 고정 물체로 포함
@@ -82,8 +82,8 @@ export function buildFixedScene(data: VenueData, opts: { terrain?: boolean } = {
 }
 
 /** 행사 물체(무대 지붕·무대 바닥·스크린·그늘막) 장면. 지형은 높이 기준으로만 씀 */
-export function buildEventScene(data: VenueData, layout: Layout | null, canopies: Canopy[] = []): Scene {
-  const terrain = new Terrain(data.terrain);
+export function buildEventScene(data: VenueData, layout: Layout | null, canopies: Canopy[] = [], ground?: Terrain): Scene {
+  const terrain = ground ?? new Terrain(data.terrain);
   const prisms: Prism[] = [];
   if (layout?.stage) {
     const s = layout.stage;

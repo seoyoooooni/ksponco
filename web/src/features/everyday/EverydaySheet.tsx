@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
 import { EyeIcon } from '../../ui/icons'
@@ -5,19 +6,14 @@ import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
-
-export type SpotItem = {
-  label: string
-  selected: boolean
-}
+import { Notes, type Note } from '../../ui/Notes'
 
 type Props = {
   snap: SheetSnap
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   closure: { title: string; sub: string } | null
-  spots: SpotItem[]
-  onSpot: (i: number) => void
+  hint: string | null
   duration: number | 'custom'
   onDuration: (h: number) => void
   stay: [number, number]
@@ -33,12 +29,14 @@ type Props = {
   playing: boolean
   onPlay: () => void
   sunset: { at: number; label: string } | null
+  notes: Note[]
+  footer?: ReactNode
 }
 
 export function EverydaySheet(p: Props) {
   if (p.closure) {
     return (
-      <BottomSheet label="출입 제한 안내" snap={1} onVisibleHeight={p.onVisibleHeight}>
+      <BottomSheet label="출입 제한 안내" snap={1} onVisibleHeight={p.onVisibleHeight} footer={p.footer}>
         <div className="closure">
           <span className="eyebrow">출입 제한</span>
           <h1 className="headline">{p.closure.title}</h1>
@@ -54,6 +52,7 @@ export function EverydaySheet(p: Props) {
       snap={p.snap}
       onSnap={p.onSnap}
       onVisibleHeight={p.onVisibleHeight}
+      footer={p.footer}
       more={
         <div className="section section--plain">
           <div className="section__head">
@@ -82,21 +81,9 @@ export function EverydaySheet(p: Props) {
         ]}
         onChange={p.onPref}
       />
-      <div className="headline-row">
-        <h1 className="headline">{p.headline}</h1>
-        {p.spots.length > 0 && (
-          <div className="spot-btns" role="group" aria-label="추천 자리">
-            {p.spots.map((s, i) => (
-              <button key={i} type="button" className="spot-btn" aria-pressed={s.selected} aria-label={`${i + 1}번 추천 자리로 옮기기, ${s.label}`} onClick={() => p.onSpot(i)}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {p.spots.length === 0 && (
-        <p className="plain-line">{p.pref === 'shade' ? '이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.' : '이 시간엔 계속 볕이 드는 곳이 없어요. 시간을 바꿔 보세요.'}</p>
-      )}
+      <h1 className="headline">{p.headline}</h1>
+      {p.hint && <p className="plain-line">{p.hint}</p>}
+      <Notes notes={p.notes} />
       <Toggle
         label="머무는 시간"
         value={p.duration}

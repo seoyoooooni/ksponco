@@ -84,37 +84,6 @@
   cursor: default;
 }
 
-.round-btn {
-  width: var(--bar-height);
-  height: var(--bar-height);
-  flex: 0 0 auto;
-  border-radius: var(--radius-btn);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  box-shadow: var(--shadow-float);
-}
-
-.round-btn--dark {
-  border: none;
-  background: var(--color-surface);
-  color: var(--color-ink);
-}
-
-.round-btn--light {
-  border: none;
-  border-radius: var(--radius-btn);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  width: var(--touch);
-  height: var(--touch);
-}
-
-.round-btn--light[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-surface);
-}
-
 .toggle {
   display: grid;
   grid-auto-flow: column;
@@ -340,6 +309,31 @@
   flex-direction: column;
   gap: var(--space-4);
   z-index: 41;
+}
+
+.modal-sheet--center {
+  padding-top: var(--space-5);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-mute);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: var(--color-fill);
+  color: var(--color-ink);
 }
 
 .toast {
@@ -698,6 +692,20 @@
 
   .modal-sheet > .sheet__handle {
     display: none;
+  }
+
+  .modal-backdrop--dim {
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  .modal-sheet--center {
+    top: calc(100vh / var(--ui-zoom) / 2);
+    left: calc(100vw / var(--ui-zoom) / 2);
+    right: auto;
+    bottom: auto;
+    width: 440px;
+    max-height: calc(100vh / var(--ui-zoom) - 2 * var(--topbar-h));
+    transform: translate(-50%, -50%);
   }
 
   .toast {

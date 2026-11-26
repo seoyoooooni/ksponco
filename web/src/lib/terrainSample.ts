@@ -27,14 +27,6 @@ export function gridHeightAt(t: Terrain, x: number, z: number): number {
   )
 }
 
-export function slopeAt(t: Terrain, x: number, z: number): { dx: number; dz: number } {
-  const e = t.cell / 2
-  return {
-    dx: (heightAt(t, x + e, z) - heightAt(t, x - e, z)) / (2 * e),
-    dz: (heightAt(t, x, z + e) - heightAt(t, x, z - e)) / (2 * e),
-  }
-}
-
 export function sourceAt(t: Terrain, x: number, z: number): number {
   const i = clamp(Math.round((x - t.x0) / t.cell), 0, t.nx - 1)
   const j = clamp(Math.round((z - t.z0) / t.cell), 0, t.nz - 1)

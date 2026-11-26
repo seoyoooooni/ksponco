@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { BottomSheet } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
 import { TentIcon } from '../../ui/icons'
@@ -10,6 +11,7 @@ export type OpView = Variant | 'compare'
 
 type Props = {
   onVisibleHeight: (h: number) => void
+  footer?: ReactNode
   view: OpView
   onView: (v: OpView) => void
   result: OperatorResult | null
@@ -87,7 +89,7 @@ export function OperatorSheet(p: Props) {
   const r = p.result
   const over = r && p.sold !== null ? p.sold - r.capacity : 0
   return (
-    <BottomSheet label="운영 계획" snap={1} onVisibleHeight={p.onVisibleHeight}>
+    <BottomSheet label="운영 계획" snap={1} onVisibleHeight={p.onVisibleHeight} footer={p.footer}>
       <Toggle
         label="계획 안"
         value={p.view}

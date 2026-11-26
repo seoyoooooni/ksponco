@@ -1,5 +1,18 @@
-import type { Layout, StageSpec, Terrain, Vec2 } from '../data/types'
-import { canopyHit, headBlocked, performerTargets, STEP, type Canopy, type HeadIndex, type Vec3 } from './analysis'
+import type { Building, Layout, StageSpec, Terrain, Tree, Vec2, Venue } from '../data/types'
+import {
+  canopyBlockers,
+  headBlocked,
+  lineBlocked,
+  performerTargets,
+  prepareBlockers,
+  scanGround,
+  siteGround,
+  STEP,
+  sunBlocked,
+  type HeadIndex,
+  type Vec3,
+} from './analysis'
+import { morningSun, wetAt, type Canopy } from './engine'
 import { bounds, pointInPolygon, zoneAt } from './polygon'
 import { sunPosition } from './sun'
 import { heightAt } from './terrainSample'
@@ -21,8 +34,8 @@ export function planKey(venue: string, date: string, variant: Variant): string {
   return `${venue}|${date}|${variant}`
 }
 
-export function tentCanopy(t: { x: number; z: number }, terrain: Terrain): Canopy {
-  return { cx: t.x, cy: heightAt(terrain, t.x, t.z) + TENT_ROOF, cz: t.z, rx: TENT_SIZE * 0.56, ry: 0.3 }
+export function tentShape(t: { x: number; z: number }): Canopy {
+  return { x: t.x, z: t.z, w: TENT_SIZE, d: TENT_SIZE, h: TENT_ROOF }
 }
 
 export function withClosed(layout: Layout, closed: ClosedArea[]): Layout {
@@ -75,7 +88,7 @@ type OpCell = {
   seenNow: boolean[]
 }
 
-export type Wet = { heavy: boolean } | null
+export type Wet = { mm: number } | null
 
 export type OperatorResult = {
   capacity: number
@@ -91,7 +104,9 @@ export type OperatorArgs = {
   stage: StageSpec | null
   terrain: Terrain
   heads: HeadIndex
-  trees: Canopy[]
+  trees: Tree[]
+  buildings: Building[]
+  venue: Venue
   tents: Tent[]
   palms: ClosedArea[]
   wet: Wet
@@ -99,25 +114,6 @@ export type OperatorArgs = {
   from: number
   to: number
   suggest: boolean
-}
-
-function isWet(terrain: Terrain, trees: Canopy[], x: number, z: number, morning: Vec3[], wet: NonNullable<Wet>): boolean {
-  if (wet.heavy) return true
-  const h = heightAt(terrain, x, z)
-  let sum = 0
-  let n = 0
-  for (const dx of [-CELL, 0, CELL]) {
-    for (const dz of [-CELL, 0, CELL]) {
-      if (!dx && !dz) continue
-      sum += heightAt(terrain, x + dx, z + dz)
-      n++
-    }
-  }
-  if (h < sum / n - 0.03) return true
-  if (!morning.length) return false
-  const p: Vec3 = [x, h + 0.5, z]
-  const shaded = morning.filter((d) => canopyHit(trees, p, d)).length
-  return shaded / morning.length >= 0.7
 }
 
 function lawnCells(layout: Layout): { x: number; z: number; type: string }[] {
@@ -137,8 +133,11 @@ function lawnCells(layout: Layout): { x: number; z: number; type: string }[] {
 }
 
 export function analyzeOperator(args: OperatorArgs): OperatorResult {
-  const { layout, stage, terrain, heads, trees, tents, palms, wet, date, from, to, suggest } = args
-  const tentCanopies = tents.map((t) => tentCanopy(t, terrain))
+  const { layout, stage, terrain, heads, trees, buildings, venue, tents, palms, wet, date, from, to, suggest } = args
+  const site = { venue, terrain, trees, buildings }
+  const land = siteGround(terrain)
+  const scene = prepareBlockers(site, layout, [], land)
+  const tentScene = canopyBlockers(site, land, tents.map(tentShape))
   const suns: Vec3[] = []
   for (let t = from; t < to - 1e-6; t += STEP) {
     const s = sunPosition(date, t + STEP / 2)
@@ -152,19 +151,12 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
     const eye: Vec3 = [c.x, g + (c.type === 'standing' ? 1.6 : 0.86), c.z]
     let base = 0
     const shadeNow = suns.map((d) => {
-      const byTree = canopyHit(trees, ground, d)
-      if (byTree) base++
-      return byTree || canopyHit(tentCanopies, ground, d)
+      const byScene = sunBlocked(scene, ground, d)
+      if (byScene) base++
+      return byScene || sunBlocked(tentScene, ground, d)
     })
-    const seenBase = targets.map((t) => {
-      const d: Vec3 = [t[0] - eye[0], t[1] - eye[1], t[2] - eye[2]]
-      return !headBlocked(eye, t, heads) && !canopyHit(trees, eye, d, 1)
-    })
-    const seenNow = targets.map((t, k) => {
-      if (!seenBase[k]) return false
-      const d: Vec3 = [t[0] - eye[0], t[1] - eye[1], t[2] - eye[2]]
-      return !canopyHit(tentCanopies, eye, d, 1)
-    })
+    const seenBase = targets.map((t) => !headBlocked(eye, t, heads) && !lineBlocked(scene, eye, t))
+    const seenNow = targets.map((t, k) => seenBase[k] && !lineBlocked(tentScene, eye, t))
     return {
       x: c.x,
       z: c.z,
@@ -192,14 +184,11 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
   let wetPeople: number | null = null
   const wetCells: { x: number; z: number }[] = []
   if (wet) {
-    const morning: Vec3[] = []
-    for (let t = 9; t < 12; t += STEP) {
-      const s = sunPosition(date, t + STEP / 2)
-      if (s.altitude > 0.5) morning.push(s.direction)
-    }
+    const morning = morningSun(date)
+    const scan = scanGround(terrain)
     wetPeople = 0
     for (const c of cells) {
-      if (!isWet(terrain, trees, c.x, c.z, morning, wet)) continue
+      if (!wetAt(scene, scan, c.x, c.z, wet.mm, morning, { reach: CELL, sampleHeight: 0.5 })) continue
       if (palms.some((p) => pointInPolygon(c.x, c.z, p.poly))) continue
       wetPeople += c.people
       wetCells.push({ x: c.x, z: c.z })
@@ -217,7 +206,7 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
         for (let x = b.x0 + 3; x < b.x1 - 2; x += 6) {
           if (zoneAt(layout.zones, x, z) !== zone) continue
           if (tents.some((t) => Math.hypot(t.x - x, t.z - z) < TENT_SIZE + 1)) continue
-          const cand = [tentCanopy({ x, z }, terrain)]
+          const cand = canopyBlockers(site, land, [tentShape({ x, z })])
           let score = 0
           for (const c of cells) {
             const near = Math.abs(c.x - x) <= REACH && Math.abs(c.z - z) <= REACH
@@ -225,7 +214,7 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
             if (near && !gains(c, nowShade)) {
               let extra = 0
               suns.forEach((d, i) => {
-                if (!c.shadeNow[i] && canopyHit(cand, c.ground, d)) extra++
+                if (!c.shadeNow[i] && sunBlocked(cand, c.ground, d)) extra++
               })
               if (gains(c, nowShade + extra / suns.length)) score += c.people
             }
@@ -235,8 +224,7 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
                 let lost = 0
                 targets.forEach((t, k) => {
                   if (!c.seenNow[k]) return
-                  const d: Vec3 = [t[0] - c.eye[0], t[1] - c.eye[1], t[2] - c.eye[2]]
-                  if (canopyHit(cand, c.eye, d, 1)) lost++
+                  if (lineBlocked(cand, c.eye, t)) lost++
                 })
                 if (loses(c, seenNow - lost / targets.length)) score -= 2 * c.people
               }

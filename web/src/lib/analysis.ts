@@ -1,57 +1,108 @@
-import type { Layout, ScreenSpec, StageSpec, Terrain, Tree } from '../data/types'
+import type { Building, Layout, ScreenSpec, StageSpec, Terrain, Tree, Venue } from '../data/types'
 import { isShown, type Crowd } from './crowd'
+import {
+  buildEventScene,
+  buildFixedScene,
+  mergeScenes,
+  occluded,
+  SUN_RAY_MAX,
+  Terrain as EngineTerrain,
+  type Canopy as EngineCanopy,
+  type FixedStage,
+  type Scene,
+  type VenueData,
+} from './engine'
 import { sunPosition } from './sun'
 import { heightAt } from './terrainSample'
 
 export type Vec3 = [number, number, number]
 
-export type Canopy = {
-  cx: number
-  cy: number
-  cz: number
-  rx: number
-  ry: number
+export type Site = {
+  venue: Venue
+  terrain: Terrain
+  trees: Tree[]
+  buildings: Building[]
 }
 
-export function prepareCanopies(trees: Tree[], terrain: Terrain): Canopy[] {
-  return trees.map((t) => {
-    const g = heightAt(terrain, t.x, t.z)
-    const half = Math.max(0.5, (t.h - t.base) / 2)
-    return { cx: t.x, cy: g + t.base + half, cz: t.z, rx: t.r, ry: half }
-  })
-}
+export type Blockers = Scene
 
-export function canopyHit(canopies: Canopy[], p: Vec3, d: Vec3, maxT = Infinity): boolean {
-  for (const c of canopies) {
-    const ox = (p[0] - c.cx) / c.rx
-    const oy = (p[1] - c.cy) / c.ry
-    const oz = (p[2] - c.cz) / c.rx
-    const dx = d[0] / c.rx
-    const dy = d[1] / c.ry
-    const dz = d[2] / c.rx
-    const a = dx * dx + dy * dy + dz * dz
-    const b = ox * dx + oy * dy + oz * dz
-    const cc = ox * ox + oy * oy + oz * oz - 1
-    const disc = b * b - a * cc
-    if (disc <= 0) continue
-    const s = Math.sqrt(disc)
-    const t1 = (-b - s) / a
-    const t2 = (-b + s) / a
-    if (t2 > 0 && t1 < maxT) return true
+export type Ground = EngineTerrain
+
+class SiteGround extends EngineTerrain {
+  private readonly site: Terrain
+
+  constructor(site: Terrain) {
+    super(site)
+    this.site = site
   }
-  return false
+
+  heightAt(x: number, z: number): number {
+    return heightAt(this.site, x, z)
+  }
+}
+
+export function siteGround(terrain: Terrain): Ground {
+  return new SiteGround(terrain)
+}
+
+export function scanGround(terrain: Terrain): Ground {
+  return new EngineTerrain(terrain)
+}
+
+function fixedStageOf(s: StageSpec | null): FixedStage | null {
+  if (!s) return null
+  if (s.shape === 'circle') {
+    return { shape: 'circle', x: s.x, z: s.z, r: s.r ?? s.w / 2, deckH: s.deckH, roofH: s.roofH, azimuth: s.azimuth }
+  }
+  return { shape: 'rect', x: s.x, z: s.z, w: s.w, d: s.d, deckH: s.deckH, roofH: s.roofH, azimuth: s.azimuth }
+}
+
+function venueData(site: Site): VenueData {
+  return {
+    venue: { ...site.venue, fixedStage: fixedStageOf(site.venue.fixedStage) },
+    terrain: site.terrain,
+    trees: site.trees,
+    buildings: site.buildings,
+  }
+}
+
+export function prepareBlockers(
+  site: Site,
+  layout: Layout | null,
+  canopies: EngineCanopy[] = [],
+  ground: Ground = siteGround(site.terrain),
+): Blockers {
+  const data = venueData(site)
+  return mergeScenes(buildFixedScene(data, { ground }), buildEventScene(data, layout, canopies, ground))
+}
+
+export function canopyBlockers(site: Site, ground: Ground, canopies: EngineCanopy[]): Blockers {
+  return buildEventScene(venueData(site), null, canopies, ground)
+}
+
+export function sunBlocked(blockers: Blockers, p: Vec3, dir: Vec3): boolean {
+  return occluded(blockers, p, dir, SUN_RAY_MAX)
+}
+
+export function lineBlocked(blockers: Blockers, from: Vec3, to: Vec3, ignoreTag?: string): boolean {
+  const dx = to[0] - from[0]
+  const dy = to[1] - from[1]
+  const dz = to[2] - from[2]
+  const L = Math.hypot(dx, dy, dz)
+  if (L < 1e-6) return false
+  return occluded(blockers, from, [dx / L, dy / L, dz / L], L - 0.05, { ignoreTag })
 }
 
 export const STEP = 0.25
 
 export type SunState = 0 | 1 | 2
 
-export function sunStrip(date: string, from: number, to: number, point: Vec3, canopies: Canopy[]): SunState[] {
+export function sunStrip(date: string, from: number, to: number, point: Vec3, blockers: Blockers): SunState[] {
   const out: SunState[] = []
   for (let t = from; t < to - 1e-6; t += STEP) {
     const s = sunPosition(date, t + STEP / 2)
     if (s.altitude <= 0.5) out.push(0)
-    else out.push(canopyHit(canopies, point, s.direction) ? 1 : 2)
+    else out.push(sunBlocked(blockers, point, s.direction) ? 1 : 2)
   }
   return out
 }
@@ -116,13 +167,12 @@ export function headBlocked(e: Vec3, t: Vec3, heads: HeadIndex): boolean {
   return false
 }
 
-export function visibleRatio(eye: Vec3, targets: Vec3[], heads: HeadIndex, canopies: Canopy[]): number {
+export function visibleRatio(eye: Vec3, targets: Vec3[], heads: HeadIndex, blockers: Blockers, ignoreTag?: string): number {
   if (targets.length === 0) return 0
   let seen = 0
   for (const t of targets) {
-    const d: Vec3 = [t[0] - eye[0], t[1] - eye[1], t[2] - eye[2]]
     if (headBlocked(eye, t, heads)) continue
-    if (canopyHit(canopies, eye, d, 1)) continue
+    if (lineBlocked(blockers, eye, t, ignoreTag)) continue
     seen++
   }
   return seen / targets.length
@@ -173,10 +223,10 @@ export function viewFrom(
   stage: StageSpec | null,
   terrain: Terrain,
   heads: HeadIndex,
-  canopies: Canopy[],
+  blockers: Blockers,
 ): ViewResult {
   const perf = performerTargets(layout, stage, terrain)
-  const stageRatio = visibleRatio(eye, perf, heads, canopies)
+  const stageRatio = visibleRatio(eye, perf, heads, blockers)
   const p = layout.performer
   const stageDistance = p ? Math.hypot(eye[0] - p.x, eye[2] - p.z) : 0
   let best = { ratio: 0, index: -1, distance: 0 }
@@ -184,23 +234,12 @@ export function viewFrom(
     const { targets, facing } = screenTargets(s, terrain)
     const toEye = [eye[0] - s.x, eye[2] - s.z]
     if (toEye[0] * facing[0] + toEye[1] * facing[2] <= 0) return
-    const ratio = visibleRatio(eye, targets, heads, canopies)
+    const ratio = visibleRatio(eye, targets, heads, blockers, `screen${i}`)
     const distance = Math.hypot(toEye[0], toEye[1])
     if (ratio > best.ratio || (ratio === best.ratio && distance < best.distance)) best = { ratio, index: i, distance }
   })
   return { stage: stageRatio, stageDistance, screen: best.ratio, screenIndex: best.index, screenDistance: best.distance }
 }
-
-export function sightPhrase(view: ViewResult): string {
-  const far = view.stageDistance > 45
-  if (view.stage >= 0.6 && !far) return '무대 잘 보임'
-  if (view.stage >= 0.6 && view.screen >= 0.6) return '스크린 잘 보임'
-  if (view.stage >= 0.6) return '무대 멀리 보임'
-  if (view.screen >= 0.6) return '스크린만 잘 보임'
-  if (view.stage >= 0.25) return '무대 일부 보임'
-  return '앞사람에 많이 가림'
-}
-
 
 export function sunPhrase(strip: SunState[], from: number, hourText: (h: number) => string): string {
   if (!strip.some((v) => v === 2)) return '내내 그늘'

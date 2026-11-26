@@ -24,10 +24,6 @@ export function shortDateLabel(date: string): string {
   return `${m}.${d}`
 }
 
-export function dowLabel(date: string): string {
-  return DOW[parseDate(date).dow]
-}
-
 export function clock(h: number): string {
   const hh = Math.floor(h)
   const mm = Math.round((h - hh) * 60)
