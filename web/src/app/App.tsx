@@ -15,7 +15,7 @@ import { sourceAt } from '../lib/terrainSample'
 import { planKey, rectPoly, rectProblem, tentProblem, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
 import { applyPlanFile, clearPlan, editPlan, planFileOf, planSize, undoPlan } from '../features/operator/planEdit'
 import { PlanShareSheet } from '../features/operator/PlanShareSheet'
-import { takeSharedPlan, type PlanFile } from '../lib/planShare'
+import { emptyPlan, takeSharedPlan, type PlanFile } from '../lib/planShare'
 import { BOTH_COLOR, LAYER_COLOR, OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
@@ -313,9 +313,13 @@ function Main({ ready }: { ready: Base }) {
       zoneStart: null,
       opHover: null,
     })
+    const mine = planFileOf(sceneStore.get(), f.venue, f.date).plans
+    const replaced = (['A', 'B'] as const).filter((v) => !emptyPlan(mine[v]) && JSON.stringify(mine[v]) !== JSON.stringify(f.plans[v]))
     applyPlanFile(f)
+    const head = `${VENUE_NAMES[f.venue] ?? f.venue} ${monthDayLabel(f.date)} 운영 계획을 불러왔어요`
+    const sides = replaced.map((v) => `${v}안`).join('·')
     sceneStore.set({
-      notice: `${VENUE_NAMES[f.venue] ?? f.venue} ${monthDayLabel(f.date)} 운영 계획을 불러왔어요\n이 날짜의 A안·B안이 받은 계획으로 바뀌었어요. 원래 계획은 A안·B안에서 각각 되돌리기를 누르면 돌아와요`,
+      notice: replaced.length ? `${head}\n내가 만들어 둔 ${sides}을 받은 계획으로 바꿨어요. ${sides}에서 되돌리기를 누르면 내 계획이 다시 돌아와요` : head,
     })
   }, [])
   useEffect(() => {
