@@ -110,7 +110,7 @@
 }
 
 .toggle button[aria-pressed='true'] {
-  background: var(--color-surface);
+  background: var(--color-toggle-on);
   color: var(--color-ink);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -128,7 +128,7 @@
 
 .placechip {
   height: var(--touch);
-  max-width: calc(100vw - 2 * var(--space-3));
+  max-width: calc(100vw - 2 * var(--space-3) - var(--touch) - var(--space-2));
   padding: 0 14px 0 12px;
   border: none;
   border-radius: 999px;
@@ -233,7 +233,7 @@
   width: 18px;
   height: 4px;
   border-radius: 2px;
-  background: #e5e8eb;
+  background: var(--color-handle);
   transition: transform 0.25s ease;
   margin-left: 0;
 }
@@ -274,7 +274,7 @@
   height: calc(36px + var(--safe-bottom));
   border: none;
   padding: 0;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.94) 75%);
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-surface) 94%, transparent) 75%);
   touch-action: none;
   z-index: 21;
   transition: opacity 0.15s;
@@ -289,7 +289,7 @@
   inset: 0;
   border: none;
   padding: 0;
-  background: rgba(0, 0, 0, 0.32);
+  background: var(--color-backdrop);
   z-index: 40;
 }
 
@@ -355,8 +355,8 @@
   max-width: calc(100vw - 32px);
   padding: 10px var(--space-4);
   border-radius: 12px;
-  background: rgba(25, 31, 40, 0.92);
-  color: var(--color-surface);
+  background: var(--color-toast);
+  color: #ffffff;
   font-size: var(--text-md);
   font-weight: 500;
   z-index: 60;
@@ -385,7 +385,7 @@
   border: none;
   border-radius: 50%;
   background: var(--color-surface);
-  box-shadow: inset 0 0 0 1.5px #d1d6db;
+  box-shadow: inset 0 0 0 1.5px var(--color-border);
   color: var(--color-ink);
   display: grid;
   place-items: center;
@@ -460,7 +460,7 @@
 }
 
 .timerange__seg.is-off {
-  background: #eef0f3;
+  background: var(--color-off);
 }
 
 .timerange__seg.is-sun {
@@ -576,7 +576,7 @@
 }
 
 .calendar__day.is-closed {
-  background: repeating-linear-gradient(135deg, #d1d6db 0 2px, var(--color-surface) 2px 6px);
+  background: repeating-linear-gradient(135deg, var(--color-border) 0 2px, var(--color-surface) 2px 6px);
   color: var(--color-mute);
 }
 
@@ -634,7 +634,7 @@
 
 .calendar__swatch.is-closed {
   background: repeating-linear-gradient(135deg, #b0b8c1 0 2px, var(--color-surface) 2px 5px);
-  box-shadow: inset 0 0 0 1px #d1d6db;
+  box-shadow: inset 0 0 0 1px var(--color-border);
 }
 
 .calendar__swatch.is-today {
@@ -706,7 +706,7 @@
   }
 
   .modal-backdrop--dim {
-    background: rgba(0, 0, 0, 0.32);
+    background: var(--color-backdrop);
   }
 
   .modal-sheet--center {

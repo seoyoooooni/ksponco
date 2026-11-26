@@ -13,6 +13,13 @@
   --color-night: #2d2a4a;
   --color-warn: #b3261e;
   --color-mark: #e2574c;
+  --color-handle: #e5e8eb;
+  --color-toggle-on: #ffffff;
+  --color-border: #d1d6db;
+  --color-off: #eef0f3;
+  --color-toast: rgba(25, 31, 40, 0.92);
+  --color-credit: rgba(255, 255, 255, 0.8);
+  --color-backdrop: rgba(0, 0, 0, 0.32);
 
   --shade-0: #ffc23d;
   --shade-1: #f3e3a8;
@@ -51,4 +58,26 @@
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #101318;
+  --color-fill: #2a2f37;
+  --color-surface: #1b1f26;
+  --color-line: #2a2f37;
+  --color-ink: #f2f4f6;
+  --color-primary: #f2f4f6;
+  --color-sub: #b0b8c1;
+  --color-mute: #8b95a1;
+  --color-faint: #6b7684;
+  --color-handle: #3a404a;
+  --color-toggle-on: #454c57;
+  --color-border: #4e5968;
+  --color-off: #2a2f37;
+  --color-toast: rgba(58, 64, 74, 0.96);
+  --color-credit: rgba(27, 31, 38, 0.8);
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+  --shadow-float: 0 0 1px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-sheet: 0 -8px 24px rgba(0, 0, 0, 0.35);
 }

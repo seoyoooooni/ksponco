@@ -2,6 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom'
 import { matScreen } from '../../scene/matScreen'
 import { ChevronLeft, ChevronRight } from '../../ui/icons'
+import type { SheetSnap } from '../../ui/BottomSheet'
+import { sceneStore } from '../../store/sceneStore'
 
 export const MAT_TARGET = '@mat'
 
@@ -9,6 +11,7 @@ export type TourStep = {
   target: string | string[] | null
   title: string
   body: string
+  sheet?: SheetSnap
 }
 
 type Props = {
@@ -65,6 +68,15 @@ export function Tour({ steps: all, onDone }: Props) {
   const step = steps[index]
 
   useEffect(() => {
+    const before = sceneStore.get().sheetSnap
+    return () => sceneStore.set({ sheetSnap: before })
+  }, [])
+
+  useEffect(() => {
+    if (step?.sheet !== undefined) sceneStore.set({ sheetSnap: step.sheet })
+  }, [step])
+
+  useEffect(() => {
     let raf = 0
     const list = targets(step)
     const tick = () => {
@@ -107,7 +119,10 @@ export function Tour({ steps: all, onDone }: Props) {
     left = Math.min(Math.max(EDGE, box.x + box.w / 2 - card.w / 2), vw - card.w - EDGE)
     const below = box.y + box.h + GAP
     const above = box.y - GAP - card.h
-    top = below + card.h <= vh - EDGE || above < EDGE ? below : above
+    const fitsBelow = below + card.h <= vh - EDGE
+    const fitsAbove = above >= EDGE
+    const lower = box.y + box.h / 2 > vh / 2
+    top = lower ? (fitsAbove ? above : below) : fitsBelow || !fitsAbove ? below : above
     top = Math.min(Math.max(EDGE, top), vh - card.h - EDGE)
   }
   const last = index === steps.length - 1

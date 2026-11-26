@@ -6,6 +6,7 @@ import type { SunPref } from '../lib/comfort'
 import type { ClosedArea, Tent, Variant } from '../lib/operator'
 import type { Vec2 } from '../data/types'
 import { initialShare, type SharedSpot } from '../lib/share'
+import { loadSettings, saveSettings, type Quality, type ThemeMode } from '../features/settings/settings'
 
 export type CameraMode = 'orbit' | 'firstPerson'
 
@@ -51,6 +52,10 @@ export type SceneState = {
   compare: boolean
   shareOpen: boolean
   shared: SharedSpot | null
+  settingsOpen: boolean
+  theme: ThemeMode
+  quality: Quality
+  aboutOpen: boolean
 }
 
 export type OpTool = 'tent' | 'zone' | 'palm' | 'erase'
@@ -138,6 +143,9 @@ let state: SceneState = {
   compare: false,
   shareOpen: false,
   shared: initialShare,
+  settingsOpen: false,
+  aboutOpen: false,
+  ...loadSettings(),
   ...loadPlans(),
 }
 
@@ -151,6 +159,7 @@ export const sceneStore = {
     const prev = state
     state = { ...state, ...patch }
     if (prev.tents !== state.tents || prev.closed !== state.closed || prev.palms !== state.palms || prev.sold !== state.sold) savePlans(state)
+    if (prev.theme !== state.theme || prev.quality !== state.quality) saveSettings({ theme: state.theme, quality: state.quality })
     listeners.forEach((l) => l())
   },
   subscribe(listener: Listener) {

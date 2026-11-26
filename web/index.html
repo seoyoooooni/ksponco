@@ -11,6 +11,13 @@
       }
     </script>
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      try {
+        var t = (JSON.parse(localStorage.getItem('sunseat.settings.v1') || '{}') || {}).theme
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>SunSeat</title>
     <meta name="description" content="그늘·볕·무대 보임을 3D로 미리 보고 같이 앉을 자리를 골라요" />

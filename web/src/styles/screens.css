@@ -115,6 +115,11 @@
   cursor: pointer;
 }
 
+.fabs .fab-round {
+  width: 40px;
+  height: 40px;
+}
+
 .fab-round:active {
   transform: scale(0.94);
 }
@@ -157,7 +162,7 @@
   padding: 0 8px;
   border: none;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--color-credit);
   font-size: var(--text-xs);
   color: var(--color-mute);
   z-index: 15;
@@ -171,7 +176,7 @@
   padding: 0 12px;
   border-radius: 10px;
   background: rgba(25, 31, 40, 0.92);
-  color: var(--color-surface);
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -409,19 +414,6 @@
   opacity: 0.85;
 }
 
-.picker-links {
-  align-self: center;
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.picker-links__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #d1d6db;
-}
 
 .operator-link {
   align-self: center;
@@ -1021,5 +1013,186 @@
   .tour__pos,
   .tour__progress i {
     transition: none;
+  }
+}
+
+.icon-chip {
+  flex-shrink: 0;
+  width: var(--touch);
+  height: var(--touch);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-float);
+}
+
+.icon-chip:active {
+  transform: scale(0.94);
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-1);
+}
+
+.settings__title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  padding-right: 40px;
+}
+
+.settings__group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.settings__label {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-sub);
+}
+
+.settings__group .toggle {
+  height: 44px;
+}
+
+.settings__list {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-row);
+  background: var(--color-fill);
+  overflow: hidden;
+}
+
+.settings__row {
+  position: relative;
+  height: 50px;
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ink);
+  text-decoration: none;
+  text-align: left;
+}
+
+.settings__row:active {
+  background: color-mix(in srgb, var(--color-ink) 6%, transparent);
+}
+
+.settings__row + .settings__row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 44px;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+}
+
+.settings__row > svg:first-child {
+  flex-shrink: 0;
+  color: var(--color-sub);
+}
+
+.settings__row > svg:last-child {
+  flex-shrink: 0;
+  color: var(--color-faint);
+}
+
+.settings__row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-2);
+}
+
+.about__head {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+  padding-inline: 32px;
+}
+
+.about__logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  box-shadow: var(--shadow-float);
+  margin-bottom: 4px;
+}
+
+.about__name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.about__lead {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--color-sub);
+  word-break: keep-all;
+}
+
+.about__section {
+  padding: 16px;
+  border-radius: var(--radius-row);
+  background: var(--color-fill);
+}
+
+.about__section h3 {
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+
+.about__section ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--color-sub);
+  word-break: keep-all;
+}
+
+.about__foot {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-faint);
+}
+
+.settings-btn {
+  position: fixed;
+  top: calc(10px + var(--safe-top));
+  right: var(--space-3);
+  z-index: 25;
+}
+
+@media (min-width: 900px) {
+  .settings-btn {
+    top: var(--space-4);
+    right: var(--space-5);
   }
 }

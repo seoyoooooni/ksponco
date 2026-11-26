@@ -38,6 +38,10 @@ import { ShareSheet } from '../features/share/ShareSheet'
 import { SharedBanner } from '../features/share/SharedBanner'
 import { Tour } from '../features/tour/Tour'
 import { markTourSeen, tourSeen, tourSteps } from '../features/tour/steps'
+import { SettingsSheet } from '../features/settings/SettingsSheet'
+import { AboutSheet } from '../features/settings/AboutSheet'
+import { applyTheme, watchSystemTheme } from '../features/settings/settings'
+import { GearIcon } from '../ui/icons'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
@@ -258,6 +262,16 @@ function Main({ ready }: { ready: Base }) {
     markTourSeen()
     setTouring(false)
   }, [])
+  const settingsOpen = useScene((s) => s.settingsOpen)
+  const theme = useScene((s) => s.theme)
+  const quality = useScene((s) => s.quality)
+  useEffect(() => {
+    applyTheme(theme)
+    return watchSystemTheme(theme)
+  }, [theme])
+  const closeSettings = useCallback(() => sceneStore.set({ settingsOpen: false }), [])
+  const aboutOpen = useScene((s) => s.aboutOpen)
+  const closeAbout = useCallback(() => sceneStore.set({ aboutOpen: false }), [])
   const closeShare = useCallback(() => sceneStore.set({ shareOpen: false }), [])
   const showNotice = useCallback((text: string) => sceneStore.set({ notice: text }), [])
   const banner =
@@ -333,11 +347,6 @@ function Main({ ready }: { ready: Base }) {
     if (suggestedAt) hadSuggestion.current = true
     else if (hadSuggestion.current && !sceneStore.get().suggestHintSeen) sceneStore.set({ suggestHintSeen: true })
   }, [suggestedAt])
-  const credit = (
-    <button type="button" className="sheet-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
-      데이터 출처
-    </button>
-  )
   const sunset = sunsetHour(date)
   const duration = stay[1] - stay[0]
   const durationValue = [1, 2, 3].includes(duration) ? duration : ('custom' as const)
@@ -393,20 +402,23 @@ function Main({ ready }: { ready: Base }) {
               onOpen={() => sceneStore.set({ pickerOpen: true })}
               right={
                 operator ? (
-                  <PillButton
-                    variant="primary"
-                    style={{ height: 44 }}
-                    className="op-exit"
-                    aria-label="운영자 모드 끝내기"
-                    icon={<CloseIcon size={16} />}
-                    onClick={() => sceneStore.set({ operator: false, opTool: null, zoneStart: null })}
-                  >
-                    <span className="op-exit__text">운영자</span>
-                  </PillButton>
+                    <PillButton
+                      variant="primary"
+                      style={{ height: 44 }}
+                      className="op-exit"
+                      aria-label="운영자 모드 끝내기"
+                      icon={<CloseIcon size={16} />}
+                      onClick={() => sceneStore.set({ operator: false, opTool: null, zoneStart: null })}
+                    >
+                      <span className="op-exit__text">운영자</span>
+                    </PillButton>
                 ) : undefined
               }
             />
           </header>
+          <button type="button" className="icon-chip settings-btn" aria-label="설정" title="설정" onClick={() => sceneStore.set({ settingsOpen: true })}>
+            <GearIcon size={20} />
+          </button>
           {operator && !compare && (
             <OperatorTools
               tool={opTool}
@@ -428,13 +440,9 @@ function Main({ ready }: { ready: Base }) {
               seats={mode === 'event' ? { on: seats, toggle: () => sceneStore.set({ seats: !seats }), legend: <Legend kind="seats" inline ponds={Boolean(analysis.ponds)} /> } : null}
             />
           )}
-          <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
-            데이터 출처
-          </button>
           {mode === 'operator' ? (
             <OperatorSheet
               onVisibleHeight={setSheetH}
-              footer={credit}
               view={compare ? 'compare' : variant}
               onView={(v) => sceneStore.set(v === 'compare' ? { compare: true, opTool: null, zoneStart: null } : { compare: false, variant: v, zoneStart: null })}
               result={opResult}
@@ -480,7 +488,6 @@ function Main({ ready }: { ready: Base }) {
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
               notes={analysis.notes}
               hours={barHours(event)}
-              footer={credit}
             />
           ) : (
             <EverydaySheet
@@ -504,7 +511,6 @@ function Main({ ready }: { ready: Base }) {
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
               notes={analysis.notes}
-              footer={credit}
             />
           )}
           {import.meta.env.DEV && <DevTools />}
@@ -522,11 +528,6 @@ function Main({ ready }: { ready: Base }) {
         events={ready.events}
         closures={ready.closures}
         onApply={(d) => sceneStore.set({ date: d, pickerOpen: false, camera: 'orbit', zoneStart: null })}
-        onOperator={() => sceneStore.set({ pickerOpen: false, operator: true, opTool: null, camera: 'orbit', seats: false, notice: null })}
-        onTour={() => {
-          sceneStore.set({ pickerOpen: false, operator: false, opTool: null, zoneStart: null, camera: 'orbit' })
-          setTouring(true)
-        }}
       />
       <SourcesSheet
         open={sourcesOpen}
@@ -535,7 +536,34 @@ function Main({ ready }: { ready: Base }) {
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
       <ShareSheet open={share !== null} onClose={closeShare} url={share?.url ?? ''} message={share?.message ?? ''} onNotice={showNotice} />
-      {touring && mode !== 'operator' && !firstPerson && !pickerOpen && !shareOpen && <Tour steps={steps} onDone={endTour} />}
+      <AboutSheet open={aboutOpen} onClose={closeAbout} />
+      <SettingsSheet
+        open={settingsOpen}
+        onClose={closeSettings}
+        theme={theme}
+        onTheme={(v) => sceneStore.set({ theme: v })}
+        quality={quality}
+        onQuality={(v) => sceneStore.set({ quality: v })}
+        onAbout={() => sceneStore.set({ settingsOpen: false, aboutOpen: true })}
+        operator={operator}
+        onOperator={() =>
+          sceneStore.set(
+            operator
+              ? { settingsOpen: false, operator: false, opTool: null, zoneStart: null }
+              : { settingsOpen: false, operator: true, opTool: null, camera: 'orbit', seats: false, notice: null },
+          )
+        }
+        onTour={
+          operator
+            ? null
+            : () => {
+                sceneStore.set({ settingsOpen: false, camera: 'orbit' })
+                setTouring(true)
+              }
+        }
+        onSources={() => sceneStore.set({ settingsOpen: false, sourcesOpen: true })}
+      />
+      {touring && mode !== 'operator' && !firstPerson && !pickerOpen && !shareOpen && !settingsOpen && !sourcesOpen && !aboutOpen && <Tour steps={steps} onDone={endTour} />}
       <Toast message={notice} onDone={clearNotice} />
     </>
   )

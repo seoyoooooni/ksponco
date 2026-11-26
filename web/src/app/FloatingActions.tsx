@@ -13,19 +13,19 @@ export function FloatingActions({ onView, onShare, seats }: Props) {
     <div className="fabs">
       {onShare && (
         <button type="button" className="fab-round" aria-label="자리 공유" title="자리 공유" onClick={onShare}>
-          <ShareIcon size={21} />
+          <ShareIcon size={18} />
         </button>
       )}
       {onView && (
         <button type="button" className="fab-round" aria-label="내 시점으로 보기" title="내 시점으로 보기" onClick={onView}>
-          <EyeIcon size={22} />
+          <EyeIcon size={19} />
         </button>
       )}
       {seats && (
         <div className="fab-row">
           {seats.on && seats.legend}
           <button type="button" className="fab-round" aria-label="좋은 자리" title="좋은 자리" aria-pressed={seats.on} onClick={seats.toggle}>
-            <GridIcon size={21} />
+            <GridIcon size={18} />
           </button>
         </div>
       )}

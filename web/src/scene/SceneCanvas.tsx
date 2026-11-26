@@ -70,6 +70,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const watching = useScene((s) => s.playing || s.peek)
   const crowdScale = useScene((s) => s.crowdScale)
   const personStyle = useScene((s) => s.personStyle)
+  const light = useScene((s) => s.quality === 'low')
 
   const stage = layout?.stage ?? venue.fixedStage ?? null
   const routes = useMemo(() => (bundle.osm ? walkRoutes(bundle.osm.paths, terrain, venue.water ?? null) : []), [bundle.osm, terrain, venue.water])
@@ -182,7 +183,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   return (
     <Canvas
       shadows="soft"
-      dpr={[1, 1.5]}
+      dpr={light ? 1 : [1, 1.5]}
       camera={{ position: [center[0] + 62, 105, center[2] + 128], fov: 44, near: 0.3, far: 1500 }}
       className="scene"
       style={{ position: 'fixed', touchAction: 'none' }}
@@ -197,8 +198,8 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
       <SkyDecor terrain={terrain} />
       <SceneClock />
-      {camera === 'orbit' && <Walkers routes={routes} seed={seed} />}
-      {!layout && camera === 'orbit' && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
+      {camera === 'orbit' && !light && <Walkers routes={routes} seed={seed} />}
+      {!layout && camera === 'orbit' && !light && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
       <Buildings buildings={buildings} />
 
       {stage && <StageMesh stage={stage} terrain={terrain} />}
@@ -236,7 +237,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       <MatScreenTracker mat={mat && !operator ? mat : null} terrain={terrain} />
       <CameraRig eye={eye} lookAt={lookAt} orbitTarget={home.target} home={home.position} />
-      <Effects />
+      {!light && <Effects />}
       <FirstFrame />
     </Canvas>
   )
