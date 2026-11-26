@@ -1,4 +1,4 @@
-import type { Layout, Terrace } from '../data/types'
+import type { Layout, Terrain } from '../data/types'
 import { bounds, pointInPolygon, zoneAt } from './polygon'
 import { rng } from './rng'
 import { terraceHeight } from './terrace'
@@ -33,7 +33,10 @@ export function isShown(item: { keep: number; cap: number }, scale: number): boo
   return item.keep < item.cap * scale
 }
 
-export function buildCrowd(layout: Layout, terrace: Terrace | null = null, seed = 11): Crowd {
+export function buildCrowd(layout: Layout, site: Pick<Terrain, 'terrace' | 'water'> | null = null, seed = 11): Crowd {
+  const terrace = site?.terrace ?? null
+  const water = site?.water ?? null
+  const wet = (x: number, z: number) => water !== null && pointInPolygon(x, z, water)
   const r = rng(seed)
   const people: Person[] = []
   const mats: MatSpot[] = []
@@ -48,7 +51,7 @@ export function buildCrowd(layout: Layout, terrace: Terrace | null = null, seed 
         for (let x = b.x0 + s / 2; x < b.x1; x += s) {
           const px = x + (r() - 0.5) * s * 0.5
           const pz = z + (r() - 0.5) * s * 0.5
-          if (!pointInPolygon(px, pz, zone.poly) || zoneAt(layout.zones, px, pz) !== zone) continue
+          if (!pointInPolygon(px, pz, zone.poly) || zoneAt(layout.zones, px, pz) !== zone || wet(px, pz)) continue
           people.push({
             x: px,
             z: pz,
@@ -76,7 +79,7 @@ export function buildCrowd(layout: Layout, terrace: Terrace | null = null, seed 
       for (const spot of [...ground, ...steps]) {
         const mx = spot.x
         const mz = spot.z
-        if (zoneAt(layout.zones, mx, mz) !== zone) continue
+        if (zoneAt(layout.zones, mx, mz) !== zone || wet(mx, mz)) continue
         const rot = spot.rot + (spot.bare ? 0 : (r() - 0.5) * 0.12)
         const groupCap = spot.bare ? stepCap : cap
         const tx = Math.cos(rot)
@@ -108,7 +111,7 @@ export function buildCrowd(layout: Layout, terrace: Terrace | null = null, seed 
 
 type Spot = { x: number; z: number; rot: number }
 
-function treadSpots(tr: Terrace, sx: number): Spot[] {
+function treadSpots(tr: NonNullable<Terrain['terrace']>, sx: number): Spot[] {
   const out: Spot[] = []
   for (let k = 1; k < tr.n; k++) {
     const rad = tr.rIn + (k - 0.5) * tr.depth

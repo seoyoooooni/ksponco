@@ -4,6 +4,7 @@ import type {
   EventItem,
   Forecast,
   Layout,
+  OsmFeatures,
   Terrain,
   Tree,
   Venue,
@@ -50,16 +51,19 @@ export type VenueBundle = {
   terrain: Terrain
   trees: Tree[]
   buildings: Building[]
+  osm: OsmFeatures | null
 }
 
 export async function loadVenueBundle(id: VenueId): Promise<VenueBundle> {
-  const [venue, terrain, trees, buildings] = await Promise.all([
+  const [venue, terrain, trees, buildings, osm] = await Promise.all([
     fetchJson<Venue>(`${id}/venue.json`),
     fetchJson<Terrain>(`${id}/terrain.json`),
     fetchJson<Tree[]>(`${id}/trees.json`),
     fetchJson<Building[]>(`${id}/buildings.json`),
+    fetchJson<OsmFeatures>(`${id}/osm.json`).catch(() => null),
   ])
-  return grounded({ venue, terrain, trees, buildings })
+  const lake = osm?.water[0]?.poly
+  return grounded({ venue: lake ? { ...venue, water: lake } : venue, terrain, trees, buildings, osm })
 }
 
 function despiked(t: Terrain): number[] {
@@ -95,9 +99,11 @@ function grounded(raw: VenueBundle): VenueBundle {
 function cropped(bundle: VenueBundle): VenueBundle {
   const disc = discOf(bundle.terrain)
   const water = bundle.venue.water ? clipToDisc(disc, bundle.venue.water) : undefined
+  const lake = water && water.length >= 3 ? water : undefined
   return {
     ...bundle,
-    venue: { ...bundle.venue, water: water && water.length >= 3 ? water : undefined },
+    venue: { ...bundle.venue, water: lake },
+    terrain: { ...bundle.terrain, water: lake ?? null },
     buildings: bundle.buildings.filter((b) => b.footprint.every(([x, z]) => inDisc(disc, x, z, 2))),
   }
 }

@@ -97,6 +97,7 @@ export type Terrain = GridMeta & {
   h: number[]
   src: TerrainSource[]
   terrace?: Terrace | null
+  water?: Vec2[] | null
 }
 
 export type TreeSource = 'scan' | 'satellite'
@@ -177,4 +178,19 @@ export type ViewGrid = GridMeta & {
 
 export type WetGrid = GridMeta & {
   depth: number[]
+}
+
+export type OsmPath = {
+  kind: string
+  width: number
+  surface: string
+  pts: Vec2[]
+}
+
+export type OsmFeatures = {
+  source: string
+  paths: OsmPath[]
+  areas: { kind: string; poly: Vec2[] }[]
+  water: { name: string; poly: Vec2[] }[]
+  points: { kind: string; x: number; z: number }[]
 }

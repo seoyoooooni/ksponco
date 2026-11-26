@@ -19,6 +19,7 @@ import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
 import { Water } from './Water'
+import { Paths } from './Paths'
 import { Effects } from './Effects'
 import { Tents } from './Tents'
 import type { ClosedArea, Tent } from '../lib/operator'
@@ -177,9 +178,10 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <fog attach="fog" args={[sceneColors.fog, 260, 700]} />
       <SunLight center={center} radius={radius} />
 
-      <Terrain terrain={terrain} venue={venue} layout={layout} onPick={operator ? operator.onPick : handlePick} />
+      <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
-      <Trees trees={trees} terrain={terrain} />
+      {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
+      <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
       <Buildings buildings={buildings} />
 
       {stage && <StageMesh stage={stage} terrain={terrain} />}

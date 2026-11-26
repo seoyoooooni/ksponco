@@ -8,6 +8,8 @@ export const sceneColors = {
   outerGrass: '#c4d6a4',
   parkGrass: '#bfd59f',
   path: '#e7e1d1',
+  road: '#d4d2cc',
+  cycleway: '#dccdb6',
   paving: '#d8d2c4',
   stepTread: '#ddd7ca',
   stepTreadAlt: '#d5cfc1',

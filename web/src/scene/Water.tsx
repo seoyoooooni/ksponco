@@ -2,21 +2,9 @@ import { useMemo } from 'react'
 import { Shape, ShapeGeometry, Vector2 } from 'three'
 import { Line } from '@react-three/drei'
 import type { Terrain, Vec2 } from '../data/types'
-import { pointInPolygon } from '../lib/polygon'
 import { discOf, onRim } from '../lib/diorama'
+import { waterLevel } from '../lib/water'
 import { sceneColors } from './colors'
-
-export function waterLevel(terrain: Terrain, poly: Vec2[]): number {
-  let top = -Infinity
-  for (let j = 0; j < terrain.nz; j++) {
-    for (let i = 0; i < terrain.nx; i++) {
-      const x = terrain.x0 + i * terrain.cell
-      const z = terrain.z0 + j * terrain.cell
-      if (pointInPolygon(x, z, poly)) top = Math.max(top, terrain.h[j * terrain.nx + i])
-    }
-  }
-  return Number.isFinite(top) ? top + 0.05 : 0.05
-}
 
 export function Water({ poly, terrain }: { poly: Vec2[]; terrain: Terrain }) {
   const level = useMemo(() => waterLevel(terrain, poly), [terrain, poly])
