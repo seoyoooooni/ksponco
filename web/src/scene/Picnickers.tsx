@@ -9,13 +9,13 @@ import { terraceHeight } from '../lib/terrace'
 import type { Route } from './Paths'
 import { LIVELY_TONES } from './Walkers'
 import { COOKIE, cookieParts, poseCookie } from './cookiePerson'
+import { MAT_LIFT } from './MyMat'
 
 const MAT_TONES = ['#f2c6b4', '#c9dfe9', '#f4e3a1', '#d8c8e8', '#cfe5c4', '#f6f1e7'] as const
 const MAT = 1.5
-const MAT_LIFT = 0.06
 const MAT_SEG = 6
 const GAP = 7
-const PATH_CLEAR = 2.5
+const PATH_CLEAR = 1.6
 const AVOID = 5
 const TARGET = 10
 
@@ -30,7 +30,8 @@ type Group = {
 
 function nearRoute(routes: Route[], x: number, z: number): boolean {
   for (const r of routes) {
-    for (const p of r.pts) if (Math.abs(p[0] - x) < PATH_CLEAR && Math.abs(p[2] - z) < PATH_CLEAR) return true
+    const reach = r.half + PATH_CLEAR
+    for (const p of r.pts) if (Math.hypot(p[0] - x, p[2] - z) < reach) return true
   }
   return false
 }
