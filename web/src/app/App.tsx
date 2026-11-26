@@ -17,7 +17,7 @@ import { OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
 import { PillButton } from '../ui/Buttons'
-import { CloseIcon, PlayIcon, StarIcon } from '../ui/icons'
+import { CloseIcon, PlayIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
 import { WET_RAIN_MM } from '../lib/engine'
 import { SceneCanvas } from '../scene/SceneCanvas'
@@ -288,6 +288,11 @@ function Main({ ready }: { ready: Base }) {
   const takeSuggestion = () => {
     if (suggestedAt) sceneStore.set({ mat: { x: suggestedAt.x, z: suggestedAt.z }, matTouched: true })
   }
+  const hadSuggestion = useRef(false)
+  useEffect(() => {
+    if (suggestedAt) hadSuggestion.current = true
+    else if (hadSuggestion.current && !sceneStore.get().suggestHintSeen) sceneStore.set({ suggestHintSeen: true })
+  }, [suggestedAt])
   const credit = (
     <button type="button" className="sheet-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
       데이터 출처
@@ -377,13 +382,11 @@ function Main({ ready }: { ready: Base }) {
               {timeLabel(Math.round(hour * 6) / 6)}
             </div>
           )}
-          {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
-          {suggestedAt && analysis.suggestion && (
-            <div className="fabs">
-              <button type="button" className="fab-star" aria-label={`추천 자리로 옮기기, ${analysis.suggestion.text}`} title="추천 자리로 옮기기" onClick={takeSuggestion}>
-                <StarIcon size={26} />
-              </button>
-            </div>
+          {mode !== 'operator' && (
+            <FloatingActions
+              onView={mat && !closure ? () => sceneStore.set({ camera: 'firstPerson' }) : null}
+              seats={mode === 'event' ? { on: seats, toggle: () => sceneStore.set({ seats: !seats }) } : null}
+            />
           )}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
             데이터 출처
@@ -431,8 +434,6 @@ function Main({ ready }: { ready: Base }) {
               hour={hour}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
               onHour={peekHour}
-              canFirstPerson={Boolean(mat)}
-              onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
@@ -455,8 +456,6 @@ function Main({ ready }: { ready: Base }) {
               stay={stay}
               strip={analysis.strip}
               hour={hour}
-              canFirstPerson={Boolean(mat)}
-              onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
               onHour={peekHour}
               playing={playing}

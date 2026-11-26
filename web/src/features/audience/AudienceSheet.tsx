@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
-import { PillButton } from '../../ui/Buttons'
-import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
@@ -28,8 +26,6 @@ type Props = {
   hour: number
   onStay: (from: number, to: number) => void
   onHour: (h: number) => void
-  canFirstPerson: boolean
-  onFirstPerson: () => void
   playing: boolean
   onPlay: () => void
   sunset: { at: number; label: string } | null
@@ -67,15 +63,6 @@ export function AudienceSheet(p: Props) {
               sunset={p.sunset}
             />
           </div>
-          <PillButton
-            variant="primary"
-            style={{ height: 52, fontSize: 16, fontWeight: 700 }}
-            icon={<EyeIcon />}
-            disabled={!p.canFirstPerson}
-            onClick={p.onFirstPerson}
-          >
-            내 시점으로 보기
-          </PillButton>
         </>
       }
     >

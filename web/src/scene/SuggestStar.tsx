@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { CircleGeometry, ExtrudeGeometry, Group, RingGeometry, Shape } from 'three'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import type { Terrain } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { drape, MAT_LIFT } from './MyMat'
 import { reducedMotion } from './sceneTime'
+import { useScene } from '../store/sceneStore'
 
 type Props = {
   position: { x: number; z: number }
@@ -36,6 +38,7 @@ export function SuggestStar({ position, terrain, onTake }: Props) {
   const { x, z } = position
   const y = heightAt(terrain, x, z)
   const star = useRef<Group>(null)
+  const hintSeen = useScene((s) => s.suggestHintSeen)
   const geometry = useMemo(starGeometry, [])
   const fill = useMemo(() => drape(new CircleGeometry(1.7, 40), terrain, x, z, MAT_LIFT * 0.5), [terrain, x, z])
   const ring = useMemo(() => drape(new RingGeometry(1.4, 1.8, 48, 1), terrain, x, z, MAT_LIFT), [terrain, x, z])
@@ -75,6 +78,13 @@ export function SuggestStar({ position, terrain, onTake }: Props) {
       <mesh geometry={ring} renderOrder={2} raycast={() => null} userData={{ noAO: true }}>
         <meshBasicMaterial color={STAR_GOLD} transparent opacity={0.95} depthWrite={false} polygonOffset polygonOffsetFactor={-2} polygonOffsetUnits={-4} />
       </mesh>
+      {!hintSeen && (
+        <Html position={[x, y + HOVER + 2.6, z]} zIndexRange={[10, 0]}>
+          <button type="button" className="bubble bubble--tap" onClick={onTake}>
+            여기는 어때요?
+          </button>
+        </Html>
+      )}
       <group ref={star} position={[x, y + HOVER, z]} scale={1.5}>
         <mesh geometry={geometry} onClick={take} onPointerOver={hover(true)} onPointerOut={hover(false)}>
           <meshStandardMaterial color={STAR_GOLD} emissive="#ff9d00" emissiveIntensity={0.28} roughness={0.38} metalness={0.15} />

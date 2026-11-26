@@ -33,20 +33,6 @@ export function PinIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-export function StarIcon({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M12 2.6l2.75 6.05 6.6.68-4.95 4.43 1.42 6.5L12 16.95 6.18 20.26l1.42-6.5-4.95-4.43 6.6-.68z"
-        fill="#ffc531"
-        stroke="#e89a00"
-        strokeWidth={1.4}
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 export const RainIcon = (p: IconProps) => (
   <Svg {...p}>
     <path d="M7 15a4.5 4.5 0 0 1-.5-9 5.5 5.5 0 0 1 10.6 1.5A3.75 3.75 0 0 1 17 15H7Z" />

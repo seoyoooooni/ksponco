@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
-import { PillButton } from '../../ui/Buttons'
-import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
@@ -20,10 +18,8 @@ type Props = {
   strip: StripState[]
   hour: number
   headline: string
-  canFirstPerson: boolean
   pref: SunPref
   onPref: (v: SunPref) => void
-  onFirstPerson: () => void
   onStay: (from: number, to: number) => void
   onHour: (h: number) => void
   playing: boolean
@@ -60,15 +56,6 @@ export function EverydaySheet(p: Props) {
             <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
           </div>
           <TimeRange from={p.stay[0]} to={p.stay[1]} strip={p.strip} cursor={p.hour} onChange={p.onStay} onCursor={p.onHour} playing={p.playing} onPlay={p.onPlay} sunset={p.sunset} />
-          <PillButton
-            variant="primary"
-            style={{ height: 52, fontSize: 16, fontWeight: 700, marginTop: 8 }}
-            icon={<EyeIcon />}
-            disabled={!p.canFirstPerson}
-            onClick={p.onFirstPerson}
-          >
-            내 시점으로 보기
-          </PillButton>
         </div>
       }
     >
