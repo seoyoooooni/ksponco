@@ -50,7 +50,7 @@ export function Effects() {
   }, [gl, scene, camera])
 
   useEffect(() => {
-    composer.setPixelRatio(Math.min(dpr, touch ? 1.5 : 2))
+    composer.setPixelRatio(Math.min(dpr, 1.5))
     composer.setSize(size.width, size.height)
   }, [composer, size, dpr])
 

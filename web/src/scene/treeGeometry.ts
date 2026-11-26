@@ -10,10 +10,10 @@ function rng(seed: number) {
   }
 }
 
-export function canopyGeometry(seed: number): BufferGeometry {
+export function canopyGeometry(seed: number, detail = 3): BufferGeometry {
   const rand = rng(seed * 7919 + 13)
   const noise = new SimplexNoise({ random: rand })
-  const g = mergeVertices(new IcosahedronGeometry(1, 4).deleteAttribute('normal').deleteAttribute('uv'))
+  const g = mergeVertices(new IcosahedronGeometry(1, detail).deleteAttribute('normal').deleteAttribute('uv'))
   const pos = g.attributes.position
   const v = new Vector3()
   const off = seed * 3.7

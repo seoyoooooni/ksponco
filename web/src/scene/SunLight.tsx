@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
-import { CanvasTexture, Color, Fog, Object3D, SRGBColorSpace } from 'three'
+import { CanvasTexture, Color, Fog, Object3D, OrthographicCamera, SRGBColorSpace } from 'three'
 import { sunPosition } from '../lib/sun'
 import { useScene } from '../store/sceneStore'
 import { sceneColors } from './colors'
@@ -12,11 +12,18 @@ type Props = {
 
 const DISTANCE = 300
 
+export const SHADOW_ONLY = 1
+
 export function SunLight({ center, radius }: Props) {
   const date = useScene((s) => s.date)
   const hour = useScene((s) => s.hour)
   const sun = useMemo(() => sunPosition(date, hour), [date, hour])
   const scene = useThree((s) => s.scene)
+  const shadowCam = useRef<OrthographicCamera>(null)
+
+  useLayoutEffect(() => {
+    shadowCam.current?.layers.enable(SHADOW_ONLY)
+  }, [])
 
   const [cx, cy, cz] = center
   const target = useMemo(() => {
@@ -80,7 +87,7 @@ export function SunLight({ center, radius }: Props) {
         shadow-bias={-0.0005}
         shadow-normalBias={0.04}
       >
-        <orthographicCamera attach="shadow-camera" args={[-radius, radius, radius, -radius, 1, 800]} />
+        <orthographicCamera ref={shadowCam} attach="shadow-camera" args={[-radius, radius, radius, -radius, 1, 800]} />
       </directionalLight>
     </>
   )

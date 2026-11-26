@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { BufferGeometry, Color, InstancedMesh, Object3D } from 'three'
+import { BufferGeometry, Color, InstancedMesh, MeshLambertMaterial, Object3D } from 'three'
 import type { Terrain, Tree, Vec2 } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { discOf, inDisc } from '../lib/diorama'
@@ -7,6 +7,8 @@ import { pointInPolygon } from '../lib/polygon'
 import { waterLevel } from '../lib/water'
 import { sceneColors } from './colors'
 import { canopyGeometry } from './treeGeometry'
+import { sceneTime } from './sceneTime'
+import { SHADOW_ONLY } from './SunLight'
 
 type Props = {
   trees: Tree[]
@@ -19,8 +21,31 @@ const TONES = ['#a3cf80', '#8cc070', '#78b062', '#669e54', '#578c49']
 
 const VARIANTS = 3
 
+function swayMaterial(): MeshLambertMaterial {
+  const m = new MeshLambertMaterial({ color: '#ffffff', vertexColors: true })
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = sceneTime
+    shader.vertexShader =
+      'uniform float uTime;\n' +
+      shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+#ifdef USE_INSTANCING
+  float swayPhase = instanceMatrix[3][0] * 0.13 + instanceMatrix[3][2] * 0.17;
+#else
+  float swayPhase = 0.0;
+#endif
+  float swayK = clamp(position.y + 0.4, 0.0, 1.4);
+  transformed.x += sin(uTime * 1.4 + swayPhase) * 0.03 * swayK;
+  transformed.z += cos(uTime * 1.1 + swayPhase * 1.3) * 0.025 * swayK;`,
+      )
+  }
+  m.customProgramCacheKey = () => 'tree-sway'
+  return m
+}
+
 function Canopies({ trees, terrain, ghost = false }: Props) {
-  const geometries = useMemo(() => Array.from({ length: VARIANTS }, (_, k) => canopyGeometry(k + 1)), [])
+  const geometries = useMemo(() => Array.from({ length: VARIANTS }, (_, k) => canopyGeometry(k + 1, ghost ? 1 : 3)), [ghost])
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries])
 
   const groups = useMemo(() => {
@@ -40,6 +65,8 @@ function Canopies({ trees, terrain, ghost = false }: Props) {
 
 function CanopyBatch({ trees, terrain, geometry, ghost = false }: Props & { geometry: BufferGeometry }) {
   const ref = useRef<InstancedMesh>(null)
+  const sway = useMemo(() => (ghost ? null : swayMaterial()), [ghost])
+  useEffect(() => () => sway?.dispose(), [sway])
 
   useLayoutEffect(() => {
     const mesh = ref.current
@@ -64,8 +91,8 @@ function CanopyBatch({ trees, terrain, geometry, ghost = false }: Props & { geom
 
   if (trees.length === 0) return null
   return (
-    <instancedMesh ref={ref} args={[geometry, undefined, trees.length]} castShadow receiveShadow={!ghost} raycast={() => null} userData={{ noAO: ghost }}>
-      {ghost ? <meshBasicMaterial colorWrite={false} depthWrite={false} /> : <meshLambertMaterial color="#ffffff" vertexColors />}
+    <instancedMesh ref={ref} args={[geometry, undefined, trees.length]} castShadow receiveShadow={!ghost} raycast={() => null} layers={ghost ? SHADOW_ONLY : 0}>
+      {sway ? <primitive object={sway} attach="material" /> : <meshBasicMaterial />}
     </instancedMesh>
   )
 }
@@ -95,9 +122,9 @@ function Trunks({ trees, terrain, ghost = false, water = null }: Props) {
 
   if (trees.length === 0) return null
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, trees.length]} castShadow raycast={() => null} userData={{ noAO: ghost }}>
+    <instancedMesh ref={ref} args={[undefined, undefined, trees.length]} castShadow raycast={() => null} layers={ghost ? SHADOW_ONLY : 0}>
       <cylinderGeometry args={[0.22, 0.32, 1, 6]} />
-      {ghost ? <meshBasicMaterial colorWrite={false} depthWrite={false} /> : <meshLambertMaterial color={sceneColors.trunk} />}
+      {ghost ? <meshBasicMaterial /> : <meshLambertMaterial color={sceneColors.trunk} />}
     </instancedMesh>
   )
 }

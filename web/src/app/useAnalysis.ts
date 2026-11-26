@@ -84,7 +84,9 @@ function spotVerdict(strip: SunState[], from: number, pref: SunPref): { text: st
   let k = strip.length
   while (k > 0 && strip[k - 1] !== unwanted) k--
   if (k < strip.length && strip[k] === wanted) return { text: pref === 'shade' ? `${at(k)}까지 볕이 들고, 그 뒤엔 그늘이에요` : `${at(k)}까지 그늘이고, 그 뒤엔 볕이 들어요`, good: false }
-  const sun = shortDuration(sunHours(strip))
+  const sunH = sunHours(strip)
+  if (pref === 'sun' && sunH === 0) return { text: '지금 자리는 볕이 안 들어요', good: false }
+  const sun = sunH < 1 ? `${Math.round(sunH * 60)}분` : shortDuration(sunH)
   return { text: pref === 'shade' ? `머무는 동안 햇볕이 ${sun} 들어요` : `머무는 동안 볕이 ${sun}만 들어요`, good: false }
 }
 

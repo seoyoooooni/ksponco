@@ -34,17 +34,50 @@ function ground(terrain: Terrain, x: number, z: number, half: number) {
   return y + LIFT
 }
 
-function build(paths: OsmPath[], terrain: Terrain, water: Vec2[] | null) {
+function usableAt(terrain: Terrain, water: Vec2[] | null) {
   const disc = discOf(terrain)
+  return (x: number, z: number) =>
+    inDisc(disc, x, z, 1) &&
+    !(terrain.terrace && terraceHeight(terrain.terrace, x, z) !== null) &&
+    !(water && pointInPolygon(x, z, water))
+}
+
+export type Route = {
+  kind: string
+  pts: [number, number, number][]
+  cum: number[]
+  len: number
+}
+
+export function walkRoutes(paths: OsmPath[], terrain: Terrain, water: Vec2[] | null): Route[] {
+  const usable = usableAt(terrain, water)
+  const out: Route[] = []
+  for (const p of paths) {
+    let run: [number, number, number][] = []
+    const flush = () => {
+      if (run.length > 1) {
+        const cum = [0]
+        for (let i = 1; i < run.length; i++) cum.push(cum[i - 1] + Math.hypot(run[i][0] - run[i - 1][0], run[i][2] - run[i - 1][2]))
+        out.push({ kind: p.kind, pts: run, cum, len: cum[cum.length - 1] })
+      }
+      run = []
+    }
+    for (const [x, z] of resample(p.pts)) {
+      if (usable(x, z)) run.push([x, ground(terrain, x, z, p.width / 2), z])
+      else flush()
+    }
+    flush()
+  }
+  return out
+}
+
+function build(paths: OsmPath[], terrain: Terrain, water: Vec2[] | null) {
   const pos: number[] = []
   const col: number[] = []
   const index: number[] = []
   const c = new Color()
   const edge = new Color()
-  const usable = (x: number, z: number) =>
-    inDisc(disc, x, z, 1) &&
-    !(terrain.terrace && terraceHeight(terrain.terrace, x, z) !== null) &&
-    !(water && pointInPolygon(x, z, water))
+  const usable = usableAt(terrain, water)
   for (const p of paths) {
     const pts = resample(p.pts)
     c.set(tone(p))

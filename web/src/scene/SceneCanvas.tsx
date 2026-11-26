@@ -15,11 +15,14 @@ import { HeatOverlay, type OverlayCell } from './HeatOverlay'
 import { MyMat } from './MyMat'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
 import { SuggestMat } from './SuggestMat'
+import { Walkers } from './Walkers'
+import { Picnickers } from './Picnickers'
+import { SceneClock } from './sceneTime'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
 import { Water } from './Water'
-import { Paths } from './Paths'
+import { Paths, walkRoutes } from './Paths'
 import { Effects } from './Effects'
 import { Tents } from './Tents'
 import type { ClosedArea, Tent } from '../lib/operator'
@@ -66,6 +69,8 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const personStyle = useScene((s) => s.personStyle)
 
   const stage = layout?.stage ?? venue.fixedStage ?? null
+  const routes = useMemo(() => (bundle.osm ? walkRoutes(bundle.osm.paths, terrain, venue.water ?? null) : []), [bundle.osm, terrain, venue.water])
+  const seed = venue.id === 'lake' ? 23 : 11
 
   const center = useMemo<[number, number, number]>(() => {
     const cx = terrain.x0 + ((terrain.nx - 1) * terrain.cell) / 2
@@ -174,7 +179,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   return (
     <Canvas
       shadows="soft"
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ position: [center[0] + 62, 105, center[2] + 128], fov: 44, near: 0.3, far: 1500 }}
       className="scene"
       style={{ position: 'fixed', touchAction: 'none' }}
@@ -186,6 +191,9 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
       <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
+      <SceneClock />
+      {camera === 'orbit' && <Walkers routes={routes} seed={seed} />}
+      {!layout && camera === 'orbit' && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
       <Buildings buildings={buildings} />
 
       {stage && <StageMesh stage={stage} terrain={terrain} />}
