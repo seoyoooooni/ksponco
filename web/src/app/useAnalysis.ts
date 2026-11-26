@@ -15,7 +15,7 @@ import {
   type ViewResult,
 } from '../lib/analysis'
 import { buildCrowd, type Crowd } from '../lib/crowd'
-import { hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
+import { clockLabel, hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
 import { comfort, stripShade, type SunPref } from '../lib/comfort'
 import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
 import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots } from '../lib/shadeGrid'
@@ -77,9 +77,15 @@ function spotVerdict(strip: SunState[], from: number, pref: SunPref): { text: st
   const span = strip[strip.length - 1] === 0 ? '해 질 때까지' : '계속'
   if (comfort(shadeShare, pref) >= STEADY) return { text: pref === 'shade' ? `지금 자리는 ${span} 그늘이에요` : `지금 자리는 ${span} 볕이 들어요`, good: true }
   const unwanted = pref === 'shade' ? 2 : 1
+  const wanted = pref === 'shade' ? 1 : 2
+  const at = (k: number) => clockLabel(from + k * STEP)
   const i = strip.findIndex((v) => v === unwanted)
-  if (i <= 0) return { text: pref === 'shade' ? '지금 자리는 볕이 들어요' : '지금 자리는 그늘이에요', good: false }
-  return { text: `${hourLabel(from + i * STEP)}부터 ${pref === 'shade' ? '볕이 들어요' : '그늘이 져요'}`, good: false }
+  if (i > 0) return { text: `${at(i)}부터 ${pref === 'shade' ? '볕이 들어요' : '그늘이 져요'}`, good: false }
+  let k = strip.length
+  while (k > 0 && strip[k - 1] !== unwanted) k--
+  if (k < strip.length && strip[k] === wanted) return { text: pref === 'shade' ? `${at(k)}까지 볕이 들고, 그 뒤엔 그늘이에요` : `${at(k)}까지 그늘이고, 그 뒤엔 볕이 들어요`, good: false }
+  const sun = shortDuration(sunHours(strip))
+  return { text: pref === 'shade' ? `머무는 동안 햇볕이 ${sun} 들어요` : `머무는 동안 볕이 ${sun}만 들어요`, good: false }
 }
 
 function wetLine(reason: WetReason | null, mm: number, placed: boolean, pond: boolean): string {
@@ -176,7 +182,13 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
     if (layout || !mat) return { verdict: '', suggestion: null as Suggestion | null }
     const here = spotVerdict(strip, from, pref)
     if (here.good || !shade) return { verdict: here.text, suggestion: null }
-    const base = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
+    const base = {
+      ...shade,
+      frac: shade.frac.map((f) => {
+        const day = dayShade(shade, f)
+        return day === null ? 0 : pref === 'shade' ? day : 1 - day
+      }),
+    }
     const want = {
       ...base,
       frac: base.frac.map((f, k) => {
@@ -201,8 +213,9 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
         const x = shade.x0 + (i + 0.5) * shade.cell
         const z = shade.z0 + (j + 0.5) * shade.cell
         if (sourceAt(terrain, x, z) !== 0 || blocked[k]) return
-        if (pref === 'shade' ? f < 0.6 : f >= 0.35) return
-        cells.push({ x, z, size: shade.cell, color: shadeColor(f) })
+        const day = dayShade(shade, f)
+        if (day === null || (pref === 'shade' ? day < 0.6 : day >= 0.35)) return
+        cells.push({ x, z, size: shade.cell, color: shadeColor(day) })
       })
       return cells
     }

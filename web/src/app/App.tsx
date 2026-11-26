@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { loadClosures, loadEvents, loadForecast, loadLayout, loadVenueBundle } from '../data/load'
 import { useLoad } from '../data/useLoad'
 import type { Closure, EventItem, Forecast, Layout } from '../data/types'
@@ -7,7 +7,7 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { chipDateLabel, clockLabel, dateLabel, durationLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
+import { chipDateLabel, dateLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { offLimits } from '../lib/offLimits'
@@ -236,6 +236,12 @@ function Main({ ready }: { ready: Base }) {
   const clearNotice = useCallback(() => sceneStore.set({ notice: null }), [])
   const setSnap = useCallback((v: SheetSnap) => sceneStore.set({ sheetSnap: v }), [])
   const setSheetH = useCallback((h: number) => sceneStore.set({ sheetH: h }), [])
+  const peekTimer = useRef(0)
+  const peekHour = useCallback((h: number) => {
+    sceneStore.set({ hour: h, peek: true })
+    window.clearTimeout(peekTimer.current)
+    peekTimer.current = window.setTimeout(() => sceneStore.set({ peek: false }), 1500)
+  }, [])
   const closePicker = useCallback(() => sceneStore.set({ pickerOpen: false }), [])
   const closeSources = useCallback(() => sceneStore.set({ sourcesOpen: false }), [])
 
@@ -424,7 +430,7 @@ function Main({ ready }: { ready: Base }) {
               strip={analysis.strip}
               hour={hour}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
-              onHour={(h) => sceneStore.set({ hour: h })}
+              onHour={peekHour}
               canFirstPerson={Boolean(mat)}
               onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               playing={playing}
@@ -440,7 +446,7 @@ function Main({ ready }: { ready: Base }) {
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
               closure={closure ? { title: `${dateLabel(date)}은 ${closure.reason}로 출입이 제한돼요`, sub: `${dateLabel(closure.from)}부터 ${dateLabel(closure.to)}까지예요. 다른 날짜를 골라 보세요.` } : null}
-              headline={`${stay[0] === nowStart(date) ? '지금부터' : `${clockLabel(stay[0])}부터`} ${durationLabel(duration)}${analysis.verdict ? `\n${analysis.verdict}` : ''}`}
+              headline={analysis.verdict || analysis.headline}
               pref={pref}
               onPref={(v) => sceneStore.set({ pref: v })}
               hint={analysis.suggestion && !analysis.suggestion.at ? analysis.suggestion.text : null}
@@ -452,7 +458,7 @@ function Main({ ready }: { ready: Base }) {
               canFirstPerson={Boolean(mat)}
               onFirstPerson={() => sceneStore.set({ camera: 'firstPerson' })}
               onStay={(from, to) => sceneStore.set({ stay: [from, to], hour: Math.min(to, Math.max(from, hour)) })}
-              onHour={(h) => sceneStore.set({ hour: h })}
+              onHour={peekHour}
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
