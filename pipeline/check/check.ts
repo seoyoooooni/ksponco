@@ -32,7 +32,8 @@ export function checkSize(text: string): string[] {
   return bytes > MAX_BYTES ? [`파일 크기 ${bytes}B가 ${MAX_BYTES}B를 넘음`] : []
 }
 
-// 지난 공연도 계속 받으므로 정상이면 건수가 줄지 않는다. 10% 넘게 줄면 응답 형식·장소 표기 변경을 의심한다.
+// 지난 공연도 계속 받으므로 정상이면 건수가 크게 줄지 않는다. 10% 넘게, 그리고 10건 넘게 줄면 수집 누락을 의심한다.
+// 건수 조건은 페스티벌 하나 취소(3일×2무대=6건)로 매일 실패가 이어지지 않게 하려는 것.
 // 이전 파일이 없거나 읽지 못하면 비교하지 않는다.
 export function checkShrink(data: unknown, prevFile: string): string[] {
   let prev: unknown
@@ -42,7 +43,8 @@ export function checkShrink(data: unknown, prevFile: string): string[] {
     return []
   }
   if (!Array.isArray(data) || !Array.isArray(prev)) return []
-  return data.length < prev.length * 0.9 ? [`건수가 ${prev.length}건에서 ${data.length}건으로 10% 넘게 줄어듦 (수집 누락 의심)`] : []
+  const shrunk = data.length < prev.length * 0.9 && prev.length - data.length > 10
+  return shrunk ? [`건수가 ${prev.length}건에서 ${data.length}건으로 10%·10건 넘게 줄어듦 (수집 누락 의심)`] : []
 }
 
 export function checkEvents(data: unknown): string[] {

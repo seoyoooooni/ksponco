@@ -5,14 +5,17 @@ import { join } from 'node:path'
 import { test } from 'node:test'
 import { checkClosures, checkEvents, checkForecast, checkShrink, checkSize, isClock, isDate, MAX_BYTES } from '../check/check.ts'
 
-test('checkShrink: 이전보다 10% 넘게 줄면 오류, 이전 파일이 없거나 깨지면 통과', () => {
+test('checkShrink: 10% 넘게, 그리고 10건 넘게 줄면 오류, 이전 파일이 없거나 깨지면 통과', () => {
   const dir = mkdtempSync(join(tmpdir(), 'check-test-'))
   try {
     const prev = join(dir, 'events.json')
     writeFileSync(prev, JSON.stringify(Array(40).fill(0)))
-    assert.deepEqual(checkShrink(Array(36).fill(0), prev), [])
-    assert.equal(checkShrink(Array(35).fill(0), prev).length, 1)
-    assert.match(checkShrink(Array(35).fill(0), prev)[0], /40건에서 35건/)
+    assert.deepEqual(checkShrink(Array(30).fill(0), prev), []) // 25% 줄었지만 10건
+    assert.equal(checkShrink(Array(29).fill(0), prev).length, 1)
+    assert.match(checkShrink(Array(29).fill(0), prev)[0], /40건에서 29건/)
+    writeFileSync(prev, JSON.stringify(Array(200).fill(0)))
+    assert.deepEqual(checkShrink(Array(185).fill(0), prev), []) // 15건 줄었지만 10% 미만
+    assert.equal(checkShrink(Array(179).fill(0), prev).length, 1)
     assert.deepEqual(checkShrink([], join(dir, 'none.json')), [])
     writeFileSync(prev, '{')
     assert.deepEqual(checkShrink([], prev), [])

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { mock, test } from 'node:test'
-import { buildEvents, kopisToManual, mergeEvents, runtimeMinutes, startTimes, type ManualEvent } from '../clean/events.ts'
+import { buildEvents, kopisToManual, mergeEvents, runtimeMinutes, showTimes, type ManualEvent } from '../clean/events.ts'
 import type { KopisShow } from '../collect/kopis.ts'
 
 const base = { name: 'A', venue: 'lawn88', sourceUrl: 'https://x' } as const
@@ -87,24 +87,58 @@ const quiet = <T>(f: () => T) => {
   }
 }
 
-test('startTimes: 요일 범위(주말 넘김 포함), 여러 회차는 첫·마지막, 모르는 표기는 건너뜀', () => {
-  const t = startTimes('화요일 ~ 금요일(20:00), 토요일(19:00,16:00), HOL(15:00), 일요일(9:30)')
-  assert.deepEqual([...t.keys()].sort(), [0, 2, 3, 4, 5, 6])
+const keys = (m: Map<number, unknown>) => [...m.keys()].sort()
+
+test('showTimes: 요일 범위(주말 넘김 포함), 여러 회차는 첫·마지막, 공휴일(HOL)은 건너뜀', () => {
+  const t = showTimes('화요일 ~ 금요일(20:00), 토요일(19:00,16:00), HOL(15:00), 일요일(9:30)')
+  assert.deepEqual(keys(t), [0, 2, 3, 4, 5, 6])
   assert.deepEqual(t.get(6), { first: '16:00', last: '19:00' })
   assert.deepEqual(t.get(0), { first: '09:30', last: '09:30' })
-  assert.deepEqual([...startTimes('금요일 ~ 월요일(12:00)').keys()].sort(), [0, 1, 5, 6])
-  assert.equal(startTimes('').size, 0)
+  assert.deepEqual(keys(showTimes('금요일 ~ 월요일(12:00)')), [0, 1, 5, 6])
+  assert.equal(showTimes('').size, 0)
 })
 
-test('startTimes: 분 60 이상, 시 24 이상은 버린다(검사 실패로 갱신이 막히지 않게)', () => {
-  assert.equal(startTimes('토요일(20:60), 일요일(24:00)').size, 0)
-  assert.deepEqual(startTimes('토요일(20:60,21:00)').get(6), { first: '21:00', last: '21:00' })
+test('showTimes: 분 60 이상, 시 24 이상은 버린다(검사 실패로 갱신이 막히지 않게)', () => {
+  assert.equal(showTimes('토요일(20:60), 일요일(24:00)').size, 0)
+  assert.deepEqual(showTimes('토요일(20:60,21:00)').get(6), { first: '21:00', last: '21:00' })
 })
 
-test('runtimeMinutes: 시간·분을 분으로, 없으면 null', () => {
+test('showTimes: 전각 물결·괄호, 대시를 반각 물결로 읽는다', () => {
+  assert.deepEqual(keys(showTimes('토요일～일요일（14:00）')), [0, 6])
+  assert.deepEqual(keys(showTimes('토요일 – 일요일(14:00)')), [0, 6])
+  assert.deepEqual(keys(showTimes('토요일 〜 일요일(14:00)')), [0, 6])
+})
+
+test('showTimes: 매일·평일·주말을 요일로 바꾼다', () => {
+  assert.deepEqual(keys(showTimes('매일(19:00)')), [0, 1, 2, 3, 4, 5, 6])
+  const t = showTimes('평일(19:30), 주말(15:00)')
+  assert.deepEqual(keys(t), [0, 1, 2, 3, 4, 5, 6])
+  assert.equal(t.get(3)?.first, '19:30')
+  assert.equal(t.get(6)?.first, '15:00')
+})
+
+test('showTimes: 모르는 표기가 하나라도 있으면 못 읽은 것으로(빈 결과) 보고 요일을 빼지 않는다', () => {
+  assert.equal(showTimes('금요일(19:00), 공연당일(14:00)').size, 0)
+  assert.equal(showTimes('월요일 ~ HOL(15:00)').size, 0) // 범위 끝을 모르면 무한 반복 없이 빈 결과
+})
+
+test('showTimes: 같은 요일이 여러 번 나오면 가장 이른 시작과 가장 늦은 회차로 합친다', () => {
+  const t = showTimes('금요일 ~ 일요일(19:00), 토요일 ~ 일요일(14:00), 일요일(11:00)')
+  assert.deepEqual(t.get(5), { first: '19:00', last: '19:00' })
+  assert.deepEqual(t.get(6), { first: '14:00', last: '19:00' })
+  assert.deepEqual(t.get(0), { first: '11:00', last: '19:00' })
+})
+
+test('showTimes: 시각 없는 괄호(1부 등)는 지우고 회차를 모두 읽는다', () => {
+  assert.deepEqual(showTimes('토요일(14:00(1부), 18:00(2부))').get(6), { first: '14:00', last: '18:00' })
+})
+
+test('runtimeMinutes: 시간·분을 분으로, 괄호 안(인터미션 등)은 빼고, 없으면 null', () => {
   assert.equal(runtimeMinutes('8시간 30분'), 510)
   assert.equal(runtimeMinutes('2시간'), 120)
   assert.equal(runtimeMinutes('90분'), 90)
+  assert.equal(runtimeMinutes('2시간 (인터미션 15분)'), 120)
+  assert.equal(runtimeMinutes('90분 (인터미션 15분 포함)'), 90)
   assert.equal(runtimeMinutes(' '), null)
 })
 
@@ -179,9 +213,10 @@ test('kopisToManual: 잘못된 날짜, 31일 초과 기간은 건너뛴다', () 
       show('PF3', [LAWN], '2026-11-03', '2026-11-01'),
       show('PF4', [LAWN], '2026-11-28', '2027-01-03'),
       show('PF5', [LAWN], '2026-12-01', '2026-12-31'),
+      show('PF6', [LAWN], '2026-12-01', '2027-01-01'), // 32일
     ]),
   )
-  assert.equal(warns, 3)
+  assert.equal(warns, 4)
   assert.equal(out.length, 31)
   assert.ok(out.every((e) => e.id.endsWith('-PF5')))
 })
@@ -200,10 +235,9 @@ test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리
   const a2 = { ...base, id: 'a2', date: '2026-09-06' }
   const a3 = { ...base, id: 'a3', date: '2026-09-06' }
   const a4 = { ...base, id: 'a4', venue: 'lake', date: '2026-09-05' }
-  const warn = mock.method(console, 'warn', () => {})
-  assert.deepEqual(mergeEvents([m], [a1, a2, a3, a4]).map((e) => e.id), ['m', 'a2', 'a4'])
-  warn.mock.restore()
-  assert.equal(warn.mock.callCount(), 1) // a3만. manual에 밀린 a1은 경고하지 않는다
+  const { out, warns } = quiet(() => mergeEvents([m], [a1, a2, a3, a4]))
+  assert.deepEqual(out.map((e) => e.id), ['m', 'a2', 'a4'])
+  assert.equal(warns, 1) // a3만. manual에 밀린 a1은 경고하지 않는다
 })
 
 test('긴 행사가 같은 날의 짧은 공연을 가리지 않는다(id가 더 앞서도)', () => {

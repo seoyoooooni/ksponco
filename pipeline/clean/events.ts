@@ -40,28 +40,52 @@ const SHOW_VIEW = 'https://kopis.or.kr/por/db/pblprfr/pblprfrView.do?menuId=MNU_
 const MAX_SPAN_DAYS = 31 // 이보다 긴 기간은 공연이 아니라 전시·상설 공연으로 보고 건너뜀
 const FIRST_DAY = `${FIRST_MONTH}-01` // 이전 날짜는 manual만 쓴다
 const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'] // getUTCDay 순서
+const DAY_GROUPS: Record<string, number[]> = { 매일: [0, 1, 2, 3, 4, 5, 6], 평일: [1, 2, 3, 4, 5], 주말: [6, 0] }
 
-// "화요일 ~ 금요일(20:00), 토요일(16:00,19:00)" → 요일별 첫·마지막 회차 시각. 모르는 표기(HOL 등)와 잘못된 시각은 건너뛴다.
-export function startTimes(guidance: string): Map<number, { first: string; last: string }> {
+// 요일 이름 하나 또는 "A ~ B" 범위 → 요일 번호들. 모르는 이름이면 null
+function daysOf(a: string, b: string | undefined): number[] | null {
+  if (!b) return DAY_GROUPS[a] ?? (DAYS.includes(a) ? [DAYS.indexOf(a)] : null)
+  const from = DAYS.indexOf(a), to = DAYS.indexOf(b)
+  if (from < 0 || to < 0) return null
+  const out: number[] = []
+  for (let d = from; ; d = (d + 1) % 7) {
+    out.push(d)
+    if (d === to) return out
+  }
+}
+
+// "화요일 ~ 금요일(20:00), 토요일(16:00,19:00)" → 요일별 첫·마지막 회차 시각.
+// 같은 요일이 여러 번 나오면 합친다. 공휴일(HOL)은 건너뛰고, 그 밖에 모르는 표기가 하나라도 있으면
+// 일부 요일만 읽어 나머지를 공연 없는 날로 잘못 빼지 않도록 빈 결과(= 못 읽음)를 돌려준다.
+export function showTimes(guidance: string): Map<number, { first: string; last: string }> {
+  const text = guidance
+    .normalize('NFKC') // 전각 괄호·물결 → 반각
+    .replace(/[〜–—]/g, '~')
+    .replace(/\([^()]*\)/g, (p) => (/\d:\d\d/.test(p) ? p : '')) // "(1부)"처럼 시각 없는 괄호는 지움
   const out = new Map<number, { first: string; last: string }>()
-  for (const [, a, b, inside] of guidance.matchAll(/([가-힣A-Z]+)\s*(?:~\s*([가-힣A-Z]+)\s*)?\(([^)]*)\)/g)) {
-    const from = DAYS.indexOf(a), to = DAYS.indexOf(b ?? a)
+  for (const [, a, b, inside] of text.matchAll(/([가-힣A-Z]+)\s*(?:~\s*([가-힣A-Z]+)\s*)?\(([^)]*)\)/g)) {
+    if (a === 'HOL' && !b) continue
+    const days = daysOf(a, b)
+    if (!days) return new Map()
     const times = [...inside.matchAll(/(\d{1,2}):([0-5]\d)/g)]
       .filter(([, h]) => Number(h) <= 23)
       .map(([, h, m]) => `${h.padStart(2, '0')}:${m}`)
       .sort()
-    if (from < 0 || to < 0 || !times.length) continue
-    for (let d = from; ; d = (d + 1) % 7) {
-      if (!out.has(d)) out.set(d, { first: times[0], last: times.at(-1)! })
-      if (d === to) break
+    if (!times.length) continue
+    for (const d of days) {
+      const prev = out.get(d)
+      const first = prev && prev.first < times[0] ? prev.first : times[0]
+      const last = prev && prev.last > times.at(-1)! ? prev.last : times.at(-1)!
+      out.set(d, { first, last })
     }
   }
   return out
 }
 
-// "8시간 30분" → 510, 알 수 없으면 null
+// "8시간 30분" → 510, 알 수 없으면 null. "(인터미션 15분)" 같은 괄호 안 내용은 빼고 읽는다.
 export function runtimeMinutes(runtime: string): number | null {
-  const h = runtime.match(/(\d+)\s*시간/), m = runtime.match(/(\d+)\s*분/)
+  const text = runtime.replace(/\([^)]*\)/g, '')
+  const h = text.match(/(\d+)\s*시간/), m = text.match(/(\d+)\s*분/)
   const total = (h ? Number(h[1]) * 60 : 0) + (m ? Number(m[1]) : 0)
   return total > 0 ? total : null
 }
@@ -74,7 +98,7 @@ function addMinutes(clock: string, min: number): string {
 // 시작은 그 요일 첫 회차. 종료는 마지막 회차+런타임이면 api, 런타임이 없으면 기본 종료 시각으로 추정(default).
 // 공연시간을 읽었는데 그 요일이 없으면 공연 없는 날(null). 아예 못 읽었으면 시각을 비운다(기본 시각).
 function timeOf(show: KopisShow, date: string): Pick<ManualEvent, 'start' | 'end' | 'timeSource'> | null {
-  const times = startTimes(show.guidance)
+  const times = showTimes(show.guidance)
   if (!times.size) return {}
   const t = times.get(new Date(`${date}T00:00:00Z`).getUTCDay())
   if (!t) return null
