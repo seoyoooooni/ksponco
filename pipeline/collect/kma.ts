@@ -4,6 +4,7 @@ import { fetchText, type TextResponse } from './http.ts'
 
 const VILAGE_URL = 'https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst'
 const ASOS_DAILY_URL = 'https://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList'
+const ASOS_HOURLY_URL = 'https://apis.data.go.kr/1360000/AsosHourlyInfoService/getWthrDataList'
 const GRID = { nx: 62, ny: 126 } // 송파구(올림픽공원)
 const ASOS_STATION = 108 // 서울
 const BASE_TIME = '0500'
@@ -100,4 +101,37 @@ export async function fetchAsosDailyRain(date: string, get: Get = fetchText, key
   const mm = raw === '' ? 0 : Number(raw)
   if (!Number.isFinite(mm) || mm < 0) throw new Error(`ASOS 일자료: sumRn 값 오류 ${raw}`)
   return mm
+}
+
+// date(YYYY-MM-DD) 00~23시 시간별 강수량(mm) 24칸. 빈 rn은 0, 결측(rnQcflg 9)이나 빠진 시각은 null.
+export async function fetchAsosHourlyRain(date: string, get: Get = fetchText, key = getKey('ASOS_DAILY_KEY')): Promise<(number | null)[]> {
+  const serviceKey = key.includes('%') ? key : encodeURIComponent(key)
+  const ymd = compact(date)
+  const url =
+    `${ASOS_HOURLY_URL}?serviceKey=${serviceKey}&numOfRows=30&pageNo=1&dataType=JSON` +
+    `&dataCd=ASOS&dateCd=HR&startDt=${ymd}&startHh=00&endDt=${ymd}&endHh=23&stnIds=${ASOS_STATION}`
+  const { status, text } = await get(url)
+  if (status !== 200) throw new Error(`ASOS 시간자료: HTTP ${status}`)
+  const j = parseJson(text, 'ASOS 시간자료')
+  const code = j?.response?.header?.resultCode
+  if (code !== '00') throw new Error(`ASOS 시간자료(${date}): resultCode ${code} ${j?.response?.header?.resultMsg ?? ''}`)
+  const out: (number | null)[] = Array(24).fill(null)
+  let rows = 0
+  for (const item of j.response.body?.items?.item ?? []) {
+    const m = String(item.tm ?? '').match(/^(\d{4}-\d{2}-\d{2}) (\d{2}):00$/)
+    if (!m || m[1] !== date) continue
+    rows++
+    if (!('rn' in item)) throw new Error('ASOS 시간자료: rn 필드 없음')
+    const raw = String(item.rn ?? '').trim()
+    if (raw === '') {
+      out[Number(m[2])] = String(item.rnQcflg ?? '').trim() === '9' ? null : 0
+      continue
+    }
+    const mm = Number(raw)
+    if (!Number.isFinite(mm) || mm < 0) throw new Error(`ASOS 시간자료: rn 값 오류 ${raw}`)
+    out[Number(m[2])] = mm
+  }
+  // 빈 응답이나 tm 형식 변경을 조용히 null로 넘기지 않는다.
+  if (!rows) throw new Error(`ASOS 시간자료: ${date} 자료 없음`)
+  return out
 }
