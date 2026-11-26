@@ -8,6 +8,7 @@ const SKIES = ['맑음', '구름많음', '흐림']
 const TEMP_RANGE = [-30, 45] as const
 const MIN_FORECAST_DAYS = 3 // 05:30 전 실행(전날 발표분)이어도 오늘~모레는 있다
 export const MAX_BYTES = 300 * 1024
+const MAX_RAIN_MM_H = 300 // 시간당 강수량 상한. 실제로 나올 수 없는 값을 거르는 넉넉한 기준
 
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -121,5 +122,18 @@ export function checkForecast(data: unknown): string[] {
   const base = typeof data.updated === 'string' ? data.updated.slice(0, 10) : ''
   if (isDate(base) && ds.length && ds[0] !== base && ds[0] !== addDays(base, 1))
     errors.push(`forecast.days: 첫날 ${ds[0]}이 발표일(${base}) 또는 다음 날이 아님`)
+  // 시간별 강수: 첫날 전날 00시부터 마지막 날 23시까지. null(모름) 개수는 제한하지 않는다(첫 실행은 지난 시간이 빈다).
+  const rh = data.rainHourly
+  if (!isObj(rh)) errors.push('forecast.rainHourly: 객체가 아님')
+  else if (isDate(ds[0])) {
+    const start = `${addDays(ds[0], -1)}T00:00+09:00`
+    if (rh.start !== start) errors.push(`forecast.rainHourly.start ${String(rh.start)}이 ${start}가 아님`)
+    const len = (ds.length + 1) * 24
+    if (!Array.isArray(rh.mm) || rh.mm.length !== len) errors.push(`forecast.rainHourly.mm: 길이가 ${len}이 아님`)
+    else {
+      const bad = rh.mm.filter((v) => v !== null && !(isNum(v) && v >= 0 && v <= MAX_RAIN_MM_H)).length
+      if (bad) errors.push(`forecast.rainHourly.mm: 값 오류 ${bad}칸`)
+    }
+  }
   return errors
 }

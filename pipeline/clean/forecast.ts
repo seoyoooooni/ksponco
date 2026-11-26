@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url'
 import type { Forecast, ForecastDay } from '../../web/src/data/types.ts'
 import { getKey } from '../collect/env.ts'
 import { fetchText } from '../collect/http.ts'
-import { addDays, dashed, fetchAsosDailyRain, fetchVilage, kstNow, vilageBase, type Get, type VilageItem } from '../collect/kma.ts'
+import { addDays, dashed, fetchAsosDailyRain, fetchAsosHourlyRain, fetchVilage, kstNow, vilageBase, type Get, type VilageItem } from '../collect/kma.ts'
+
+// 시간별 강수(mm). start(첫날 전날 00시 KST)부터 1시간 단위, 모르면 null. 프론트 타입(types.ts)에는 아직 없다.
+export type RainHourly = { start: string; mm: (number | null)[] }
+export type ForecastOut = Forecast & { rainHourly: RainHourly }
 
 const FORECAST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'web', 'public', 'data', 'forecast.json')
 
@@ -73,6 +77,45 @@ export function buildForecast(items: VilageItem[], today: string, observedPrevRa
   return { updated, days }
 }
 
+const startOf = (date: string) => `${date}T00:00+09:00`
+const dayDiff = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
+
+// from(00시)부터 to(23시)까지. 뒤에 쓴 값이 이긴다: 이전 파일 → 예보 PCP → 관측(observed는 from 하루치).
+// null인 값은 앞의 값을 지우지 않는다.
+export function buildRainHourly(
+  from: string,
+  to: string,
+  items: VilageItem[],
+  prev: RainHourly | null,
+  observed: (number | null)[] | null,
+): RainHourly {
+  const mm: (number | null)[] = Array((dayDiff(from, to) + 1) * 24).fill(null)
+  const put = (i: number, v: number | null) => {
+    if (v !== null && i >= 0 && i < mm.length) mm[i] = v
+  }
+  if (prev) {
+    const offset = dayDiff(from, prev.start.slice(0, 10)) * 24
+    prev.mm.forEach((v, i) => put(offset + i, v))
+  }
+  for (const i of items) {
+    const idx = dayDiff(from, dashed(i.fcstDate)) * 24 + hourOf(i)
+    if (i.category === 'PCP' && idx >= 0 && idx < mm.length) put(idx, parsePcp(i.fcstValue)) // 범위 밖 값은 해석하지 않는다
+  }
+  observed?.forEach((v, i) => put(i, v))
+  return { start: startOf(from), mm }
+}
+
+// 이전 forecast.json의 rainHourly. 없거나 형식이 틀리면 null.
+export function previousRainHourly(file = FORECAST): RainHourly | null {
+  try {
+    const r = (JSON.parse(readFileSync(file, 'utf8')) as Partial<ForecastOut>).rainHourly
+    if (!r || typeof r.start !== 'string' || !/^\d{4}-\d{2}-\d{2}T00:00\+09:00$/.test(r.start) || !Array.isArray(r.mm)) return null
+    return { start: r.start, mm: r.mm.map((v) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null)) }
+  } catch {
+    return null
+  }
+}
+
 // 이전 forecast.json에 있던 오늘의 rainPrevDay(어제 예보 PCP 합). 없거나 읽을 수 없으면 null.
 export function previousRainPrevDay(today: string, file = FORECAST): number | null {
   try {
@@ -89,7 +132,7 @@ export async function loadAndBuildForecast(
   get: Get = fetchText,
   prevFile = FORECAST,
   key: (name: string) => string = getKey,
-): Promise<Forecast> {
+): Promise<ForecastOut> {
   const today = kstNow(now).date
   const { baseDate, baseTime } = vilageBase(now)
   const items = await fetchVilage(now, get, key('KMA_AUTH_KEY'))
@@ -104,5 +147,13 @@ export async function loadAndBuildForecast(
     return prev
   })
   const updated = `${dashed(baseDate)}T${baseTime.slice(0, 2)}:${baseTime.slice(2)}+09:00`
-  return buildForecast(items, today, observed, updated)
+  const forecast = buildForecast(items, today, observed, updated)
+  const yesterday = addDays(today, -1)
+  const hourly = await fetchAsosHourlyRain(yesterday, get, asosKey).catch((err: Error) => {
+    console.warn(`[forecast] ASOS 시간자료 실패, 어제 칸은 이전 파일 값을 씀: ${err.message}`)
+    process.exitCode = 1
+    return null
+  })
+  const last = forecast.days.at(-1)?.date ?? today
+  return { ...forecast, rainHourly: buildRainHourly(yesterday, last, items, previousRainHourly(prevFile), hourly) }
 }
