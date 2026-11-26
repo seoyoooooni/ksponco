@@ -43,6 +43,10 @@ test('fetchList: 한 달 범위·공연장 코드로 요청하고 날짜를 YYYY
 test('fetchList: HTTP 오류, XML 아님, 필드 누락, 100건 이상은 에러', async () => {
   const get = (status: number, text: string): Get => async () => ({ status, text })
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(500, '')), /HTTP 500/)
+  // 거절 사유는 본문 앞부분으로 남기고, 본문에 키가 있으면 가린다
+  await assert.rejects(fetchList(KEY, '2026-02', 'X', get(400, `<error>bad ${KEY}</error>`)), (err: Error) =>
+    err.message.includes('HTTP 400 (<error>bad ***</error>)') && !err.message.includes(KEY),
+  )
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, '<html>')), /XML이 아닌/)
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, list('<db><mt20id>PF1</mt20id></db>'))), /필드/)
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, list(...Array(100).fill(db('PF1', 'a', '2026.02.01', '2026.02.01'))))), /100건/)

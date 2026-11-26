@@ -54,8 +54,11 @@ export function monthRange(now: Date): string[] {
 // 오류 메시지에 URL을 넣지 않는다(쿼리에 키가 있음).
 async function getXml(get: Get, url: string, what: string): Promise<string> {
   const { status, text } = await get(url)
-  if (status !== 200) throw new Error(`KOPIS ${what}: HTTP ${status}`)
-  if (!text.includes('<dbs')) throw new Error(`KOPIS ${what}: XML이 아닌 응답 (${text.slice(0, 80).replace(/\s+/g, ' ')})`)
+  // 응답 본문 앞부분으로 거절 사유를 남긴다. 본문이 요청을 되돌려 줄 수 있어 키는 가린다.
+  const key = new URL(url).searchParams.get('service')
+  const head = () => (key ? text.replaceAll(key, '***') : text).slice(0, 80).replace(/\s+/g, ' ')
+  if (status !== 200) throw new Error(`KOPIS ${what}: HTTP ${status} (${head()})`)
+  if (!text.includes('<dbs')) throw new Error(`KOPIS ${what}: XML이 아닌 응답 (${head()})`)
   return text
 }
 
