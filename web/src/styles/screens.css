@@ -100,6 +100,22 @@
   z-index: 15;
 }
 
+.fab-star {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-float);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.fab-star:active {
+  transform: scale(0.94);
+}
+
 .sheet-credit {
   align-self: center;
   flex-shrink: 0;

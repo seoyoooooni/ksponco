@@ -17,7 +17,7 @@ import { OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
 import { PillButton } from '../ui/Buttons'
-import { CloseIcon, PinIcon, PlayIcon } from '../ui/icons'
+import { CloseIcon, PlayIcon, StarIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
 import { WET_RAIN_MM } from '../lib/engine'
 import { SceneCanvas } from '../scene/SceneCanvas'
@@ -380,9 +380,9 @@ function Main({ ready }: { ready: Base }) {
           {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
           {suggestedAt && analysis.suggestion && (
             <div className="fabs">
-              <PillButton variant="light" icon={<PinIcon size={14} />} aria-label={`추천 자리로 옮기기, ${analysis.suggestion.text}`} onClick={takeSuggestion}>
-                추천 자리
-              </PillButton>
+              <button type="button" className="fab-star" aria-label={`추천 자리로 옮기기, ${analysis.suggestion.text}`} title="추천 자리로 옮기기" onClick={takeSuggestion}>
+                <StarIcon size={26} />
+              </button>
             </div>
           )}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
