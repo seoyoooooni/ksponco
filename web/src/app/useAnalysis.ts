@@ -227,7 +227,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
   }, [layout, event])
 
   const notes: Note[] = []
-  if (weather?.rain) notes.push({ kind: 'rain', text: '비 예보가 있어요. 그늘과 볕은 맑은 날 기준이에요' })
+  if (weather?.rain) notes.push({ kind: 'rain', text: '비 예보가 있어요. 우산을 챙기세요' })
   else if (weather?.sky === '흐림') notes.push({ kind: 'cloud', text: '흐린 날이라 그늘과 볕 차이가 작아요' })
   else if (weather?.sky === '구름많음') notes.push({ kind: 'cloud', text: '구름이 많아 볕이 약할 수 있어요' })
   if (rain >= WET_RAIN_MM) notes.push({ kind: 'wet', text: wetLine(wetHere, rain, Boolean(mat), pondHere) })
