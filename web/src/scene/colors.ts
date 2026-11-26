@@ -52,4 +52,3 @@ export const sceneColors = {
 
 export const clothTones = ['#8a958c', '#a7a196', '#6f7f86', '#9a8f86', '#7c8a7a', '#b8b3a9', '#5f6b66'] as const
 
-export const headTone = '#4a403a'

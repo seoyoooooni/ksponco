@@ -11,3 +11,4 @@ export {
 export { viewFrom, placeAudience, EYE_SIT, EYE_STAND } from "./view.js";
 export { encodeBits, decodeBits } from "./codec.js";
 export { rectPoly, circlePoly, pointInPoly } from "./geometry.js";
+export { type WetReason, type WetOptions, type PondOptions, WET_RAIN_MM, HEAVY_RAIN_MM, morningSun, pondAt, wetAt } from "./wet.js";

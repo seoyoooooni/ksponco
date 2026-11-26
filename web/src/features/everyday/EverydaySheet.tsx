@@ -5,6 +5,7 @@ import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
+import { Notes, type Note } from '../../ui/Notes'
 
 export type SpotItem = {
   label: string
@@ -33,6 +34,7 @@ type Props = {
   playing: boolean
   onPlay: () => void
   sunset: { at: number; label: string } | null
+  notes: Note[]
 }
 
 export function EverydaySheet(p: Props) {
@@ -97,6 +99,7 @@ export function EverydaySheet(p: Props) {
       {p.spots.length === 0 && (
         <p className="plain-line">{p.pref === 'shade' ? '이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.' : '이 시간엔 계속 볕이 드는 곳이 없어요. 시간을 바꿔 보세요.'}</p>
       )}
+      <Notes notes={p.notes} />
       <Toggle
         label="머무는 시간"
         value={p.duration}

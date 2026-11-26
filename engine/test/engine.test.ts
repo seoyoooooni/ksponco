@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   type Layout, type VenueData, Terrain, applyEventShadows, buildEventScene, buildFixedScene, decodeBits, decodeSunGrid,
   encodeBits, findShadeSpots, isSunlit, mergeScenes, placeAudience, rectPoly, shadeRatio, spotSun, sunGridFixed, sunPosition,
-  sunsetTime, viewFrom,
+  sunsetTime, viewFrom, morningSun, pondAt, wetAt,
 } from "../src/index.js";
 
 /** 평평한 100m × 100m 장소 (높이 0) */
@@ -100,4 +100,48 @@ test("시야: 앞 나무와 앞 관객이 가림", () => {
   const sit = viewFrom(open, layout, sceneCrowd, t, crowd, 0, -5, 0.8).stage.pct;
   const stand = viewFrom(open, layout, sceneCrowd, t, crowd, 0, -5, 1.6).stage.pct;
   assert.ok(sit < stand, `sit ${sit} stand ${stand}`);
+});
+
+test("지형 주입: 장면이 넘겨받은 지형 높이를 쓴다", () => {
+  const data = flatVenue({ trees: [{ x: 0, z: 0, h: 10, base: 4, r: 3, source: "scan" }] });
+  class Raised extends Terrain {
+    heightAt(): number {
+      return 5;
+    }
+  }
+  const ground = new Raised(data.terrain);
+  const fixed = buildFixedScene(data, { ground });
+  assert.equal(fixed.crowns[0].cy, 5 + 4 + 3);
+  assert.equal(fixed.terrain, ground);
+  const layout: Layout = { id: "t", venue: "lawn88", source: "default", screens: [], zones: [], mat: { w: 2, d: 2, people: 2 } };
+  const ev = buildEventScene(data, layout, [{ x: 0, z: 0, w: 5, d: 5, h: 2.8 }], ground);
+  assert.equal(ev.prisms[0].y1, 5 + 2.8);
+});
+
+test("젖은 바닥: 비 양, 낮은 곳, 오전 그늘", () => {
+  const date = "2026-11-28";
+  const morning = morningSun(date);
+  assert.ok(morning.length >= 10 && morning.every((d) => d[1] > 0 && d[0] > 0));
+  const open = flatVenue();
+  const openScene = buildFixedScene(open);
+  const t = openScene.terrain!;
+  assert.equal(wetAt(openScene, t, 0, 0, 0.5, morning), null);
+  assert.equal(wetAt(openScene, t, 0, 0, 3, morning), null);
+  assert.equal(wetAt(openScene, t, 0, 0, 12, morning), "heavy");
+  const nx = 101, nz = 101;
+  const h = new Array(nx * nz).fill(0);
+  for (let iz = 48; iz <= 52; iz++) for (let ix = 48; ix <= 52; ix++) h[iz * nx + ix] = -0.3;
+  const dip = flatVenue({ terrain: { x0: -50, z0: -50, nx, nz, cell: 1, h } });
+  const dipScene = buildFixedScene(dip);
+  assert.equal(wetAt(dipScene, dipScene.terrain!, 0, 0, 3, morning), "low");
+  const slope = flatVenue({ terrain: { x0: -50, z0: -50, nx, nz, cell: 1, h: Array.from({ length: nx * nz }, (_, i) => ((i % nx) - 50) ** 2 * 0.002) } });
+  const slopeScene = buildFixedScene(slope);
+  assert.equal(wetAt(slopeScene, slopeScene.terrain!, 20, 0, 3, morning), null);
+  assert.equal(pondAt(dipScene.terrain!, 0, 0), true);
+  assert.equal(pondAt(slopeScene.terrain!, 20, 0), false);
+  assert.equal(pondAt(t, 0, 0), false);
+  const wall = flatVenue({ buildings: [{ name: "wall", base: 0, height: 50, footprint: [[1, -40], [40, -40], [40, 40], [1, 40]], source: "gis" }] });
+  const wallScene = buildFixedScene(wall);
+  assert.equal(wetAt(wallScene, wallScene.terrain!, 0, 0, 3, morning), "shade");
+  assert.equal(wetAt(wallScene, wallScene.terrain!, 0, 0, 3, []), null);
 });

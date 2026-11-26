@@ -33,10 +33,22 @@ export function PinIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-export const CalendarIcon = (p: IconProps) => (
+export const RainIcon = (p: IconProps) => (
   <Svg {...p}>
-    <rect x="3" y="5" width="18" height="16" rx="2.5" />
-    <path d="M3 10h18M8 3v4M16 3v4" />
+    <path d="M7 15a4.5 4.5 0 0 1-.5-9 5.5 5.5 0 0 1 10.6 1.5A3.75 3.75 0 0 1 17 15H7Z" />
+    <path d="m8.5 18-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5" />
+  </Svg>
+)
+
+export const CloudIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 18a4.5 4.5 0 0 1-.5-9 5.5 5.5 0 0 1 10.6 1.5A3.75 3.75 0 0 1 17 18H7Z" />
+  </Svg>
+)
+
+export const DropIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 3.5c3.2 4 5.5 7.2 5.5 10.2a5.5 5.5 0 0 1-11 0c0-3 2.3-6.2 5.5-10.2Z" />
   </Svg>
 )
 
@@ -91,13 +103,6 @@ export const PauseIcon = (p: IconProps) => (
   <Svg {...p} fill="currentColor" stroke="none">
     <rect x="6" y="5" width="4" height="14" rx="1" />
     <rect x="14" y="5" width="4" height="14" rx="1" />
-  </Svg>
-)
-
-export const InfoIcon = (p: IconProps) => (
-  <Svg {...p}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v6M12 7.5v.5" />
   </Svg>
 )
 

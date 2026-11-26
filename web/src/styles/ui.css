@@ -84,37 +84,6 @@
   cursor: default;
 }
 
-.round-btn {
-  width: var(--bar-height);
-  height: var(--bar-height);
-  flex: 0 0 auto;
-  border-radius: var(--radius-btn);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  box-shadow: var(--shadow-float);
-}
-
-.round-btn--dark {
-  border: none;
-  background: var(--color-surface);
-  color: var(--color-ink);
-}
-
-.round-btn--light {
-  border: none;
-  border-radius: var(--radius-btn);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  width: var(--touch);
-  height: var(--touch);
-}
-
-.round-btn--light[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-surface);
-}
-
 .toggle {
   display: grid;
   grid-auto-flow: column;

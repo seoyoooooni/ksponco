@@ -33,6 +33,7 @@ type Props = {
   bubble: string | null
   markers?: SpotMarker[]
   overlayOverride?: OverlayCell[]
+  ponds?: OverlayCell[] | null
   operator?: {
     tents: Tent[]
     palms: ClosedArea[]
@@ -52,8 +53,9 @@ const BLOCKED: Record<string, string> = {
 
 const DEFAULT_MAT = { w: 1.8, d: 1.8, people: 2 }
 
-export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, markers, operator, overlayOverride }: Props) {
+export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, markers, operator, overlayOverride, ponds }: Props) {
   const overlay = overlayOverride ?? baseOverlay
+  const painted = !overlayOverride && ponds?.length ? [...(overlay ?? []), ...ponds] : overlay
   const { venue, terrain, trees, buildings } = bundle
   const mat = useScene((s) => s.mat)
   const eyeHeight = useScene((s) => s.eyeHeight)
@@ -194,7 +196,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
-      {overlay && camera === 'orbit' && <HeatOverlay cells={overlay} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
+      {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
       {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
 
       {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}

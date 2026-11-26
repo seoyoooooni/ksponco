@@ -1,5 +1,5 @@
 import type { Layout, StageSpec, Terrain } from '../data/types'
-import { performerTargets, visibleRatio, type Canopy, type HeadIndex } from './analysis'
+import { performerTargets, visibleRatio, type Blockers, type HeadIndex } from './analysis'
 import { bounds, zoneAt } from './polygon'
 import { comfort, type SunPref } from './comfort'
 import { dayShade, type ShadeGrid } from './shadeGrid'
@@ -16,7 +16,7 @@ export function goodSeats(
   stage: StageSpec | null,
   terrain: Terrain,
   heads: HeadIndex,
-  canopies: Canopy[],
+  blockers: Blockers,
   shade: ShadeGrid | null,
   sunWeight: number,
   cell: number,
@@ -32,7 +32,7 @@ export function goodSeats(
       for (let x = b.x0 + cell / 2; x < b.x1; x += cell) {
         if (zoneAt(layout.zones, x, z) !== zone) continue
         const eye: [number, number, number] = [x, heightAt(terrain, x, z) + 0.8, z]
-        const view = visibleRatio(eye, targets, heads, canopies)
+        const view = visibleRatio(eye, targets, heads, blockers)
         let day: number | null = null
         if (shade) {
           const i = Math.floor((x - shade.x0) / shade.cell)
