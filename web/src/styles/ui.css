@@ -312,7 +312,18 @@
 }
 
 .modal-sheet--center {
-  padding-top: var(--space-5);
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: calc(100% - 2 * var(--space-5));
+  max-width: 440px;
+  max-height: 80vh;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  border-radius: var(--radius-sheet);
+  padding: var(--space-5);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
 }
 
 .modal-close {

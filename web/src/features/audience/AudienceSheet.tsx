@@ -14,6 +14,7 @@ export type AudienceStats = {
 }
 
 type Props = {
+  banner?: ReactNode
   snap: SheetSnap
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
@@ -66,6 +67,7 @@ export function AudienceSheet(p: Props) {
         </>
       }
     >
+      {p.banner}
       <Toggle
         label="찾는 자리"
         value={p.pref}

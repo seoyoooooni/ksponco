@@ -33,6 +33,9 @@ import { useAnalysis } from './useAnalysis'
 import { usePlayback } from './usePlayback'
 import { LoadingScreen } from '../ui/LoadingScreen'
 import { BrandMark } from '../ui/BrandMark'
+import { forgetShare, sameSpot, shareMessage, shareUrl, takeSharedStay } from '../lib/share'
+import { ShareSheet } from '../features/share/ShareSheet'
+import { SharedBanner } from '../features/share/SharedBanner'
 
 const VENUES_READY = ['lawn88', 'lake'] as const
 
@@ -187,7 +190,11 @@ function Main({ ready }: { ready: Base }) {
   const layoutReady = layoutState.status === 'ready'
 
   useEffect(() => {
-    if (event) {
+    const shared = operator ? (forgetShare(), null) : takeSharedStay(venue, date)
+    if (shared?.stay) {
+      const [from, to] = shared.stay
+      sceneStore.set({ stay: [from, to], hour: event ? Math.min(to, from + 2.5) : from, seats: false, sheetSnap: 1, pref: shared.pref })
+    } else if (event) {
       const [lo, hi] = barHours(event)
       const from = Math.max(lo, parseClock(event.start))
       const to = Math.min(hi, parseClock(event.end))
@@ -228,6 +235,25 @@ function Main({ ready }: { ready: Base }) {
       sceneStore.set({ mat: m, matTouched: false, camera: 'orbit' })
     }
   }, [layoutReady, layout, analysis.lawnCenter, ready.bundle])
+
+  const shareOpen = useScene((s) => s.shareOpen)
+  const shared = useScene((s) => s.shared)
+  const place = ready.bundle.venue.name
+  const share = shareOpen && mat
+    ? {
+        url: shareUrl({ venue, date, mat, stay, pref: chosenPref }),
+        message: shareMessage(place, date, TODAY, stay[0]),
+      }
+    : null
+  const closeShare = useCallback(() => sceneStore.set({ shareOpen: false }), [])
+  const showNotice = useCallback((text: string) => sceneStore.set({ notice: text }), [])
+  const banner =
+    shared && !operator && shared.venue === venue && shared.date === date && sameSpot(mat, shared.mat) ? (
+      <SharedBanner
+        when={`${dateLabel(shared.date)} · ${rangeLabel(...(shared.stay ?? stay))}`}
+        onClose={() => sceneStore.set({ shared: null })}
+      />
+    ) : null
 
   useEffect(() => {
     document.documentElement.dataset.view = camera === 'firstPerson' ? 'fp' : 'main'
@@ -344,7 +370,7 @@ function Main({ ready }: { ready: Base }) {
           <header className="topbar">
             <span className="brand">
               <BrandMark />
-              <span className="sr-only">app name</span>
+              <span className="sr-only">SunSeat</span>
             </span>
             <SearchBar
               place={ready.bundle.venue.name}
@@ -374,7 +400,6 @@ function Main({ ready }: { ready: Base }) {
               onTool={(t) => sceneStore.set({ opTool: t, zoneStart: null, notice: t ? TOOL_HINT[t] : null })}
             />
           )}
-          {mode === 'event' && seats && <Legend kind="seats" ponds={Boolean(analysis.ponds)} />}
           {mode !== 'operator' && !closure && !(mode === 'event' && seats) && analysis.ponds && <Legend kind="ponds" />}
           {playing && (
             <div className="play-clock" aria-hidden="true">
@@ -385,7 +410,8 @@ function Main({ ready }: { ready: Base }) {
           {mode !== 'operator' && (
             <FloatingActions
               onView={mat && !closure ? () => sceneStore.set({ camera: 'firstPerson' }) : null}
-              seats={mode === 'event' ? { on: seats, toggle: () => sceneStore.set({ seats: !seats }) } : null}
+              onShare={mat && !closure ? () => sceneStore.set({ shareOpen: true }) : null}
+              seats={mode === 'event' ? { on: seats, toggle: () => sceneStore.set({ seats: !seats }), legend: <Legend kind="seats" inline ponds={Boolean(analysis.ponds)} /> } : null}
             />
           )}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
@@ -422,6 +448,7 @@ function Main({ ready }: { ready: Base }) {
             />
           ) : mode === 'event' ? (
             <AudienceSheet
+              banner={banner}
               snap={sheetSnap}
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
@@ -443,6 +470,7 @@ function Main({ ready }: { ready: Base }) {
             />
           ) : (
             <EverydaySheet
+              banner={banner}
               snap={sheetSnap}
               onSnap={setSnap}
               onVisibleHeight={setSheetH}
@@ -488,6 +516,7 @@ function Main({ ready }: { ready: Base }) {
         estimates={mode === 'event' ? analysis.estimates : []}
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
+      <ShareSheet open={share !== null} onClose={closeShare} url={share?.url ?? ''} message={share?.message ?? ''} onNotice={showNotice} />
       <Toast message={notice} onDone={clearNotice} />
     </>
   )

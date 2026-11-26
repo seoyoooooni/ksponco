@@ -84,6 +84,33 @@ export const EyeIcon = (p: IconProps) => (
   </Svg>
 )
 
+export const ShareIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 15V3" />
+    <path d="m7.5 7.5 4.5-4.5 4.5 4.5" />
+    <path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12" />
+  </Svg>
+)
+
+export const BubbleIcon = (p: IconProps) => (
+  <Svg {...p} stroke="none" fill="currentColor">
+    <path d="M12 4C6.75 4 2.5 7.36 2.5 11.5c0 2.66 1.75 5 4.4 6.33l-.9 3.3c-.08.3.26.54.52.37l3.9-2.58c.52.05 1.04.08 1.58.08 5.25 0 9.5-3.36 9.5-7.5S17.25 4 12 4z" />
+  </Svg>
+)
+
+export const LinkIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1.1 1.1" />
+    <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.1-1.1" />
+  </Svg>
+)
+
+export const CheckIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Svg>
+)
+
 export const GridIcon = (p: IconProps) => (
   <Svg {...p}>
     <rect x="3" y="3" width="7" height="7" rx="1.5" />

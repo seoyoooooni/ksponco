@@ -7,6 +7,7 @@ import type { SunPref } from '../../lib/comfort'
 import { Notes, type Note } from '../../ui/Notes'
 
 type Props = {
+  banner?: ReactNode
   snap: SheetSnap
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
@@ -59,6 +60,7 @@ export function EverydaySheet(p: Props) {
         </div>
       }
     >
+      {p.banner}
       <Toggle
         label="찾는 자리"
         value={p.pref}

@@ -5,6 +5,7 @@ import type { SheetSnap } from '../ui/BottomSheet'
 import type { SunPref } from '../lib/comfort'
 import type { ClosedArea, Tent, Variant } from '../lib/operator'
 import type { Vec2 } from '../data/types'
+import { initialShare, type SharedSpot } from '../lib/share'
 
 export type CameraMode = 'orbit' | 'firstPerson'
 
@@ -48,6 +49,8 @@ export type SceneState = {
   nextId: number
   variant: Variant
   compare: boolean
+  shareOpen: boolean
+  shared: SharedSpot | null
 }
 
 export type OpTool = 'tent' | 'zone' | 'palm' | 'erase'
@@ -63,6 +66,7 @@ function todayString(): string {
 export const TODAY = todayString()
 
 function initialDate(): string {
+  if (initialShare) return initialShare.date
   const q = new URLSearchParams(window.location.search).get('date')
   return q && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : TODAY
 }
@@ -98,12 +102,12 @@ function savePlans(s: SceneState) {
 }
 
 let state: SceneState = {
-  venue: 'lawn88',
+  venue: initialShare?.venue ?? 'lawn88',
   date: initialDate(),
-  hour: 14,
-  stay: [14, 16],
-  mat: null,
-  matTouched: false,
+  hour: initialShare?.stay?.[0] ?? 14,
+  stay: initialShare?.stay ?? [14, 16],
+  mat: initialShare?.mat ?? null,
+  matTouched: initialShare !== null,
   eyeHeight: 0.8,
   camera: 'orbit',
   fpAway: false,
@@ -121,7 +125,7 @@ let state: SceneState = {
   seats: false,
   playing: false,
   peek: false,
-  pref: null,
+  pref: initialShare?.pref ?? null,
   operator: false,
   opTool: null,
   tents: [],
@@ -132,6 +136,8 @@ let state: SceneState = {
   nextId: 1,
   variant: 'A',
   compare: false,
+  shareOpen: false,
+  shared: initialShare,
   ...loadPlans(),
 }
 

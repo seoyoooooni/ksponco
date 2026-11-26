@@ -1,6 +1,7 @@
 type Props = {
   kind: 'shade' | 'seats' | 'ponds'
   ponds?: boolean
+  inline?: boolean
 }
 
 export const SHADE_COLORS = ['#ffc23d', '#f3e3a8', '#f4f7ee', '#7fa6c6', '#2f6690'] as const
@@ -9,7 +10,7 @@ export const POND_COLOR = '#3fa7b8'
 
 const SWATCH = { width: 10, height: 10, borderRadius: 3 }
 
-export function Legend({ kind, ponds }: Props) {
+export function Legend({ kind, ponds, inline }: Props) {
   if (kind === 'ponds') {
     return (
       <div className="legend-chip" aria-label="청록색은 물이 고여 있을 수 있는 곳">
@@ -32,7 +33,7 @@ export function Legend({ kind, ponds }: Props) {
     )
   }
   return (
-    <div className="legend-chip" aria-label="좋은 자리 범례: 진한 파랑 좋음, 연한 파랑 보통, 주황 가려지거나 땡볕">
+    <div className={inline ? 'legend-inline' : 'legend-chip'} aria-label="좋은 자리 범례: 진한 파랑 좋음, 연한 파랑 보통, 주황 가려지거나 땡볕">
       <i style={{ width: 10, height: 10, borderRadius: 3, background: SEAT_COLORS[2] }} />
       좋음
       <i style={{ width: 10, height: 10, borderRadius: 3, background: SEAT_COLORS[1] }} />

@@ -18,9 +18,9 @@ export function FirstPersonOverlay(p: Props) {
   return (
     <>
       <div className="fp-top">
-        <PillButton variant="light" icon={<ChevronLeft size={18} />} onClick={p.onBack}>
-          돌아가기
-        </PillButton>
+        <button type="button" className="fab-round" aria-label="돌아가기" title="돌아가기" onClick={p.onBack}>
+          <ChevronLeft size={22} />
+        </button>
         {p.away && (
           <PillButton variant="light" onClick={p.onRecenter}>
             {p.recenterLabel}
