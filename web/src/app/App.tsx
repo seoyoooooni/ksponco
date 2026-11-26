@@ -19,6 +19,7 @@ import { useOperator } from '../features/operator/useOperator'
 import { PillButton } from '../ui/Buttons'
 import { CloseIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
+import { WET_RAIN_MM } from '../lib/engine'
 import { SceneCanvas } from '../scene/SceneCanvas'
 import { sceneStore, TODAY, useScene } from '../store/sceneStore'
 import type { SheetSnap } from '../ui/BottomSheet'
@@ -43,9 +44,16 @@ function nowStart(date: string): number | null {
   return h >= 9 && h <= 20 ? Math.ceil(h * 4) / 4 : null
 }
 
+const DAY_HOURS: [number, number] = [9, 22]
+
+function barHours(event: EventItem | null): [number, number] {
+  if (!event) return DAY_HOURS
+  return [Math.min(DAY_HOURS[0], Math.floor(parseClock(event.start))), Math.min(24, Math.max(DAY_HOURS[1], Math.ceil(parseClock(event.end))))]
+}
+
 function defaultEverydayStay(date: string, hours: number): [number, number] {
   const from = nowStart(date) ?? 14
-  return [from, Math.min(22, from + hours)]
+  return [from, Math.min(DAY_HOURS[1], from + hours)]
 }
 
 function freeSpot(bundle: VenueBundle, center: { x: number; z: number }) {
@@ -182,8 +190,9 @@ function Main({ ready }: { ready: Base }) {
 
   useEffect(() => {
     if (event) {
-      const from = Math.max(9, parseClock(event.start))
-      const to = Math.min(22, parseClock(event.end))
+      const [lo, hi] = barHours(event)
+      const from = Math.max(lo, parseClock(event.start))
+      const to = Math.min(hi, parseClock(event.end))
       sceneStore.set({ stay: [from, to], hour: Math.min(to, from + 2.5), seats: false, sheetSnap: 1, pref: null })
     } else if (operator) {
       sceneStore.set({ stay: [12, 21], hour: 14.5, seats: false, sheetSnap: 1, pref: null })
@@ -196,10 +205,10 @@ function Main({ ready }: { ready: Base }) {
   const tempMax = dayTempMax(date, ready.forecast, event?.tempMax ?? null)
   const pref = chosenPref ?? autoPref(tempMax)
   const sunWeight = prefWeight(tempMax, chosenPref !== null)
-  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, anchor, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight })
-  const sold = soldKey in soldMap ? soldMap[soldKey] : (event?.people ?? null)
   const forecastDay = ready.forecast?.days.find((d) => d.date === date) ?? null
-  const wet: Wet = forecastDay && forecastDay.rainPrevDay >= 1 ? { heavy: forecastDay.rainPrevDay >= 10 } : null
+  const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, anchor, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight, weather: forecastDay })
+  const sold = soldKey in soldMap ? soldMap[soldKey] : (event?.people ?? null)
+  const wet: Wet = forecastDay && forecastDay.rainPrevDay >= WET_RAIN_MM ? { mm: forecastDay.rainPrevDay } : null
   const wetText = forecastDay && wet ? `전날 비 ${forecastDay.rainPrevDay}mm · 젖은 바닥은 추정이에요` : null
   const planInputs = useMemo(() => {
     const make = (key: string, suggest: boolean) => ({ key, tents: pick(allTents, key), closed: pick(allClosed, key), palms: pick(allPalms, key), suggest })
@@ -296,6 +305,7 @@ function Main({ ready }: { ready: Base }) {
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
         markers={mode === 'everyday' && !closure ? analysis.spots.map((s, i) => ({ x: s.x, z: s.z, label: String(i + 1) })).filter((m) => !mat || Math.hypot(mat.x - m.x, mat.z - m.z) >= 0.5) : undefined}
         overlayOverride={operator && opResult && opResult.wetCells.length ? opResult.wetCells.map((c) => ({ ...c, size: 4, color: '#7fa6c6' })) : undefined}
+        ponds={mode !== 'operator' && !closure ? analysis.ponds : null}
         operator={operator ? { tents, palms, suggestion: opResult?.suggestion ?? null, zoneStart, onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator, onTent: opTool === 'erase' ? (id) => sceneStore.set({ tents: sceneStore.get().tents.filter((t) => t.id !== id) }) : undefined } : undefined}
       />
 
@@ -345,7 +355,8 @@ function Main({ ready }: { ready: Base }) {
               onTool={(t) => sceneStore.set({ opTool: t, zoneStart: null, notice: t ? TOOL_HINT[t] : null })}
             />
           )}
-          {mode === 'event' && seats && <Legend kind="seats" />}
+          {mode === 'event' && seats && <Legend kind="seats" ponds={Boolean(analysis.ponds)} />}
+          {mode !== 'operator' && !closure && !(mode === 'event' && seats) && analysis.ponds && !firstPerson && <Legend kind="ponds" />}
           {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
             데이터 출처
@@ -397,6 +408,8 @@ function Main({ ready }: { ready: Base }) {
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
+              notes={analysis.notes}
+              hours={barHours(event)}
             />
           ) : (
             <EverydaySheet
@@ -413,7 +426,7 @@ function Main({ ready }: { ready: Base }) {
                 if (s) sceneStore.set({ mat: { x: s.x, z: s.z }, matTouched: true })
               }}
               duration={durationValue}
-              onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(22, stay[0] + h)] })}
+              onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(DAY_HOURS[1], stay[0] + h)] })}
               stay={stay}
               strip={analysis.strip}
               hour={hour}
@@ -424,6 +437,7 @@ function Main({ ready }: { ready: Base }) {
               playing={playing}
               onPlay={() => sceneStore.set({ playing: !playing })}
               sunset={sunset ? { at: sunset, label: timeLabel(sunset) } : null}
+              notes={analysis.notes}
             />
           )}
           {import.meta.env.DEV && <DevTools />}

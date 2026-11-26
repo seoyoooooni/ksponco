@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { VenueBundle } from '../../data/load'
 import type { Layout } from '../../data/types'
-import { prepareCanopies } from '../../lib/analysis'
 import { withClosed, type ClosedArea, type OperatorResult, type Tent, type Wet } from '../../lib/operator'
 
 export type PlanInput = {
@@ -30,8 +29,7 @@ export function useOperator(args: {
   stay: [number, number]
 }): { results: Record<string, OperatorResult>; busy: boolean } {
   const { on, bundle, baseLayout, plans, wet, date, stay } = args
-  const { terrain, trees, venue } = bundle
-  const canopies = useMemo(() => prepareCanopies(trees, terrain), [trees, terrain])
+  const { terrain, trees, buildings, venue } = bundle
   const [results, setResults] = useState<Record<string, OperatorResult>>({})
   const [pending, setPending] = useState(0)
   const latest = useRef<Record<string, number>>({})
@@ -65,7 +63,9 @@ export function useOperator(args: {
           layout: withClosed(baseLayout, plan.closed),
           stage,
           terrain,
-          trees: canopies,
+          trees,
+          buildings,
+          venue,
           tents: plan.tents,
           palms: plan.palms,
           wet,
@@ -77,7 +77,7 @@ export function useOperator(args: {
       })
     }
     setPending(sent)
-  }, [on, baseLayout, venue, terrain, canopies, signature, wet?.heavy, wet === null, date, stay[0], stay[1]])
+  }, [on, baseLayout, venue, terrain, trees, buildings, signature, wet?.mm, wet === null, date, stay[0], stay[1]])
 
   return { results, busy: pending > 0 }
 }

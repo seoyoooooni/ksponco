@@ -161,25 +161,6 @@ export type Forecast = {
   days: ForecastDay[]
 }
 
-export type SunGrid = GridMeta & {
-  date: string
-  t0: string
-  step: number
-  nt: number
-  sun: string[]
-}
-
-export type ViewGrid = GridMeta & {
-  event: string
-  layout: string
-  stagePct: number[]
-  screenPct: number[]
-}
-
-export type WetGrid = GridMeta & {
-  depth: number[]
-}
-
 export type OsmPath = {
   kind: string
   width: number

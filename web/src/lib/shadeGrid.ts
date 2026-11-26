@@ -1,5 +1,5 @@
 import type { Terrain } from '../data/types'
-import { canopyHit, STEP, type Canopy } from './analysis'
+import { STEP, sunBlocked, type Blockers } from './analysis'
 import { sunPosition } from './sun'
 import { heightAt } from './terrainSample'
 
@@ -35,7 +35,7 @@ export function scanBounds(terrain: Terrain): { x0: number; x1: number; z0: numb
 
 export function shadeGrid(
   terrain: Terrain,
-  canopies: Canopy[],
+  blockers: Blockers,
   date: string,
   from: number,
   to: number,
@@ -56,7 +56,7 @@ export function shadeGrid(
       const z = area.z0 + (j + 0.5) * cell
       const p: [number, number, number] = [x, heightAt(terrain, x, z) + 0.5, z]
       let shade = 0
-      for (const s of suns) if (!s.up || canopyHit(canopies, p, s.dir)) shade++
+      for (const s of suns) if (!s.up || sunBlocked(blockers, p, s.dir)) shade++
       frac.push(suns.length ? shade / suns.length : 0)
     }
   }

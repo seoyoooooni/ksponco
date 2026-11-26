@@ -47,6 +47,13 @@ npm test        # 단위 테스트 7개 (node:test)
 | `findShadeSpots(sg, bits, from, to, x, z, 3)` | 평소 모드 | "지금부터 계속 그늘" 칸 중 가까운 3곳 |
 | `spotSun(scene, terrain, x, z, date, from, to)` | 관객 모드 돗자리 | 15분 단위 `sun`/`shade`/`night`, 햇볕 분, "○시부터 그늘" |
 
+### 젖은 바닥
+| 함수 | 설명 |
+|---|---|
+| `morningSun(date)` | 09~12시 15분 칸 가운데의 해 방향 (고도 0.5° 넘는 것만) |
+| `pondAt(terrain, x, z, opts?)` | 물이 빠질 곳 없는 곳인가 (4m 거리 8방향 중 7방향 이상이 2cm 넘게 높음) |
+| `wetAt(scene, terrain, x, z, rainMm, morning, opts?)` | 전날 강수량 기준 젖은 바닥 판정. 1mm 미만 `null`, 10mm 이상 `"heavy"`(전체), 그 사이는 물이 빠질 곳 없는 곳 `"low"`(4m 거리 8방향 중 7방향 이상이 2cm 넘게 높음) 또는 오전 해의 70% 이상 가림 `"shade"`, 아니면 `null` |
+
 ### 시야
 | 함수 | 설명 |
 |---|---|
@@ -92,14 +99,19 @@ const view = viewFrom(data, layout, scene, fixed.terrain!, placeAudience(layout,
 - 프론트 `data/types.ts`의 `Venue`, `Layout`, `Terrain`, `Tree`, `Building`은 **고치지 않고 그대로** 엔진에 넘길 수 있습니다 (타입 호환 확인함).
 - `terrain.json`의 `x0`, `z0`는 프론트 `heightAt()`과 같이 **첫 칸 중심**으로 봅니다.
 - 해 방향 벡터 규칙(`[cos·sin(az), sin(alt), −cos·cos(az)]`)과 나무 수관 회전타원체는 프론트와 같습니다.
-- 차이점
-  - 해 위치: 프론트 `lib/sun.ts` 근사식은 엔진(NOAA)과 고도·방위가 **최대 약 1.2°** 차이 → 엔진 `sunPosition()`으로 바꾸는 것을 권장
-  - 그림자: 프론트 `shadeGrid()`는 나무만, 엔진은 **나무 + 건물 + 지형 + 행사 물체(무대 지붕·스크린·그늘막)**
-  - `SunGrid`의 `x0`, `z0`: 엔진은 **첫 칸 중심**. 프론트 `shadeGrid()`는 모서리 + 0.5칸이라 읽을 때 주의
+- 프론트 연결 (2026-11-26)
+  - 프론트는 `web/src/lib/engine.ts`에서 이 폴더의 `src/index.ts`를 바로 다시 내보내 씁니다(빌드 단계 없음). 개발 서버는 `web/vite.config.ts`의 `server.fs.allow: ['..']`로 이 폴더를 읽습니다.
+  - 해 위치·해 지는 시각: 프론트 `lib/sun.ts`가 엔진 `sunPosition()`, `sunsetTime()`을 씁니다. 화면 해 조명도 같은 값입니다.
+  - 가림 판정: 프론트 `lib/analysis.ts`의 `prepareBlockers()`가 `buildFixedScene()` + `buildEventScene()`으로 장면(지형·나무·건물·고정 무대 지붕·행사 무대 바닥과 지붕·스크린)을 만들고, 그늘·시야·운영자 계산은 모두 `occluded()`로 판정합니다. 그늘막은 엔진 `Canopy`(5×5m, 지붕 2.8m)입니다.
+  - 지형 높이: `buildFixedScene(data, { ground })`, `buildEventScene(data, layout, canopies, ground)`에 프론트가 `Terrain`을 상속해 `heightAt()`을 바꾼 지형을 넘깁니다. 그래서 수변무대 계단 높이가 엔진 계산에도 들어갑니다.
+  - 관객 가림은 프론트 `lib/crowd.ts` 배치(화면에 그리는 사람)와 머리 판정을 그대로 씁니다. 엔진 `placeAudience()`, `viewFrom()`은 프론트에서 쓰지 않습니다.
+  - 햇볕 판정 높이는 프론트 기준 바닥 위 0.5m, 시각은 15분 칸 가운데입니다.
+  - 사전계산(`sunGridFixed()`, `sun_YYYYMMDD.json`)은 아직 안 씁니다. 브라우저에서 즉석 계산합니다.
+  - 젖은 바닥: 운영자 모드(4m 칸)와 관객 화면(내 돗자리, 2m 칸 추천 자리 거르기) 모두 `wetAt()`을 씁니다. 물 빠짐 판정에는 계단을 넣지 않은 점군 지형(`Terrain` 그대로)을 넘깁니다.
 
 ## 아직 없는 것
 
-- 물고임 (`wet.json`)
+- 젖은 바닥 실측 검증 (지금은 지형·그늘로 추정)
 - 배치안 A/B 비교 요약 함수
 - 시연판 `core.js`와 결과 맞춰 보기 (원본 파일 받으면 비교)
 - 나무 수관 투과율 (지금은 수관이 빛을 완전히 막는 것으로 계산)

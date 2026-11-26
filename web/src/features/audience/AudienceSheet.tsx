@@ -5,6 +5,7 @@ import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
 import { Toggle } from '../../ui/Toggle'
+import { Notes, type Note } from '../../ui/Notes'
 
 export type AudienceStats = {
   stage: string
@@ -31,6 +32,8 @@ type Props = {
   playing: boolean
   onPlay: () => void
   sunset: { at: number; label: string } | null
+  notes: Note[]
+  hours: [number, number]
 }
 
 export function AudienceSheet(p: Props) {
@@ -48,6 +51,8 @@ export function AudienceSheet(p: Props) {
               <span>{rangeLabel(p.stay[0], p.stay[1])}</span>
             </div>
             <TimeRange
+              min={p.hours[0]}
+              max={p.hours[1]}
               from={p.stay[0]}
               to={p.stay[1]}
               strip={p.strip}
@@ -95,6 +100,7 @@ export function AudienceSheet(p: Props) {
           <span className="stat__value">{p.stats?.sun ?? '—'}</span>
         </div>
       </div>
+      <Notes notes={p.notes} />
     </BottomSheet>
   )
 }
