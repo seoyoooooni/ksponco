@@ -61,6 +61,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const mat = useScene((s) => s.mat)
   const eyeHeight = useScene((s) => s.eyeHeight)
   const camera = useScene((s) => s.camera)
+  const watching = useScene((s) => s.playing || s.peek)
   const crowdScale = useScene((s) => s.crowdScale)
   const personStyle = useScene((s) => s.personStyle)
 
@@ -197,7 +198,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
-      {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
+      {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={watching ? 0.12 : layout ? 0.9 : 0.62} />}
       {suggestion && onSuggestion && camera === 'orbit' && <SuggestMat position={suggestion} spec={layout?.mat ?? DEFAULT_MAT} terrain={terrain} onTake={onSuggestion} />}
 
       {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}

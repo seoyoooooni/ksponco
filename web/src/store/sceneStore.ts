@@ -35,6 +35,7 @@ export type SceneState = {
   sourcesOpen: boolean
   seats: boolean
   playing: boolean
+  peek: boolean
   pref: SunPref | null
   operator: boolean
   opTool: OpTool | null
@@ -117,6 +118,7 @@ let state: SceneState = {
   sourcesOpen: false,
   seats: false,
   playing: false,
+  peek: false,
   pref: null,
   operator: false,
   opTool: null,
