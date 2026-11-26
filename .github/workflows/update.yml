@@ -41,6 +41,7 @@ jobs:
         env:
           KMA_AUTH_KEY: ${{ secrets.KMA_AUTH_KEY }}
           ASOS_DAILY_KEY: ${{ secrets.ASOS_DAILY_KEY }}
+          KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
         run: node run.ts
 
       - name: 변경된 데이터 커밋
