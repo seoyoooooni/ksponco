@@ -41,6 +41,7 @@ jobs:
         env:
           KMA_AUTH_KEY: ${{ secrets.KMA_AUTH_KEY }}
           ASOS_DAILY_KEY: ${{ secrets.ASOS_DAILY_KEY }}
+          KOPIS_KEY: ${{ secrets.KOPIS_KEY }}
         run: node run.ts
 
       - name: 변경된 데이터 커밋
@@ -60,7 +61,7 @@ jobs:
           fi
 
       - name: 실패 표시
-        if: steps.run.outcome == 'failure'
+        if: steps.run.outcome != 'success' # 시간 초과로 끊긴 경우까지 실패로 표시
         run: |
           echo "일부 대상 생성 또는 검사 실패. 위 '데이터 생성' 로그 확인"
           exit 1
