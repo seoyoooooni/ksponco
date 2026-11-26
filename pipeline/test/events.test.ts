@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mock, test } from 'node:test'
-import { buildEvents, mergeEvents, scheduleToManual, type ManualEvent } from '../clean/events.ts'
-import { venuesOf } from '../collect/olympicpark.ts'
+import { buildEvents, kopisToManual, mergeEvents, runtimeMinutes, startTimes, type ManualEvent } from '../clean/events.ts'
+import type { KopisShow } from '../collect/kopis.ts'
 
 const base = { name: 'A', venue: 'lawn88', sourceUrl: 'https://x' } as const
 const linked = {
@@ -74,46 +74,124 @@ test('note, linkedName은 출력에 없고 날짜·장소 순으로 정렬한다
   assert.ok(out.every((e) => !('note' in e) && !('linkedName' in e)))
 })
 
-const item = (evtSeq: number, plc: string, beginDt: string, endDt: string) => ({ evtSeq, title: `공연${evtSeq}`, plc, beginDt, endDt })
+const LAWN = 'FC001247-07', LAKE = 'FC001247-08', AREA = 'FC001247-12'
+const show = (id: string, places: string[], from: string, to: string, extra: Partial<KopisShow> = {}): KopisShow => ({
+  id, name: `공연${id}`, places, from, to, festival: false, guidance: '', runtime: '', ...extra,
+})
+const quiet = <T>(f: () => T) => {
+  const warn = mock.method(console, 'warn', () => {})
+  try {
+    return { out: f(), warns: warn.mock.callCount() }
+  } finally {
+    warn.mock.restore()
+  }
+}
 
-test('venuesOf: 88잔디마당, 수변무대 문자열로 장소를 가른다', () => {
-  assert.deepEqual(venuesOf('올림픽공원 88잔디마당, 티켓링크 라이브 아레나'), ['lawn88'])
-  assert.deepEqual(venuesOf('KSPO DOME, 88잔디마당, 88호수수변무대'), ['lawn88', 'lake'])
-  assert.deepEqual(venuesOf('올림픽홀'), [])
+test('startTimes: 요일 범위(주말 넘김 포함), 여러 회차는 첫·마지막, 모르는 표기는 건너뜀', () => {
+  const t = startTimes('화요일 ~ 금요일(20:00), 토요일(19:00,16:00), HOL(15:00), 일요일(9:30)')
+  assert.deepEqual([...t.keys()].sort(), [0, 2, 3, 4, 5, 6])
+  assert.deepEqual(t.get(6), { first: '16:00', last: '19:00' })
+  assert.deepEqual(t.get(0), { first: '09:30', last: '09:30' })
+  assert.deepEqual([...startTimes('금요일 ~ 월요일(12:00)').keys()].sort(), [0, 1, 5, 6])
+  assert.equal(startTimes('').size, 0)
 })
 
-test('scheduleToManual: 기간을 하루씩, 두 무대면 무대마다 펼치고 id·출처를 만든다', () => {
-  const out = scheduleToManual([item(5148, '88잔디마당, 88호수수변무대', '2026-10-17', '2026-10-18')])
+test('startTimes: 분 60 이상, 시 24 이상은 버린다(검사 실패로 갱신이 막히지 않게)', () => {
+  assert.equal(startTimes('토요일(20:60), 일요일(24:00)').size, 0)
+  assert.deepEqual(startTimes('토요일(20:60,21:00)').get(6), { first: '21:00', last: '21:00' })
+})
+
+test('runtimeMinutes: 시간·분을 분으로, 없으면 null', () => {
+  assert.equal(runtimeMinutes('8시간 30분'), 510)
+  assert.equal(runtimeMinutes('2시간'), 120)
+  assert.equal(runtimeMinutes('90분'), 90)
+  assert.equal(runtimeMinutes(' '), null)
+})
+
+test('kopisToManual: 잔디·수변 코드로 무대를 정하고, 하루씩 펼쳐 id·출처를 만든다', () => {
+  const out = kopisToManual([show('PF1', [LAWN, LAKE], '2026-10-17', '2026-10-18')])
   assert.deepEqual(out.map((e) => [e.id, e.venue, e.date]), [
-    ['20261017-5148', 'lawn88', '2026-10-17'],
-    ['20261017-5148-lake', 'lake', '2026-10-17'],
-    ['20261018-5148', 'lawn88', '2026-10-18'],
-    ['20261018-5148-lake', 'lake', '2026-10-18'],
+    ['20261017-PF1', 'lawn88', '2026-10-17'],
+    ['20261017-PF1-lake', 'lake', '2026-10-17'],
+    ['20261018-PF1', 'lawn88', '2026-10-18'],
+    ['20261018-PF1-lake', 'lake', '2026-10-18'],
   ])
-  assert.match(out[0].sourceUrl, /evtSeq=5148$/)
-  assert.ok(out.every((e) => e.start === undefined && e.end === undefined))
+  assert.match(out[0].sourceUrl, /mt20Id=PF1$/)
 })
 
-test('scheduleToManual: 다른 장소, 잘못된 날짜, 31일 초과 기간은 건너뛴다', () => {
-  const warn = mock.method(console, 'warn', () => {})
-  const out = scheduleToManual([
-    item(1, '올림픽홀', '2026-11-01', '2026-11-02'),
-    item(2, '88잔디마당', '2026-13-01', '2026-13-02'),
-    item(3, '88잔디마당', '2026-11-03', '2026-11-01'),
-    item(4, '88잔디마당', '2026-11-28', '2027-01-03'),
-    item(5, '88잔디마당', '2026-12-01', '2026-12-31'),
+test('kopisToManual: 일대는 페스티벌만 두 무대 모두에 넣고, 아니면 제외·경고', () => {
+  const { out, warns } = quiet(() =>
+    kopisToManual([show('PF1', [AREA], '2026-05-22', '2026-05-22', { festival: true }), show('PF2', [AREA], '2026-05-23', '2026-05-23')]),
+  )
+  assert.deepEqual(out.map((e) => e.id), ['20260522-PF1', '20260522-PF1-lake'])
+  assert.equal(warns, 1)
+})
+
+test('kopisToManual: 잔디 코드에도 있으면 페스티벌이 아니어도 잔디에는 넣는다', () => {
+  const { out } = quiet(() => kopisToManual([show('PF1', [LAWN, AREA], '2026-09-05', '2026-09-05')]))
+  assert.deepEqual(out.map((e) => e.venue), ['lawn88'])
+})
+
+test('kopisToManual: 제외 목록에 있으면 빼고 경고한다', () => {
+  const { out, warns } = quiet(() => kopisToManual([show('PF1', [LAWN], '2026-09-05', '2026-09-05')], [{ id: 'PF1', reason: '평화광장 공연' }]))
+  assert.deepEqual(out, [])
+  assert.equal(warns, 1)
+})
+
+test('kopisToManual: 시각은 첫 회차 ~ 마지막 회차+런타임(api), 런타임 없으면 기본 종료(default), 공연시간을 못 읽으면 비움', () => {
+  const out = kopisToManual([
+    show('PF1', [LAWN], '2026-06-20', '2026-06-21', { guidance: '토요일(14:00), 일요일(23:00)', runtime: '8시간 30분' }),
+    show('PF2', [LAKE], '2026-06-20', '2026-06-21', { guidance: '토요일(14:00), 일요일(21:30)' }),
+    show('PF3', [LAKE], '2026-06-22', '2026-06-22', { guidance: '', runtime: '2시간' }),
+    show('PF4', [LAKE], '2026-06-27', '2026-06-27', { guidance: '토요일(16:00,19:00)', runtime: '2시간' }),
   ])
-  warn.mock.restore()
-  assert.equal(warn.mock.callCount(), 3)
+  const t = (id: string) => {
+    const e = out.find((x) => x.id === id)!
+    return [e.start, e.end, e.timeSource]
+  }
+  assert.deepEqual(t('20260620-PF1'), ['14:00', '22:30', 'api'])
+  assert.deepEqual(t('20260621-PF1'), ['23:00', '24:00', 'api'])
+  assert.deepEqual(t('20260620-PF2-lake'), ['14:00', '21:00', 'default'])
+  assert.deepEqual(t('20260621-PF2-lake'), ['21:30', '24:00', 'default'])
+  assert.deepEqual(t('20260622-PF3-lake'), [undefined, undefined, undefined])
+  assert.deepEqual(t('20260627-PF4-lake'), ['16:00', '21:00', 'api'])
+})
+
+test('kopisToManual: 공연시간에 없는 요일은 공연 없는 날로 보고 빼낸다', () => {
+  // 6/5(금) ~ 6/14(일), 주말 공연 → 6/6, 6/7, 6/13, 6/14만
+  const out = kopisToManual([show('PF1', [LAWN], '2026-06-05', '2026-06-14', { guidance: '토요일 ~ 일요일(14:00)' })])
+  assert.deepEqual(out.map((e) => e.date), ['2026-06-06', '2026-06-07', '2026-06-13', '2026-06-14'])
+})
+
+test('buildEvents: api 시각은 그대로, start만 있는 항목은 default 시각', () => {
+  const [a, b] = build([
+    { ...base, id: '1', date: '2026-06-20', start: '14:00', end: '22:30', timeSource: 'api' },
+    { ...base, id: '2', date: '2026-06-21', start: '14:00', end: '21:00', timeSource: 'default' },
+  ])
+  assert.deepEqual([a.start, a.end, a.timeSource], ['14:00', '22:30', 'api'])
+  assert.deepEqual([b.start, b.end, b.timeSource], ['14:00', '21:00', 'default'])
+})
+
+test('kopisToManual: 잘못된 날짜, 31일 초과 기간은 건너뛴다', () => {
+  const { out, warns } = quiet(() =>
+    kopisToManual([
+      show('PF2', [LAWN], '2026-13-01', '2026-13-02'),
+      show('PF3', [LAWN], '2026-11-03', '2026-11-01'),
+      show('PF4', [LAWN], '2026-11-28', '2027-01-03'),
+      show('PF5', [LAWN], '2026-12-01', '2026-12-31'),
+    ]),
+  )
+  assert.equal(warns, 3)
   assert.equal(out.length, 31)
-  assert.ok(out.every((e) => e.id.includes('-5')))
+  assert.ok(out.every((e) => e.id.endsWith('-PF5')))
 })
 
-test('scheduleToManual: 항목이 있는데 펼친 결과가 0건이면 오류(날짜 형식 변경 대비)', () => {
-  const warn = mock.method(console, 'warn', () => {})
-  assert.throws(() => scheduleToManual([item(1, '88잔디마당', '2026.05.10', '2026.05.11')]), /0건/)
-  warn.mock.restore()
-  assert.deepEqual(scheduleToManual([]), [])
+test('kopisToManual: 남은 공연의 날짜를 하나도 못 읽으면 오류(날짜 형식 변경 대비), 그 외 0건은 정상', () => {
+  assert.throws(() => quiet(() => kopisToManual([show('PF1', [LAWN], '2026.05.10', '2026.05.11')])), /날짜를 하나도/)
+  assert.deepEqual(kopisToManual([]), [])
+  assert.deepEqual(quiet(() => kopisToManual([show('PF1', [AREA], '2026-05-10', '2026-05-10')])).out, []) // 전부 걸러짐
+  assert.deepEqual(quiet(() => kopisToManual([show('PF1', [LAWN], '2026-05-01', '2026-07-31')])).out, []) // 31일 초과뿐
+  assert.deepEqual(kopisToManual([show('PF1', [LAWN], '2026-06-22', '2026-06-22', { guidance: '토요일(14:00)' })]), []) // 공연 요일 아님
 })
 
 test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리는 먼저 온 것이 이기며 경고한다', () => {
@@ -128,16 +206,15 @@ test('mergeEvents: 같은 장소·날짜는 manual이 이기고, 수집분끼리
   assert.equal(warn.mock.callCount(), 1) // a3만. manual에 밀린 a1은 경고하지 않는다
 })
 
-test('긴 행사가 같은 날의 짧은 공연을 가리지 않는다(evtSeq가 더 작아도)', () => {
-  const warn = mock.method(console, 'warn', () => {})
-  const auto = scheduleToManual([item(5000, '88잔디마당 일대', '2026-09-01', '2026-09-30'), item(5144, '88잔디마당', '2026-09-05', '2026-09-06')])
-  const merged = mergeEvents([], auto)
-  warn.mock.restore()
-  assert.equal(merged.find((e) => e.date === '2026-09-05')?.id, '20260905-5144')
-  assert.equal(merged.find((e) => e.date === '2026-09-04')?.id, '20260904-5000')
+test('긴 행사가 같은 날의 짧은 공연을 가리지 않는다(id가 더 앞서도)', () => {
+  const { out: merged } = quiet(() =>
+    mergeEvents([], kopisToManual([show('PF1', [LAWN], '2026-09-01', '2026-09-30'), show('PF9', [LAWN], '2026-09-05', '2026-09-06')])),
+  )
+  assert.equal(merged.find((e) => e.date === '2026-09-05')?.id, '20260905-PF9')
+  assert.equal(merged.find((e) => e.date === '2026-09-04')?.id, '20260904-PF1')
 })
 
-test('scheduleToManual: FIRST_MONTH 이전 날짜는 버린다(2025년은 manual만)', () => {
-  const out = scheduleToManual([item(7, '88잔디마당', '2025-12-31', '2026-01-01')])
+test('kopisToManual: FIRST_MONTH 이전 날짜는 버린다(2025년은 manual만)', () => {
+  const out = kopisToManual([show('PF7', [LAWN], '2025-12-31', '2026-01-01')])
   assert.deepEqual(out.map((e) => e.date), ['2026-01-01'])
 })
