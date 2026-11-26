@@ -43,6 +43,8 @@ jobs:
       - name: 빌드
         working-directory: web
         run: npm run build
+        env:
+          VITE_KAKAO_JS_KEY: ${{ secrets.VITE_KAKAO_JS_KEY }}
 
       - uses: actions/configure-pages@v5
 
