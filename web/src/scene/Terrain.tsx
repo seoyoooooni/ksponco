@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
-import { BufferGeometry, Color, Float32BufferAttribute } from 'three'
+import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute } from 'three'
+import { SimplexNoise } from 'three/examples/jsm/math/SimplexNoise.js'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { Layout, OsmFeatures, Terrain as TerrainData, Venue, ZoneType } from '../data/types'
 import { pavedWeight, tuckedHeight } from '../lib/terrace'
@@ -65,7 +66,6 @@ type Props = {
 const RINGS = 100
 const SEGMENTS = 360
 const LIP = 0.35
-const DEPTH = 8
 
 function discGeometry(disc: Disc) {
   const pos: number[] = [disc.x, 0, disc.z]
@@ -99,7 +99,13 @@ function discGeometry(disc: Disc) {
   return g
 }
 
-function skirtGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Color[]) {
+const SOIL = 3
+const DROP = 120
+const CUT = 0.9
+const RINGS_BELOW = 14
+const ROCK_SEGMENTS = 60
+
+function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Color[]) {
   const level = venue.water ? waterLevel(terrain, venue.water) : null
   const tops: number[] = []
   const wet: boolean[] = []
@@ -112,46 +118,103 @@ function skirtGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Colo
     tops.push(inWater && level !== null ? Math.max(y, level) : y)
     wet.push(inWater)
   }
-  const bottom = Math.min(...tops) - DEPTH
+  const base = Math.min(...tops) - LIP - SOIL
+  let seed = 88
+  const noise = new SimplexNoise({
+    random: () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0
+      return seed / 4294967296
+    },
+  })
   const soilTop = new Color(sceneColors.soilTop)
   const soilBottom = new Color(sceneColors.soilBottom)
+  const rockTop = new Color(sceneColors.rockTop)
+  const rockBottom = new Color(sceneColors.rockBottom)
   const deep = new Color(sceneColors.waterDeep)
-  const pos: number[] = []
-  const col: number[] = []
-  const index: number[] = []
   const c = new Color()
+  const ring = (a: number) => [Math.cos(a), Math.sin(a)]
+  const soilY = (a: number) => base + noise.noise3d(Math.cos(a) * 2.2, Math.sin(a) * 2.2, 0.3) * 0.6
+
+  const band = { pos: [] as number[], col: [] as number[], index: [] as number[] }
+  const ROWS = 4
   for (let j = 0; j <= SEGMENTS; j++) {
     const k = j % SEGMENTS
     const a = (k / SEGMENTS) * Math.PI * 2
-    const x = disc.x + Math.cos(a) * disc.r
-    const z = disc.z + Math.sin(a) * disc.r
-    const top = tops[k]
+    const [ca, sa] = ring(a)
     const lip = wet[k] ? 1.4 : LIP
-    const rows: [number, Color][] = [
-      [top, wet[k] ? deep : rim[k]],
-      [top - lip, wet[k] ? deep : rim[k].clone().multiplyScalar(0.82)],
-      [top - lip - 0.02, soilTop],
-      [bottom, soilBottom],
-    ]
-    for (const [y, color] of rows) {
-      pos.push(x, y, z)
-      c.copy(color)
-      col.push(c.r, c.g, c.b)
+    const put = (r: number, y: number, color: Color) => {
+      band.pos.push(disc.x + ca * r, y, disc.z + sa * r)
+      band.col.push(color.r, color.g, color.b)
     }
+    put(disc.r, tops[k], wet[k] ? deep : rim[k])
+    put(disc.r, tops[k] - lip, wet[k] ? deep : c.copy(rim[k]).multiplyScalar(0.82))
+    put(disc.r, tops[k] - lip - 0.02, soilTop)
+    put(disc.r * 0.985, soilY(a), soilBottom)
   }
   for (let j = 0; j < SEGMENTS; j++) {
-    for (let r = 0; r < 3; r++) {
-      const a = j * 4 + r
-      const b = (j + 1) * 4 + r
-      index.push(a, b, a + 1, b, b + 1, a + 1)
+    for (let r = 0; r < ROWS - 1; r++) {
+      const p = j * ROWS + r
+      const q = (j + 1) * ROWS + r
+      band.index.push(p, q, p + 1, q, q + 1, p + 1)
     }
   }
-  const g = new BufferGeometry()
-  g.setAttribute('position', new Float32BufferAttribute(pos, 3))
-  g.setAttribute('color', new Float32BufferAttribute(col, 3))
-  g.setIndex(index)
-  g.computeVertexNormals()
-  return g
+
+  const rock = { pos: [] as number[], col: [] as number[], index: [] as number[] }
+  const step = SEGMENTS / ROCK_SEGMENTS
+  for (let j = 0; j <= SEGMENTS; j++) {
+    const a = ((j % SEGMENTS) / SEGMENTS) * Math.PI * 2
+    const [ca, sa] = ring(a)
+    rock.pos.push(disc.x + ca * disc.r * 0.985, soilY(a), disc.z + sa * disc.r * 0.985)
+    rock.col.push(soilBottom.r, soilBottom.g, soilBottom.b)
+  }
+  const first = rock.pos.length / 3
+  for (let i = 1; i <= RINGS_BELOW; i++) {
+    const t = (i / RINGS_BELOW) * CUT
+    for (let j = 0; j <= ROCK_SEGMENTS; j++) {
+      const a = ((j % ROCK_SEGMENTS) / ROCK_SEGMENTS) * Math.PI * 2 + (i % 2) * (Math.PI / ROCK_SEGMENTS) * 0.6
+      const [ca, sa] = ring(a)
+      const n = noise.noise3d(ca * 1.4, sa * 1.4, t * 2.6) + 0.45 * noise.noise3d(ca * 3.2, sa * 3.2, t * 6)
+      const r = disc.r * 0.97 * Math.pow(1 - t, 1.15) * (1 - 0.35 * t * t) * (1 + n * 0.2)
+      const y = base - Math.pow(t, 1.25) * DROP + n * 4 * (1 - t)
+      c.copy(rockTop).lerp(rockBottom, Math.pow(t, 0.8)).multiplyScalar(i % 2 ? 1 : 0.94)
+      if (i === 1) c.lerp(soilBottom, 0.45)
+      rock.pos.push(disc.x + ca * Math.max(0.5, r), y, disc.z + sa * Math.max(0.5, r))
+      rock.col.push(c.r, c.g, c.b)
+    }
+  }
+  const at = (i: number, j: number) => first + (i - 1) * (ROCK_SEGMENTS + 1) + j
+  for (let b = 0; b < ROCK_SEGMENTS; b++) {
+    for (let k = 0; k < step; k++) {
+      const s0 = b * step + k
+      rock.index.push(s0, s0 + 1, k < step / 2 ? at(1, b) : at(1, b + 1))
+    }
+    rock.index.push(b * step + step / 2, at(1, b + 1), at(1, b))
+  }
+  for (let i = 1; i < RINGS_BELOW; i++) {
+    for (let j = 0; j < ROCK_SEGMENTS; j++) {
+      const p = at(i, j)
+      const q = at(i, j + 1)
+      const u = at(i + 1, j)
+      const v = at(i + 1, j + 1)
+      rock.index.push(p, q, u, q, v, u)
+    }
+  }
+  const tip = rock.pos.length / 3
+  rock.pos.push(disc.x, base - Math.pow(CUT, 1.25) * DROP - 1.2, disc.z)
+  c.copy(rockBottom).multiplyScalar(0.85)
+  rock.col.push(c.r, c.g, c.b)
+  for (let j = 0; j < ROCK_SEGMENTS; j++) rock.index.push(at(RINGS_BELOW, j), at(RINGS_BELOW, j + 1), tip)
+
+  const make = (m: { pos: number[]; col: number[]; index: number[] }) => {
+    const g = new BufferGeometry()
+    g.setAttribute('position', new Float32BufferAttribute(m.pos, 3))
+    g.setAttribute('color', new Float32BufferAttribute(m.col, 3))
+    g.setIndex(m.index)
+    g.computeVertexNormals()
+    g.computeBoundingSphere()
+    return g
+  }
+  return { band: make(band), rock: make(rock) }
 }
 
 export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
@@ -200,14 +263,15 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
     return { geometry: g, rim }
   }, [terrain, layout, terrace, venue, disc, osm])
 
-  const skirt = useMemo(() => skirtGeometry(disc, terrain, venue, rim), [disc, terrain, venue, rim])
+  const skirt = useMemo(() => islandGeometry(disc, terrain, venue, rim), [disc, terrain, venue, rim])
 
   const texture = useMemo(() => grassTexture(1, 1), [])
 
   useEffect(
     () => () => {
       geometry.dispose()
-      skirt.dispose()
+      skirt.band.dispose()
+      skirt.rock.dispose()
     },
     [geometry, skirt],
   )
@@ -224,8 +288,11 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
       <mesh name="terrain" geometry={geometry} receiveShadow onClick={handleClick}>
         <meshLambertMaterial vertexColors map={texture} />
       </mesh>
-      <mesh geometry={skirt} receiveShadow raycast={() => null}>
+      <mesh geometry={skirt.band} raycast={() => null}>
         <meshLambertMaterial vertexColors />
+      </mesh>
+      <mesh geometry={skirt.rock} raycast={() => null} userData={{ noAO: true }}>
+        <meshLambertMaterial vertexColors flatShading side={DoubleSide} />
       </mesh>
       {terrace && <TerraceSteps terrace={terrace} />}
     </>
