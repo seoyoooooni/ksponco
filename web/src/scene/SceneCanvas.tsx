@@ -156,7 +156,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const canPlace = useCallback((x: number, z: number) => reason(x, z) === null, [reason])
 
   const handleMove = useCallback(
-    (p: { x: number; z: number }) => sceneStore.set({ mat: p, anchor: p, matTouched: true, notice: null }),
+    (p: { x: number; z: number }) => sceneStore.set({ mat: p, matTouched: true, notice: null }),
     [],
   )
 
@@ -164,7 +164,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
     (x: number, z: number) => {
       const why = reason(x, z)
       if (why) sceneStore.set({ notice: why })
-      else sceneStore.set({ mat: { x, z }, anchor: { x, z }, matTouched: true, notice: null })
+      else sceneStore.set({ mat: { x, z }, matTouched: true, notice: null })
     },
     [reason],
   )

@@ -10,14 +10,15 @@ import {
   sunStrip,
   viewFrom,
   type HeadIndex,
+  STEP,
   type SunState,
   type ViewResult,
 } from '../lib/analysis'
 import { buildCrowd, type Crowd } from '../lib/crowd'
 import { hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
-import { stripShade, type SunPref } from '../lib/comfort'
+import { comfort, stripShade, type SunPref } from '../lib/comfort'
 import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
-import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots, type ShadeSpot } from '../lib/shadeGrid'
+import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots } from '../lib/shadeGrid'
 import { heightAt, sourceAt } from '../lib/terrainSample'
 import { offLimits } from '../lib/offLimits'
 import { HEAVY_RAIN_MM, morningSun, pondAt, WET_RAIN_MM, wetAt, type WetReason } from '../lib/engine'
@@ -38,7 +39,6 @@ type Input = {
   date: string
   stay: [number, number]
   mat: MatPosition | null
-  anchor: MatPosition | null
   eyeHeight: number
   crowdScale: number
   seats: boolean
@@ -54,14 +54,33 @@ export type Analysis = {
   stats: AudienceStats | null
   headline: string
   estimates: string[]
-  spots: (ShadeSpot & { name: string })[]
+  verdict: string
+  suggestion: Suggestion | null
   overlay: OverlayCell[] | null
   ponds: OverlayCell[] | null
   lawnCenter: { x: number; z: number }
   notes: Note[]
 }
 
+export type Suggestion = {
+  at: { x: number; z: number } | null
+  text: string
+}
+
 const WET_OPTS = { sampleHeight: 0.5 }
+const STEADY = 0.95
+const MIN_MOVE = 4
+
+function spotVerdict(strip: SunState[], from: number, pref: SunPref): { text: string; good: boolean } {
+  const shadeShare = stripShade(strip)
+  if (shadeShare === null) return { text: '해가 진 뒤라 그늘과 볕 차이가 없어요', good: true }
+  const span = strip[strip.length - 1] === 0 ? '해 질 때까지' : '계속'
+  if (comfort(shadeShare, pref) >= STEADY) return { text: pref === 'shade' ? `지금 자리는 ${span} 그늘이에요` : `지금 자리는 ${span} 볕이 들어요`, good: true }
+  const unwanted = pref === 'shade' ? 2 : 1
+  const i = strip.findIndex((v) => v === unwanted)
+  if (i <= 0) return { text: pref === 'shade' ? '지금 자리는 볕이 들어요' : '지금 자리는 그늘이에요', good: false }
+  return { text: `${hourLabel(from + i * STEP)}부터 ${pref === 'shade' ? '볕이 들어요' : '그늘이 져요'}`, good: false }
+}
 
 function wetLine(reason: WetReason | null, mm: number, placed: boolean, pond: boolean): string {
   if (reason === 'heavy' && pond) return '물이 고여 있을 수 있는 곳이에요. 자리를 옮겨 보세요'
@@ -77,7 +96,7 @@ function shadeColor(f: number): string {
   return SHADE_COLORS[k]
 }
 
-export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, eyeHeight, crowdScale, seats, pref, sunWeight, weather }: Input): Analysis {
+export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats, pref, sunWeight, weather }: Input): Analysis {
   const { terrain, trees, buildings, venue } = bundle
   const [from, to] = stay
   const stage = layout ? (layout.stage ?? venue.fixedStage ?? null) : null
@@ -153,23 +172,25 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
     })
   }, [shade, rain, morning, blockers, scan])
 
-  const spots = useMemo(() => {
-    if (layout || !shade) return []
-    const origin = anchor ?? lawnCenter
+  const everyday = useMemo(() => {
+    if (layout || !mat) return { verdict: '', suggestion: null as Suggestion | null }
+    const here = spotVerdict(strip, from, pref)
+    if (here.good || !shade) return { verdict: here.text, suggestion: null }
     const base = pref === 'shade' ? shade : { ...shade, frac: shade.frac.map((f) => 1 - (dayShade(shade, f) ?? 1)) }
-    const want = { ...base, frac: base.frac.map((f, k) => (blocked[k] || wetCells?.[k] ? 0 : f)) }
-    const suffix = pref === 'shade' ? '나무 그늘' : '양지'
-    const picks = shadeSpots(want, origin).map((s) => ({ ...s, name: `${directionName(lawnCenter, s)} ${suffix}` }))
-    const sides = ['서편', '가운데', '동편']
-    for (const name of new Set(picks.map((s) => s.name))) {
-      const same = picks.filter((s) => s.name === name).sort((a, b) => a.x - b.x)
-      if (same.length < 2) continue
-      same.forEach((s, i) => {
-        s.name = `${name} · ${same.length === 2 ? sides[i * 2] : sides[i]}`
-      })
+    const want = {
+      ...base,
+      frac: base.frac.map((f, k) => {
+        if (blocked[k] || wetCells?.[k]) return 0
+        const x = shade.x0 + ((k % shade.nx) + 0.5) * shade.cell
+        const z = shade.z0 + (Math.floor(k / shade.nx) + 0.5) * shade.cell
+        return Math.hypot(x - mat.x, z - mat.z) < MIN_MOVE ? 0 : f
+      }),
     }
-    return picks
-  }, [layout, shade, anchor, lawnCenter, pref, blocked, wetCells])
+    const pick = shadeSpots(want, mat, 1)[0]
+    const kind = pref === 'shade' ? '계속 그늘인' : '계속 볕 드는'
+    if (!pick) return { verdict: here.text, suggestion: { at: null, text: `근처에 ${kind} 자리가 없어요` } }
+    return { verdict: here.text, suggestion: { at: { x: pick.x, z: pick.z }, text: `${directionName(mat, pick)} ${Math.round(pick.distance)}m에 ${kind} 자리가 있어요` } }
+  }, [layout, mat, strip, from, pref, shade, blocked, wetCells])
 
   const overlay = useMemo<OverlayCell[] | null>(() => {
     if (!layout && shade) {
@@ -232,5 +253,5 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
   else if (weather?.sky === '구름많음') notes.push({ kind: 'cloud', text: '구름이 많아 볕이 약할 수 있어요' })
   if (rain >= WET_RAIN_MM) notes.push({ kind: 'wet', text: wetLine(wetHere, rain, Boolean(mat), pondHere) })
 
-  return { crowd, view, strip, stats, headline, estimates, spots, overlay, ponds, lawnCenter, notes }
+  return { crowd, view, strip, stats, headline, estimates, verdict: everyday.verdict, suggestion: everyday.suggestion, overlay, ponds, lawnCenter, notes }
 }

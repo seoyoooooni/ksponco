@@ -1,25 +1,20 @@
 import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
-import { EyeIcon } from '../../ui/icons'
+import { EyeIcon, MatIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
 import type { SunPref } from '../../lib/comfort'
 import { Notes, type Note } from '../../ui/Notes'
 
-export type SpotItem = {
-  label: string
-  selected: boolean
-}
-
 type Props = {
   snap: SheetSnap
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   closure: { title: string; sub: string } | null
-  spots: SpotItem[]
-  onSpot: (i: number) => void
+  suggestion: { text: string; canMove: boolean } | null
+  onMove: () => void
   duration: number | 'custom'
   onDuration: (h: number) => void
   stay: [number, number]
@@ -87,20 +82,16 @@ export function EverydaySheet(p: Props) {
         ]}
         onChange={p.onPref}
       />
-      <div className="headline-row">
-        <h1 className="headline">{p.headline}</h1>
-        {p.spots.length > 0 && (
-          <div className="spot-btns" role="group" aria-label="추천 자리">
-            {p.spots.map((s, i) => (
-              <button key={i} type="button" className="spot-btn" aria-pressed={s.selected} aria-label={`${i + 1}번 추천 자리로 옮기기, ${s.label}`} onClick={() => p.onSpot(i)}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {p.spots.length === 0 && (
-        <p className="plain-line">{p.pref === 'shade' ? '이 시간엔 계속 그늘인 곳이 없어요. 시간을 바꿔 보세요.' : '이 시간엔 계속 볕이 드는 곳이 없어요. 시간을 바꿔 보세요.'}</p>
+      <h1 className="headline">{p.headline}</h1>
+      {p.suggestion && (
+        <div className="suggest">
+          <p className="suggest__text">{p.suggestion.text}</p>
+          {p.suggestion.canMove && (
+            <PillButton variant="primary" className="suggest__btn" icon={<MatIcon size={16} />} onClick={p.onMove}>
+              옮기기
+            </PillButton>
+          )}
+        </div>
       )}
       <Notes notes={p.notes} />
       <Toggle
