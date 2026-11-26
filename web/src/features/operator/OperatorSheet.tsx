@@ -4,6 +4,7 @@ import { PillButton } from '../../ui/Buttons'
 import { TentIcon } from '../../ui/icons'
 import { Toggle } from '../../ui/Toggle'
 import type { OperatorResult, Variant } from '../../lib/operator'
+import type { OpLayer } from '../../store/sceneStore'
 
 export type PlanCounts = { tents: number; zones: number; palms: number }
 
@@ -27,8 +28,49 @@ type Props = {
   busy: boolean
   canCopy: boolean
   onCopy: () => void
+  canClear: boolean
+  onClear: () => void
+  layers: OpLayer[]
+  onLayers: (v: OpLayer[]) => void
   onSuggest: () => void
 }
+
+export const LAYER_COLOR: Record<OpLayer, string> = { shade: '#3f9a6e', blocked: '#e2574c', wet: '#7fa6c6' }
+export const BOTH_COLOR = '#e8a13a'
+
+const LAYER_LABEL: Record<OpLayer, string> = { shade: '그늘 생김', blocked: '무대 가림', wet: '젖은 바닥' }
+
+function LayerPicker({ layers, onLayers, wet }: { layers: OpLayer[]; onLayers: (v: OpLayer[]) => void; wet: boolean }) {
+  const all: OpLayer[] = wet ? ['shade', 'blocked', 'wet'] : ['shade', 'blocked']
+  const flip = (l: OpLayer) => onLayers(layers.includes(l) ? layers.filter((x) => x !== l) : [...layers, l])
+  return (
+    <div className="op-layers">
+      <span className="op-layers__label">지도에 표시</span>
+      <div className="op-layers__chips" role="group" aria-label="지도에 표시">
+        {all.map((l) => (
+          <button key={l} type="button" className="op-chip" aria-pressed={layers.includes(l)} onClick={() => flip(l)}>
+            <i style={{ background: LAYER_COLOR[l] }} />
+            {LAYER_LABEL[l]}
+          </button>
+        ))}
+      </div>
+      {layers.includes('shade') && layers.includes('blocked') && (
+        <span className="op-layers__both">
+          <i style={{ background: BOTH_COLOR }} />
+          그늘은 생기지만 무대가 가려지는 자리
+        </span>
+      )}
+    </div>
+  )
+}
+
+const HELP: [string, string][] = [
+  ['상한', '피크닉·스탠딩 구역 넓이에 밀도를 곱한 최대 인원이에요. 출입 금지 구역은 빼고 계산해요.'],
+  ['그늘 더 얻는 관객', '머무는 시간 중 그늘에 있는 비율이 그늘막 덕분에 25%p 이상 늘어나는 자리의 인원이에요.'],
+  ['무대 가림', '그늘막 때문에 공연자가 보이는 비율이 20%p 이상 줄어드는 자리의 인원이에요.'],
+  ['젖은 바닥 관객', '전날 비가 아침 햇볕으로 덜 마를 것 같은 자리의 인원이에요. 야자매트를 깐 곳은 빼요.'],
+  ['추천 위치', '그늘을 얻는 사람은 늘리고, 무대가 가려지는 사람은 두 배로 감점해서 고른 자리예요.'],
+]
 
 const num = (n: number) => n.toLocaleString('ko-KR')
 
@@ -38,7 +80,14 @@ function room(r: OperatorResult | null, sold: number | null): string {
   return d > 0 ? `${num(d)}명 초과` : `${num(-d)}명 여유`
 }
 
-type Row = { label: string; a: number | null; b: number | null; better: 'high' | 'low' | null; text?: [string, string] }
+type Row = { label: string; a: number | null; b: number | null; better: 'high' | 'low' | null; text?: [string, string]; unit?: string }
+
+function diffText(row: Row): string {
+  if (row.a === null || row.b === null) return '—'
+  const d = row.b - row.a
+  if (d === 0) return '같음'
+  return `${d > 0 ? '+' : '−'}${num(Math.abs(d))}${row.unit ?? '명'}`
+}
 
 function CompareTable(p: Props) {
   const { resultA: a, resultB: b } = p
@@ -49,9 +98,9 @@ function CompareTable(p: Props) {
     { label: '무대 가림', a: a?.blocked ?? null, b: b?.blocked ?? null, better: 'low' },
   ]
   if (p.wetText) rows.push({ label: '젖은 바닥 관객', a: a?.wetPeople ?? null, b: b?.wetPeople ?? null, better: 'low' })
-  rows.push({ label: '그늘막', a: p.countsA.tents, b: p.countsB.tents, better: null, text: [`${p.countsA.tents}개`, `${p.countsB.tents}개`] })
-  rows.push({ label: '출입 금지 구역', a: p.countsA.zones, b: p.countsB.zones, better: null, text: [`${p.countsA.zones}개`, `${p.countsB.zones}개`] })
-  if (p.wetText) rows.push({ label: '야자매트', a: p.countsA.palms, b: p.countsB.palms, better: null, text: [`${p.countsA.palms}곳`, `${p.countsB.palms}곳`] })
+  rows.push({ label: '그늘막', a: p.countsA.tents, b: p.countsB.tents, better: null, text: [`${p.countsA.tents}개`, `${p.countsB.tents}개`], unit: '개' })
+  rows.push({ label: '출입 금지 구역', a: p.countsA.zones, b: p.countsB.zones, better: null, text: [`${p.countsA.zones}개`, `${p.countsB.zones}개`], unit: '개' })
+  if (p.wetText) rows.push({ label: '야자매트', a: p.countsA.palms, b: p.countsB.palms, better: null, text: [`${p.countsA.palms}곳`, `${p.countsB.palms}곳`], unit: '곳' })
 
   const cell = (row: Row, side: 'a' | 'b') => {
     const v = row[side]
@@ -70,6 +119,7 @@ function CompareTable(p: Props) {
           </th>
           <th scope="col">A안</th>
           <th scope="col">B안</th>
+          <th scope="col">B−A</th>
         </tr>
       </thead>
       <tbody>
@@ -78,6 +128,7 @@ function CompareTable(p: Props) {
             <th scope="row">{row.label}</th>
             {cell(row, 'a')}
             {cell(row, 'b')}
+            <td className="op-compare__diff">{diffText(row)}</td>
           </tr>
         ))}
       </tbody>
@@ -155,16 +206,38 @@ export function OperatorSheet(p: Props) {
             그늘막 {p.counts.tents}개 · 출입 금지 구역 {p.counts.zones}개{p.wetText ? ` · 야자매트 ${p.counts.palms}곳` : ''} · {p.rangeText} 기준
           </p>
           {p.wetText && <p className="plain-line">{p.wetText}</p>}
+          <LayerPicker layers={p.layers} onLayers={p.onLayers} wet={Boolean(p.wetText)} />
           {p.canCopy && (
             <PillButton variant="soft" style={{ height: 48 }} onClick={p.onCopy}>
               A안 그대로 복사해서 시작
             </PillButton>
           )}
-          <PillButton variant="primary" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion} onClick={p.onSuggest}>
-            {r?.suggestion ? '추천 위치에 그늘막 놓기' : p.busy ? '계산하는 중…' : '더 놓을 추천 위치가 없어요'}
+          {r?.suggestion && !p.busy && (
+            <p className="plain-line op-suggest-note">
+              놓으면 그늘 +{num(r.suggestion.shade)}명 · 무대 가림 +{num(r.suggestion.blocked)}명
+            </p>
+          )}
+          <PillButton variant="primary" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion || p.busy} onClick={p.onSuggest}>
+            {p.busy ? '계산하는 중…' : r?.suggestion ? '추천 위치에 그늘막 놓기' : '더 놓을 추천 위치가 없어요'}
           </PillButton>
+          {p.canClear && (
+            <button type="button" className="op-clear" onClick={p.onClear}>
+              {p.view}안 비우기
+            </button>
+          )}
         </>
       )}
+      <details className="op-help">
+        <summary>숫자는 이렇게 계산해요</summary>
+        <dl>
+          {HELP.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
       <p className="op-note">참고 추정치 · 안전 기준은 따로 확인하세요</p>
     </BottomSheet>
   )

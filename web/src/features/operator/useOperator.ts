@@ -11,12 +11,12 @@ export type PlanInput = {
   suggest: boolean
 }
 
-let worker: Worker | null = null
+const WAIT = 250
+
 let seq = 0
 
-function getWorker(): Worker {
-  if (!worker) worker = new Worker(new URL('../../worker/operator.worker.ts', import.meta.url), { type: 'module' })
-  return worker
+function spawn(): Worker {
+  return new Worker(new URL('../../worker/operator.worker.ts', import.meta.url), { type: 'module' })
 }
 
 export function useOperator(args: {
@@ -31,53 +31,71 @@ export function useOperator(args: {
   const { on, bundle, baseLayout, plans, wet, date, stay } = args
   const { terrain, trees, buildings, venue } = bundle
   const [results, setResults] = useState<Record<string, OperatorResult>>({})
-  const [pending, setPending] = useState(0)
-  const latest = useRef<Record<string, number>>({})
+  const [busy, setBusy] = useState(false)
+  const worker = useRef<Worker | null>(null)
+  const waiting = useRef(new Set<number>())
+  const timer = useRef<number | undefined>(undefined)
 
-  useEffect(() => {
-    const w = getWorker()
-    const onMessage = (e: MessageEvent<{ id: number; key: string; result: OperatorResult }>) => {
-      const { id, key, result } = e.data
-      if (latest.current[key] !== id) return
-      setResults((r) => ({ ...r, [key]: result }))
-      setPending((n) => Math.max(0, n - 1))
-    }
-    w.addEventListener('message', onMessage)
-    return () => w.removeEventListener('message', onMessage)
-  }, [])
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current)
+      worker.current?.terminate()
+      worker.current = null
+      waiting.current.clear()
+    },
+    [],
+  )
 
   const signature = JSON.stringify(plans)
   useEffect(() => {
-    if (!on || !baseLayout) return
-    const w = getWorker()
-    const stage = baseLayout.stage ?? venue.fixedStage ?? null
-    let sent = 0
-    for (const plan of plans) {
-      const id = ++seq
-      latest.current[plan.key] = id
-      sent++
-      w.postMessage({
-        id,
-        key: plan.key,
-        args: {
-          layout: withClosed(baseLayout, plan.closed),
-          stage,
-          terrain,
-          trees,
-          buildings,
-          venue,
-          tents: plan.tents,
-          palms: plan.palms,
-          wet,
-          date,
-          from: stay[0],
-          to: stay[1],
-          suggest: plan.suggest,
-        },
-      })
+    window.clearTimeout(timer.current)
+    if (!on || !baseLayout) {
+      setBusy(false)
+      return
     }
-    setPending(sent)
+    setBusy(true)
+    const stage = baseLayout.stage ?? venue.fixedStage ?? null
+    timer.current = window.setTimeout(() => {
+      if (waiting.current.size && worker.current) {
+        worker.current.terminate()
+        worker.current = null
+      }
+      waiting.current.clear()
+      if (!worker.current) {
+        const w = spawn()
+        w.onmessage = (e: MessageEvent<{ id: number; key: string; result: OperatorResult }>) => {
+          const { id, key, result } = e.data
+          if (!waiting.current.delete(id)) return
+          setResults((r) => ({ ...r, [key]: result }))
+          if (waiting.current.size === 0) setBusy(false)
+        }
+        worker.current = w
+      }
+      for (const plan of plans) {
+        const id = ++seq
+        waiting.current.add(id)
+        worker.current.postMessage({
+          id,
+          key: plan.key,
+          args: {
+            layout: withClosed(baseLayout, plan.closed),
+            stage,
+            terrain,
+            trees,
+            buildings,
+            venue,
+            tents: plan.tents,
+            palms: plan.palms,
+            wet,
+            date,
+            from: stay[0],
+            to: stay[1],
+            suggest: plan.suggest,
+          },
+        })
+      }
+    }, WAIT)
   }, [on, baseLayout, venue, terrain, trees, buildings, signature, wet?.mm, wet === null, date, stay[0], stay[1]])
 
-  return { results, busy: pending > 0 }
+  return { results, busy }
 }

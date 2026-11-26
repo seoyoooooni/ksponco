@@ -46,8 +46,12 @@ type Props = {
     palms: ClosedArea[]
     suggestion: { x: number; z: number } | null
     zoneStart: Vec2 | null
+    draft: 'zone' | 'palm' | null
     onPick: (x: number, z: number) => void
+    onHover?: (x: number, z: number) => void
     onTent?: (id: number) => void
+    canMove?: (id: number, x: number, z: number) => boolean
+    onMove?: (id: number, x: number, z: number) => void
   }
 }
 
@@ -191,7 +195,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <fog attach="fog" args={[sceneColors.fog, 260, 700]} />
       <SunLight center={center} radius={radius} />
 
-      <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} />
+      <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} onHover={operator?.onHover} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
       {venue.water && <Waterfall poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
@@ -219,7 +223,19 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={watching ? 0.12 : layout ? 0.9 : 0.62} />}
       {suggestion && onSuggestion && camera === 'orbit' && <SuggestStar position={suggestion} terrain={terrain} onTake={onSuggestion} />}
 
-      {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
+      {operator && (
+        <Tents
+          tents={operator.tents}
+          palms={operator.palms}
+          suggestion={operator.suggestion}
+          zoneStart={operator.zoneStart}
+          draft={operator.draft}
+          terrain={terrain}
+          onTent={operator.onTent}
+          canMove={operator.canMove}
+          onMove={operator.onMove}
+        />
+      )}
 
       {mat && !operator && (
         <MyMat

@@ -219,3 +219,10 @@ export const MatIcon = (p: IconProps) => (
     <path d="M7 7v10M11 7v10M15 7v10M19 7v10" />
   </Svg>
 )
+
+export const UndoIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M9 14 4 9l5-5" />
+    <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  </Svg>
+)

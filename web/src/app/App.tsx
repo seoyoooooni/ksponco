@@ -12,8 +12,9 @@ import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { offLimits } from '../lib/offLimits'
 import { sourceAt } from '../lib/terrainSample'
-import { planKey, rectPoly, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
-import { OperatorSheet } from '../features/operator/OperatorSheet'
+import { planKey, rectPoly, rectProblem, tentProblem, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
+import { clearPlan, editPlan, planSize, undoPlan } from '../features/operator/planEdit'
+import { BOTH_COLOR, LAYER_COLOR, OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
 import { PillButton } from '../ui/Buttons'
@@ -21,7 +22,7 @@ import { CloseIcon, PlayIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
 import { WET_RAIN_MM } from '../lib/engine'
 import { SceneCanvas } from '../scene/SceneCanvas'
-import { sceneStore, TODAY, useScene } from '../store/sceneStore'
+import { sceneStore, TODAY, useScene, type OpLayer } from '../store/sceneStore'
 import type { SheetSnap } from '../ui/BottomSheet'
 import { SearchBar } from '../ui/SearchBar'
 import { Toast } from '../ui/Toast'
@@ -175,6 +176,8 @@ function Main({ ready }: { ready: Base }) {
   const closedAreas = useMemo(() => pick(allClosed, plan), [allClosed, plan])
   const palms = useMemo(() => pick(allPalms, plan), [allPalms, plan])
   const zoneStart = useScene((s) => s.zoneStart)
+  const canUndo = useScene((s) => (s.opHistory[planKey(s.venue, s.date, s.variant)]?.length ?? 0) > 0)
+  const chosenLayers = useScene((s) => s.opLayers)
   const soldMap = useScene((s) => s.sold)
   const soldKey = `${venue}|${date}`
 
@@ -228,6 +231,24 @@ function Main({ ready }: { ready: Base }) {
   const op = useOperator({ on: operator, bundle: ready.bundle, baseLayout, plans: planInputs, wet, date, stay })
   const opResult = compare ? null : (op.results[plan] ?? null)
   const countsOf = (key: string) => ({ tents: pick(allTents, key).length, zones: pick(allClosed, key).length, palms: pick(allPalms, key).length })
+  const layers: OpLayer[] = (chosenLayers ?? ['shade', 'blocked', 'wet']).filter((l) => l !== 'wet' || wet !== null)
+  const opOverlay = useMemo(() => {
+    if (!opResult) return undefined
+    const cells = new Map<string, { x: number; z: number; size: number; color: string }>()
+    const paint = (list: { x: number; z: number }[], layer: OpLayer) => {
+      if (!layers.includes(layer)) return
+      for (const c of list) {
+        const key = `${c.x},${c.z}`
+        const before = cells.get(key)
+        const both = before && ((layer === 'blocked' && before.color === LAYER_COLOR.shade) || (layer === 'shade' && before.color === LAYER_COLOR.blocked))
+        cells.set(key, { x: c.x, z: c.z, size: 4, color: both ? BOTH_COLOR : LAYER_COLOR[layer] })
+      }
+    }
+    paint(opResult.wetCells, 'wet')
+    paint(opResult.shadeCells, 'shade')
+    paint(opResult.blockedCells, 'blocked')
+    return cells.size ? [...cells.values()] : undefined
+  }, [opResult, layers.join()])
 
   useEffect(() => {
     if (!layoutReady) return
@@ -301,41 +322,74 @@ function Main({ ready }: { ready: Base }) {
   const mode = operator ? 'operator' : event ? 'event' : 'everyday'
   const steps = useMemo(() => tourSteps(mode === 'event'), [mode])
 
+  const opStage = baseLayout?.stage ?? ready.bundle.venue.fixedStage ?? null
+  const tentWhy = (x: number, z: number, ignore?: number) => tentProblem(layout, opStage, ready.bundle.venue, sceneStore.get().tents.filter((t) => t.plan === plan), x, z, ignore)
+
   const pickOperator = (x: number, z: number) => {
     const s = sceneStore.get()
     if (s.opTool === 'tent') {
-      sceneStore.set({ tents: [...s.tents, { id: s.nextId, plan, x, z }], nextId: s.nextId + 1 })
-    } else if (s.opTool === 'zone') {
-      if (!s.zoneStart) sceneStore.set({ zoneStart: [x, z], notice: '반대쪽 꼭짓점을 눌러 주세요' })
-      else {
-        sceneStore.set({ closed: [...s.closed, { id: s.nextId, plan, poly: rectPoly(s.zoneStart, [x, z]) }], nextId: s.nextId + 1, zoneStart: null, notice: null })
-      }
-    } else if (s.opTool === 'palm') {
-      if (!s.zoneStart) sceneStore.set({ zoneStart: [x, z], notice: '반대쪽 꼭짓점을 눌러 주세요' })
-      else {
-        sceneStore.set({ palms: [...s.palms, { id: s.nextId, plan, poly: rectPoly(s.zoneStart, [x, z]) }], nextId: s.nextId + 1, zoneStart: null, notice: null })
-      }
+      const why = tentWhy(x, z)
+      if (why) return sceneStore.set({ notice: why })
+      editPlan(plan, (s) => ({ tents: [...s.tents, { id: s.nextId, plan, x, z }], nextId: s.nextId + 1, notice: null }))
+    } else if (s.opTool === 'zone' || s.opTool === 'palm') {
+      if (!s.zoneStart) return sceneStore.set({ zoneStart: [x, z], opHover: null, notice: '반대쪽 꼭짓점을 눌러 주세요' })
+      const why = rectProblem(s.zoneStart, [x, z])
+      if (why) return sceneStore.set({ notice: why })
+      const poly = rectPoly(s.zoneStart, [x, z])
+      const asZone = s.opTool === 'zone'
+      editPlan(plan, (s) => {
+        const item = { id: s.nextId, plan, poly }
+        return { ...(asZone ? { closed: [...s.closed, item] } : { palms: [...s.palms, item] }), nextId: s.nextId + 1, zoneStart: null, opHover: null, notice: null }
+      })
     } else if (s.opTool === 'erase') {
       const inArea = (c: ClosedArea) => c.plan === plan && zoneAt([{ type: 'closed', poly: c.poly }], x, z)
-      const tent = s.tents.find((t) => t.plan === plan && Math.hypot(t.x - x, t.z - z) < 4)
+      const tent = s.tents.find((t) => t.plan === plan && Math.abs(t.x - x) < 3 && Math.abs(t.z - z) < 3)
       const palm = s.palms.find(inArea)
       const area = s.closed.find(inArea)
-      if (tent) sceneStore.set({ tents: s.tents.filter((t) => t !== tent) })
-      else if (palm) sceneStore.set({ palms: s.palms.filter((c) => c !== palm) })
-      else if (area) sceneStore.set({ closed: s.closed.filter((c) => c !== area) })
+      if (tent) editPlan(plan, (s) => ({ tents: s.tents.filter((t) => t !== tent) }))
+      else if (palm) editPlan(plan, (s) => ({ palms: s.palms.filter((c) => c !== palm) }))
+      else if (area) editPlan(plan, (s) => ({ closed: s.closed.filter((c) => c !== area) }))
+      else sceneStore.set({ notice: '지울 게 없는 곳이에요' })
     } else {
-      sceneStore.set({ notice: '왼쪽 도구를 먼저 골라 주세요' })
+      sceneStore.set({ notice: '도구를 먼저 골라 주세요' })
     }
   }
 
-  const TOOL_HINT = { tent: '잔디를 눌러 그늘막을 놓으세요', zone: '출입 금지 구역의 한쪽 꼭짓점을 눌러 주세요', palm: '야자매트를 깔 곳의 한쪽 꼭짓점을 눌러 주세요', erase: '지울 그늘막·구역·매트를 눌러 주세요' } as const
+  const eraseTent = (id: number) => editPlan(plan, (s) => ({ tents: s.tents.filter((t) => t.id !== id) }))
+  const moveTent = (id: number, x: number, z: number) => editPlan(plan, (s) => ({ tents: s.tents.map((t) => (t.id === id ? { ...t, x, z } : t)) }))
+  const undo = () => {
+    if (!undoPlan(plan)) sceneStore.set({ notice: '되돌릴 게 없어요' })
+  }
+  const clear = () => {
+    clearPlan(plan)
+    sceneStore.set({ notice: `${variant}안을 비웠어요 · 되돌리기로 살릴 수 있어요` })
+  }
+
+  useEffect(() => {
+    if (!operator || compare) return
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        undo()
+      } else if (e.key === 'Escape' && sceneStore.get().zoneStart) {
+        sceneStore.set({ zoneStart: null, opHover: null, notice: null })
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [operator, compare, plan])
+
+  const TOOL_HINT = { tent: '잔디를 눌러 그늘막을 놓으세요 · 놓은 건 끌어서 옮겨요', zone: '출입 금지 구역의 한쪽 꼭짓점을 눌러 주세요', palm: '야자매트를 깔 곳의 한쪽 꼭짓점을 눌러 주세요', erase: '지울 그늘막·구역·매트를 눌러 주세요' } as const
   const copyAtoB = () => {
-    const s = sceneStore.get()
-    let id = s.nextId
-    const tentsB: Tent[] = s.tents.filter((t) => t.plan === planA).map((t) => ({ ...t, id: id++, plan: planB }))
-    const closedB = s.closed.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
-    const palmsB = s.palms.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
-    sceneStore.set({ tents: [...s.tents, ...tentsB], closed: [...s.closed, ...closedB], palms: [...s.palms, ...palmsB], nextId: id })
+    editPlan(planB, (s) => {
+      let id = s.nextId
+      const tentsB: Tent[] = s.tents.filter((t) => t.plan === planA).map((t) => ({ ...t, id: id++, plan: planB }))
+      const closedB = s.closed.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
+      const palmsB = s.palms.filter((c) => c.plan === planA).map((c) => ({ ...c, id: id++, plan: planB }))
+      return { tents: [...s.tents, ...tentsB], closed: [...s.closed, ...closedB], palms: [...s.palms, ...palmsB], nextId: id }
+    })
   }
   const firstPerson = camera === 'firstPerson'
   const suggestedAt = mode === 'everyday' && !closure ? (analysis.suggestion?.at ?? null) : null
@@ -372,9 +426,24 @@ function Main({ ready }: { ready: Base }) {
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
         suggestion={suggestedAt}
         onSuggestion={takeSuggestion}
-        overlayOverride={operator && opResult && opResult.wetCells.length ? opResult.wetCells.map((c) => ({ ...c, size: 4, color: '#7fa6c6' })) : undefined}
+        overlayOverride={operator ? opOverlay : undefined}
         ponds={mode !== 'operator' && !closure ? analysis.ponds : null}
-        operator={operator ? { tents, palms, suggestion: opResult?.suggestion ?? null, zoneStart, onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator, onTent: opTool === 'erase' ? (id) => sceneStore.set({ tents: sceneStore.get().tents.filter((t) => t.id !== id) }) : undefined } : undefined}
+        operator={
+          operator
+            ? {
+                tents,
+                palms,
+                suggestion: opResult?.suggestion ?? null,
+                zoneStart,
+                draft: !compare && (opTool === 'zone' || opTool === 'palm') ? opTool : null,
+                onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator,
+                onHover: !compare && zoneStart ? (x, z) => sceneStore.set({ opHover: [x, z] }) : undefined,
+                onTent: !compare && opTool === 'erase' ? eraseTent : undefined,
+                canMove: !compare && (opTool === 'tent' || opTool === null) ? (id, x, z) => tentWhy(x, z, id) === null : undefined,
+                onMove: !compare && (opTool === 'tent' || opTool === null) ? moveTent : undefined,
+              }
+            : undefined
+        }
       />
 
       {firstPerson ? (
@@ -423,7 +492,9 @@ function Main({ ready }: { ready: Base }) {
             <OperatorTools
               tool={opTool}
               wet={wet !== null}
-              onTool={(t) => sceneStore.set({ opTool: t, zoneStart: null, notice: t ? TOOL_HINT[t] : null })}
+              onTool={(t) => sceneStore.set({ opTool: t, zoneStart: null, opHover: null, notice: t ? TOOL_HINT[t] : null })}
+              canUndo={canUndo}
+              onUndo={undo}
             />
           )}
           {mode !== 'operator' && !closure && !(mode === 'event' && seats) && analysis.ponds && <Legend kind="ponds" />}
@@ -444,7 +515,7 @@ function Main({ ready }: { ready: Base }) {
             <OperatorSheet
               onVisibleHeight={setSheetH}
               view={compare ? 'compare' : variant}
-              onView={(v) => sceneStore.set(v === 'compare' ? { compare: true, opTool: null, zoneStart: null } : { compare: false, variant: v, zoneStart: null })}
+              onView={(v) => sceneStore.set(v === 'compare' ? { compare: true, opTool: null, zoneStart: null, opHover: null } : { compare: false, variant: v, zoneStart: null, opHover: null })}
               result={opResult}
               resultA={op.results[planA] ?? null}
               resultB={op.results[planB] ?? null}
@@ -461,11 +532,15 @@ function Main({ ready }: { ready: Base }) {
               rangeText={rangeLabel(stay[0], stay[1])}
               wetText={wetText}
               busy={op.busy}
-              canCopy={variant === 'B' && countsOf(planB).tents + countsOf(planB).zones + countsOf(planB).palms === 0 && countsOf(planA).tents + countsOf(planA).zones + countsOf(planA).palms > 0}
+              canCopy={variant === 'B' && planSize(sceneStore.get(), planB) === 0 && planSize(sceneStore.get(), planA) > 0}
               onCopy={copyAtoB}
+              canClear={planSize(sceneStore.get(), plan) > 0}
+              onClear={clear}
+              layers={layers}
+              onLayers={(v) => sceneStore.set({ opLayers: v })}
               onSuggest={() => {
-                const s = sceneStore.get()
-                if (opResult?.suggestion) sceneStore.set({ tents: [...s.tents, { id: s.nextId, plan, ...opResult.suggestion }], nextId: s.nextId + 1 })
+                const at = opResult?.suggestion
+                if (at && !tentWhy(at.x, at.z)) editPlan(plan, (s) => ({ tents: [...s.tents, { id: s.nextId, plan, x: at.x, z: at.z }], nextId: s.nextId + 1 }))
               }}
             />
           ) : mode === 'event' ? (

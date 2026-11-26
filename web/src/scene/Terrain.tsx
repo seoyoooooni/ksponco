@@ -61,6 +61,7 @@ type Props = {
   osm: OsmFeatures | null
   layout: Layout | null
   onPick?: (x: number, z: number) => void
+  onHover?: (x: number, z: number) => void
 }
 
 const RINGS = 100
@@ -241,7 +242,7 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
   return { band: make(band), rock: make(rock) }
 }
 
-export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
+export function Terrain({ terrain, venue, osm, layout, onPick, onHover }: Props) {
   const terrace = terrain.terrace ?? null
   const disc = useMemo(() => discOf(terrain), [terrain])
 
@@ -311,9 +312,13 @@ export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
     onPick(e.point.x, e.point.z)
   }
 
+  const handleMove = (e: ThreeEvent<PointerEvent>) => {
+    if (onHover) onHover(e.point.x, e.point.z)
+  }
+
   return (
     <>
-      <mesh name="terrain" geometry={geometry} receiveShadow onClick={handleClick}>
+      <mesh name="terrain" geometry={geometry} receiveShadow onClick={handleClick} onPointerMove={onHover ? handleMove : undefined}>
         <meshLambertMaterial vertexColors map={texture} />
       </mesh>
       <mesh geometry={skirt.band} raycast={() => null}>

@@ -13,6 +13,7 @@ import {
   type Vec3,
 } from './analysis'
 import { morningSun, wetAt, type Canopy } from './engine'
+import { onStage } from './offLimits'
 import { bounds, pointInPolygon, zoneAt } from './polygon'
 import { sunPosition } from './sun'
 import { heightAt } from './terrainSample'
@@ -23,6 +24,13 @@ const SHADE_GAIN = 0.25
 const VIEW_LOSS = 0.2
 const CELL = 4
 const REACH = 30
+export const MIN_SIDE = 2
+
+const TENT_BLOCKED: Record<string, string> = {
+  aisle: '통로에는 그늘막을 놓을 수 없어요',
+  booth: '부스 자리에는 그늘막을 놓을 수 없어요',
+  closed: '출입 금지 구역에는 그늘막을 놓을 수 없어요',
+}
 
 export type Tent = { id: number; plan: string; x: number; z: number }
 
@@ -41,6 +49,37 @@ export function tentShape(t: { x: number; z: number }): Canopy {
 export function withClosed(layout: Layout, closed: ClosedArea[]): Layout {
   if (closed.length === 0) return layout
   return { ...layout, zones: [...layout.zones, ...closed.map((c) => ({ type: 'closed' as const, poly: c.poly }))] }
+}
+
+export function tentProblem(
+  layout: Layout | null,
+  stage: StageSpec | null,
+  venue: Venue,
+  tents: Tent[],
+  x: number,
+  z: number,
+  ignore?: number,
+): string | null {
+  const h = TENT_SIZE / 2 - 0.3
+  const corners: Vec2[] = [[x, z], [x - h, z - h], [x + h, z - h], [x - h, z + h], [x + h, z + h]]
+  for (const [px, pz] of corners) {
+    if (stage && onStage(stage, px, pz)) return '무대 위에는 그늘막을 놓을 수 없어요'
+    if (venue.fixedStage && venue.fixedStage !== stage && onStage(venue.fixedStage, px, pz)) return '무대 위에는 그늘막을 놓을 수 없어요'
+    if (venue.water && pointInPolygon(px, pz, venue.water)) return '호수에는 그늘막을 놓을 수 없어요'
+    const zone = layout ? zoneAt(layout.zones, px, pz) : null
+    if (zone && TENT_BLOCKED[zone.type]) return TENT_BLOCKED[zone.type]
+  }
+  if (layout) {
+    const zone = zoneAt(layout.zones, x, z)
+    if (!zone || (zone.type !== 'picnic' && zone.type !== 'standing')) return '그늘막은 관객 구역 안에 놓아 주세요'
+  }
+  if (tents.some((t) => t.id !== ignore && Math.abs(t.x - x) < TENT_SIZE && Math.abs(t.z - z) < TENT_SIZE)) return '다른 그늘막과 겹쳐요'
+  return null
+}
+
+export function rectProblem(a: Vec2, b: Vec2): string | null {
+  if (Math.abs(a[0] - b[0]) < MIN_SIDE || Math.abs(a[1] - b[1]) < MIN_SIDE) return `너무 작아요 · ${MIN_SIDE}m 이상 떨어진 곳을 눌러 주세요`
+  return null
 }
 
 export function rectPoly(a: Vec2, b: Vec2): Vec2[] {
@@ -94,9 +133,11 @@ export type OperatorResult = {
   capacity: number
   shadeGain: number
   blocked: number
-  suggestion: { x: number; z: number } | null
+  suggestion: { x: number; z: number; shade: number; blocked: number } | null
   wetPeople: number | null
   wetCells: { x: number; z: number }[]
+  shadeCells: { x: number; z: number }[]
+  blockedCells: { x: number; z: number }[]
 }
 
 export type OperatorArgs = {
@@ -176,9 +217,17 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
 
   let shadeGain = 0
   let blocked = 0
+  const shadeCells: { x: number; z: number }[] = []
+  const blockedCells: { x: number; z: number }[] = []
   for (const c of cells) {
-    if (gains(c, frac(c.shadeNow))) shadeGain += c.people
-    if (targets.length && loses(c, frac(c.seenNow))) blocked += c.people
+    if (gains(c, frac(c.shadeNow))) {
+      shadeGain += c.people
+      shadeCells.push({ x: c.x, z: c.z })
+    }
+    if (targets.length && loses(c, frac(c.seenNow))) {
+      blocked += c.people
+      blockedCells.push({ x: c.x, z: c.z })
+    }
   }
 
   let wetPeople: number | null = null
@@ -206,8 +255,11 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
         for (let x = b.x0 + 3; x < b.x1 - 2; x += 6) {
           if (zoneAt(layout.zones, x, z) !== zone) continue
           if (tents.some((t) => Math.hypot(t.x - x, t.z - z) < TENT_SIZE + 1)) continue
+          if (tentProblem(layout, stage, venue, tents, x, z)) continue
           const cand = canopyBlockers(site, land, [tentShape({ x, z })])
           let score = 0
+          let gained = 0
+          let hidden = 0
           for (const c of cells) {
             const near = Math.abs(c.x - x) <= REACH && Math.abs(c.z - z) <= REACH
             const nowShade = frac(c.shadeNow)
@@ -216,7 +268,10 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
               suns.forEach((d, i) => {
                 if (!c.shadeNow[i] && sunBlocked(cand, c.ground, d)) extra++
               })
-              if (gains(c, nowShade + extra / suns.length)) score += c.people
+              if (gains(c, nowShade + extra / suns.length)) {
+                score += c.people
+                gained += c.people
+              }
             }
             if (targets.length) {
               const seenNow = frac(c.seenNow)
@@ -226,18 +281,21 @@ export function analyzeOperator(args: OperatorArgs): OperatorResult {
                   if (!c.seenNow[k]) return
                   if (lineBlocked(cand, c.eye, t)) lost++
                 })
-                if (loses(c, seenNow - lost / targets.length)) score -= 2 * c.people
+                if (loses(c, seenNow - lost / targets.length)) {
+                  score -= 2 * c.people
+                  hidden += c.people
+                }
               }
             }
           }
           if (score > best) {
             best = score
-            suggestion = { x, z }
+            suggestion = { x, z, shade: Math.round(gained), blocked: Math.round(hidden) }
           }
         }
       }
     }
   }
 
-  return { capacity: capacity(layout), shadeGain: Math.round(shadeGain), blocked: Math.round(blocked), suggestion, wetPeople, wetCells }
+  return { capacity: capacity(layout), shadeGain: Math.round(shadeGain), blocked: Math.round(blocked), suggestion, wetPeople, wetCells, shadeCells, blockedCells }
 }

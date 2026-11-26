@@ -4,6 +4,7 @@ import type { PersonStyleId } from '../scene/personStyles'
 import type { SheetSnap } from '../ui/BottomSheet'
 import type { SunPref } from '../lib/comfort'
 import type { ClosedArea, Tent, Variant } from '../lib/operator'
+import type { PlanItems } from '../features/operator/planEdit'
 import type { Vec2 } from '../data/types'
 import { initialShare, type SharedSpot } from '../lib/share'
 import { loadSettings, saveSettings, type Quality, type ThemeMode } from '../features/settings/settings'
@@ -46,6 +47,9 @@ export type SceneState = {
   closed: ClosedArea[]
   palms: ClosedArea[]
   zoneStart: Vec2 | null
+  opHover: Vec2 | null
+  opHistory: Record<string, PlanItems[]>
+  opLayers: OpLayer[] | null
   sold: Record<string, number>
   nextId: number
   variant: Variant
@@ -59,6 +63,8 @@ export type SceneState = {
 }
 
 export type OpTool = 'tent' | 'zone' | 'palm' | 'erase'
+
+export type OpLayer = 'shade' | 'blocked' | 'wet'
 
 type Listener = () => void
 
@@ -137,6 +143,9 @@ let state: SceneState = {
   closed: [],
   palms: [],
   zoneStart: null,
+  opHover: null,
+  opHistory: {},
+  opLayers: null,
   sold: {},
   nextId: 1,
   variant: 'A',
