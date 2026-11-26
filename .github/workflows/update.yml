@@ -2,7 +2,7 @@ name: 데이터 갱신
 
 on:
   schedule:
-    - cron: '30 2 * * *' # 매일 11:30 KST (ASOS 전일 자료가 11시 이후에 나옴)
+    - cron: '30 4 * * *' # 매일 13:30 KST (ASOS 전일 자료가 11:30에도 없는 날이 있음)
   workflow_dispatch:
 
 permissions: {}
