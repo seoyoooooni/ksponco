@@ -14,7 +14,7 @@ import { Crowd } from './Crowd'
 import { HeatOverlay, type OverlayCell } from './HeatOverlay'
 import { MyMat } from './MyMat'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
-import { SpotMarkers, type SpotMarker } from './SpotMarkers'
+import { SuggestMat } from './SuggestMat'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
@@ -31,9 +31,10 @@ type Props = {
   crowd: CrowdData | null
   overlay: OverlayCell[] | null
   bubble: string | null
-  markers?: SpotMarker[]
   overlayOverride?: OverlayCell[]
   ponds?: OverlayCell[] | null
+  suggestion?: { x: number; z: number } | null
+  onSuggestion?: () => void
   operator?: {
     tents: Tent[]
     palms: ClosedArea[]
@@ -53,7 +54,7 @@ const BLOCKED: Record<string, string> = {
 
 const DEFAULT_MAT = { w: 1.8, d: 1.8, people: 2 }
 
-export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, markers, operator, overlayOverride, ponds }: Props) {
+export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, operator, overlayOverride, ponds, suggestion, onSuggestion }: Props) {
   const overlay = overlayOverride ?? baseOverlay
   const painted = !overlayOverride && ponds?.length ? [...(overlay ?? []), ...ponds] : overlay
   const { venue, terrain, trees, buildings } = bundle
@@ -75,7 +76,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
   const fitKey = `${venue.id}|${layout?.id ?? ''}`
   const fit = useRef<{ key: string; pts: Vec2[] } | null>(null)
-  if (markers?.length && fit.current?.key !== fitKey) fit.current = { key: fitKey, pts: markers.map((m) => [m.x, m.z] as Vec2) }
+  if (suggestion && fit.current?.key !== fitKey) fit.current = { key: fitKey, pts: [[suggestion.x, suggestion.z]] }
   const fitPts = fit.current?.key === fitKey ? fit.current.pts : null
 
   const home = useMemo(() => {
@@ -197,7 +198,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
 
       {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={layout ? 0.9 : 0.62} />}
-      {markers && camera === 'orbit' && <SpotMarkers markers={markers} terrain={terrain} />}
+      {suggestion && onSuggestion && camera === 'orbit' && <SuggestMat position={suggestion} spec={layout?.mat ?? DEFAULT_MAT} terrain={terrain} onTake={onSuggestion} />}
 
       {operator && <Tents tents={operator.tents} palms={operator.palms} suggestion={operator.suggestion} zoneStart={operator.zoneStart} terrain={terrain} onTent={operator.onTent} />}
 

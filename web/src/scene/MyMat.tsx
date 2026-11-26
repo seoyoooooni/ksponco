@@ -8,16 +8,16 @@ import { terraceHeight } from '../lib/terrace'
 import type { MatPosition } from '../store/sceneStore'
 import { sceneColors } from './colors'
 
-function useGinghamTexture() {
+export function useGinghamTexture(base = '#fbf7ef', check = 'rgba(214, 72, 62, 0.72)') {
   return useMemo(() => {
     const size = 8
     const canvas = document.createElement('canvas')
     canvas.width = size
     canvas.height = size
     const ctx = canvas.getContext('2d')!
-    ctx.fillStyle = '#fbf7ef'
+    ctx.fillStyle = base
     ctx.fillRect(0, 0, size, size)
-    ctx.fillStyle = 'rgba(214, 72, 62, 0.72)'
+    ctx.fillStyle = check
     ctx.fillRect(0, 0, size / 2, size)
     ctx.fillRect(0, 0, size, size / 2)
     const tex = new CanvasTexture(canvas)
@@ -27,7 +27,7 @@ function useGinghamTexture() {
     tex.wrapT = RepeatWrapping
     tex.repeat.set(3, 3)
     return tex
-  }, [])
+  }, [base, check])
 }
 
 type Props = {
@@ -43,7 +43,7 @@ type Props = {
 }
 
 const GRAB_RADIUS = 3.5
-const MAT_LIFT = 0.05
+export const MAT_LIFT = 0.1
 
 const REACH = 0.22
 
@@ -59,7 +59,7 @@ function facing(terrain: Terrain, x: number, z: number) {
   return Math.atan2(x - tr.x, z - tr.z)
 }
 
-function drape(g: BufferGeometry, terrain: Terrain, x: number, z: number, lift: number) {
+export function drape(g: BufferGeometry, terrain: Terrain, x: number, z: number, lift: number) {
   g.rotateX(-Math.PI / 2)
   g.rotateY(facing(terrain, x, z))
   g.translate(x, 0, z)
@@ -195,7 +195,7 @@ export function MyMat({ position, spec, terrain, eyeHeight, target, showPin, bub
         )}
       </group>
       {target && showPin && (
-        <Line points={[eye, target]} color={sceneColors.ink} lineWidth={2} dashed dashSize={0.6} gapSize={0.9} />
+        <Line points={[eye, target]} color={sceneColors.ink} lineWidth={2} dashed dashSize={0.6} gapSize={0.9} userData={{ noAO: true }} />
       )}
     </>
   )

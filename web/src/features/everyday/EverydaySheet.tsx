@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
-import { EyeIcon, MatIcon } from '../../ui/icons'
+import { EyeIcon } from '../../ui/icons'
 import { TimeRange, type StripState } from '../../ui/TimeRange'
 import { Toggle } from '../../ui/Toggle'
 import { rangeLabel } from '../../lib/format'
@@ -13,8 +13,7 @@ type Props = {
   onSnap: (v: SheetSnap) => void
   onVisibleHeight: (h: number) => void
   closure: { title: string; sub: string } | null
-  suggestion: { text: string; canMove: boolean } | null
-  onMove: () => void
+  hint: string | null
   duration: number | 'custom'
   onDuration: (h: number) => void
   stay: [number, number]
@@ -83,16 +82,7 @@ export function EverydaySheet(p: Props) {
         onChange={p.onPref}
       />
       <h1 className="headline">{p.headline}</h1>
-      {p.suggestion && (
-        <div className="suggest">
-          <p className="suggest__text">{p.suggestion.text}</p>
-          {p.suggestion.canMove && (
-            <PillButton variant="primary" className="suggest__btn" icon={<MatIcon size={16} />} onClick={p.onMove}>
-              옮기기
-            </PillButton>
-          )}
-        </div>
-      )}
+      {p.hint && <p className="plain-line">{p.hint}</p>}
       <Notes notes={p.notes} />
       <Toggle
         label="머무는 시간"
