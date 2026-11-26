@@ -17,7 +17,7 @@ import { OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
 import { PillButton } from '../ui/Buttons'
-import { CloseIcon, PlayIcon } from '../ui/icons'
+import { CloseIcon, PinIcon, PlayIcon } from '../ui/icons'
 import { sunsetHour } from '../lib/sun'
 import { WET_RAIN_MM } from '../lib/engine'
 import { SceneCanvas } from '../scene/SceneCanvas'
@@ -278,6 +278,10 @@ function Main({ ready }: { ready: Base }) {
     sceneStore.set({ tents: [...s.tents, ...tentsB], closed: [...s.closed, ...closedB], palms: [...s.palms, ...palmsB], nextId: id })
   }
   const firstPerson = camera === 'firstPerson'
+  const suggestedAt = mode === 'everyday' && !closure ? (analysis.suggestion?.at ?? null) : null
+  const takeSuggestion = () => {
+    if (suggestedAt) sceneStore.set({ mat: { x: suggestedAt.x, z: suggestedAt.z }, matTouched: true })
+  }
   const credit = (
     <button type="button" className="sheet-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
       데이터 출처
@@ -306,7 +310,8 @@ function Main({ ready }: { ready: Base }) {
         crowd={analysis.crowd}
         overlay={analysis.overlay}
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
-        markers={mode === 'everyday' && !closure && analysis.suggestion?.at ? [{ ...analysis.suggestion.at, label: '' }] : undefined}
+        suggestion={suggestedAt}
+        onSuggestion={takeSuggestion}
         overlayOverride={operator && opResult && opResult.wetCells.length ? opResult.wetCells.map((c) => ({ ...c, size: 4, color: '#7fa6c6' })) : undefined}
         ponds={mode !== 'operator' && !closure ? analysis.ponds : null}
         operator={operator ? { tents, palms, suggestion: opResult?.suggestion ?? null, zoneStart, onPick: compare ? () => sceneStore.set({ notice: 'A안이나 B안을 골라야 고칠 수 있어요' }) : pickOperator, onTent: opTool === 'erase' ? (id) => sceneStore.set({ tents: sceneStore.get().tents.filter((t) => t.id !== id) }) : undefined } : undefined}
@@ -367,6 +372,13 @@ function Main({ ready }: { ready: Base }) {
             </div>
           )}
           {mode === 'event' && <FloatingActions seats={seats} onSeats={() => sceneStore.set({ seats: !seats })} />}
+          {suggestedAt && analysis.suggestion && (
+            <div className="fabs">
+              <PillButton variant="light" icon={<PinIcon size={14} />} aria-label={`추천 자리로 옮기기, ${analysis.suggestion.text}`} onClick={takeSuggestion}>
+                추천 자리로 옮기기
+              </PillButton>
+            </div>
+          )}
           <button type="button" className="map-credit" onClick={() => sceneStore.set({ sourcesOpen: true })}>
             데이터 출처
           </button>
@@ -431,11 +443,7 @@ function Main({ ready }: { ready: Base }) {
               headline={`${stay[0] === nowStart(date) ? '지금부터' : `${clockLabel(stay[0])}부터`} ${durationLabel(duration)}${analysis.verdict ? `\n${analysis.verdict}` : ''}`}
               pref={pref}
               onPref={(v) => sceneStore.set({ pref: v })}
-              suggestion={analysis.suggestion ? { text: analysis.suggestion.text, canMove: Boolean(analysis.suggestion.at) } : null}
-              onMove={() => {
-                const at = analysis.suggestion?.at
-                if (at) sceneStore.set({ mat: { x: at.x, z: at.z }, matTouched: true })
-              }}
+              hint={analysis.suggestion && !analysis.suggestion.at ? analysis.suggestion.text : null}
               duration={durationValue}
               onDuration={(h) => sceneStore.set({ stay: [stay[0], Math.min(DAY_HOURS[1], stay[0] + h)] })}
               stay={stay}

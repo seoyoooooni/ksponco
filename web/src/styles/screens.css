@@ -198,34 +198,6 @@
   min-width: 0;
 }
 
-.suggest {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 10px 10px 10px 16px;
-  border-radius: 14px;
-  background: var(--color-fill);
-  flex-shrink: 0;
-}
-
-.suggest__text {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--color-ink);
-  word-break: keep-all;
-}
-
-.suggest__btn {
-  flex: 0 0 auto;
-  padding: 0 14px;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 .plain-line {
   font-size: 14px;
   color: var(--color-sub);
