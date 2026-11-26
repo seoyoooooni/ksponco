@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { BottomSheet } from '../../ui/BottomSheet'
+import { BottomSheet, type SheetSnap } from '../../ui/BottomSheet'
 import { PillButton } from '../../ui/Buttons'
-import { TentIcon } from '../../ui/icons'
+import { ShareIcon, TentIcon } from '../../ui/icons'
 import { Toggle } from '../../ui/Toggle'
 import type { OperatorResult, Variant } from '../../lib/operator'
 import type { OpLayer } from '../../store/sceneStore'
@@ -33,6 +33,9 @@ type Props = {
   layers: OpLayer[]
   onLayers: (v: OpLayer[]) => void
   onSuggest: () => void
+  onShare: () => void
+  snap: SheetSnap
+  onSnap: (v: SheetSnap) => void
 }
 
 export const LAYER_COLOR: Record<OpLayer, string> = { shade: '#3f9a6e', blocked: '#e2574c', wet: '#7fa6c6' }
@@ -136,11 +139,81 @@ function CompareTable(p: Props) {
   )
 }
 
+function SoldInput({ sold, onSold }: { sold: number | null; onSold: (v: number | null) => void }) {
+  return (
+    <input
+      className="op-input"
+      type="number"
+      inputMode="numeric"
+      min={0}
+      placeholder="입력"
+      value={sold ?? ''}
+      onChange={(e) => onSold(e.target.value === '' ? null : Math.max(0, Number(e.target.value)))}
+    />
+  )
+}
+
 export function OperatorSheet(p: Props) {
   const r = p.result
   const over = r && p.sold !== null ? p.sold - r.capacity : 0
+  const compare = p.view === 'compare'
+
+  const help = (
+    <>
+      <PillButton variant="soft" style={{ height: 48 }} icon={<ShareIcon size={18} />} onClick={p.onShare}>
+        계획 보내기 · 저장
+      </PillButton>
+      <details className="op-help">
+        <summary>숫자는 이렇게 계산해요</summary>
+        <dl>
+          {HELP.map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+      <p className="op-note">참고 추정치 · 안전 기준은 따로 확인하세요</p>
+    </>
+  )
+
+  const more = compare ? (
+    <>
+      <label className="op-sold-row">
+        <span>판매 예정</span>
+        <SoldInput sold={p.sold} onSold={p.onSold} />
+      </label>
+      {help}
+    </>
+  ) : (
+    <>
+      {p.wetText && <p className="plain-line">{p.wetText}</p>}
+      <LayerPicker layers={p.layers} onLayers={p.onLayers} wet={Boolean(p.wetText)} />
+      {p.canCopy && (
+        <PillButton variant="soft" style={{ height: 48 }} onClick={p.onCopy}>
+          A안 그대로 복사해서 시작
+        </PillButton>
+      )}
+      {r?.suggestion && !p.busy && (
+        <p className="plain-line op-suggest-note">
+          놓으면 그늘 +{num(r.suggestion.shade)}명 · 무대 가림 +{num(r.suggestion.blocked)}명
+        </p>
+      )}
+      <PillButton variant="primary" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion || p.busy} onClick={p.onSuggest}>
+        {p.busy ? '계산하는 중…' : r?.suggestion ? '추천 위치에 그늘막 놓기' : '더 놓을 추천 위치가 없어요'}
+      </PillButton>
+      {p.canClear && (
+        <button type="button" className="op-clear" onClick={p.onClear}>
+          {p.view}안 비우기
+        </button>
+      )}
+      {help}
+    </>
+  )
+
   return (
-    <BottomSheet label="운영 계획" snap={1} onVisibleHeight={p.onVisibleHeight} footer={p.footer}>
+    <BottomSheet label="운영 계획" snap={p.snap} onSnap={p.onSnap} onVisibleHeight={p.onVisibleHeight} footer={p.footer} more={more}>
       <Toggle
         label="계획 안"
         value={p.view}
@@ -151,22 +224,8 @@ export function OperatorSheet(p: Props) {
         ]}
         onChange={p.onView}
       />
-      {p.view === 'compare' ? (
-        <>
-          <CompareTable {...p} />
-          <label className="op-sold-row">
-            <span>판매 예정</span>
-            <input
-              className="op-input"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              placeholder="입력"
-              value={p.sold ?? ''}
-              onChange={(e) => p.onSold(e.target.value === '' ? null : Math.max(0, Number(e.target.value)))}
-            />
-          </label>
-        </>
+      {compare ? (
+        <CompareTable {...p} />
       ) : (
         <>
           <div className="op-stats" aria-busy={p.busy}>
@@ -176,15 +235,7 @@ export function OperatorSheet(p: Props) {
             </div>
             <label className="stat">
               <span className="stat__label">판매 예정</span>
-              <input
-                className="op-input"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="입력"
-                value={p.sold ?? ''}
-                onChange={(e) => p.onSold(e.target.value === '' ? null : Math.max(0, Number(e.target.value)))}
-              />
+              <SoldInput sold={p.sold} onSold={p.onSold} />
               {over > 0 && <span className="stat__warn">{num(over)}명 초과</span>}
             </label>
             <div className="stat">
@@ -205,40 +256,8 @@ export function OperatorSheet(p: Props) {
           <p className="plain-line">
             그늘막 {p.counts.tents}개 · 출입 금지 구역 {p.counts.zones}개{p.wetText ? ` · 야자매트 ${p.counts.palms}곳` : ''} · {p.rangeText} 기준
           </p>
-          {p.wetText && <p className="plain-line">{p.wetText}</p>}
-          <LayerPicker layers={p.layers} onLayers={p.onLayers} wet={Boolean(p.wetText)} />
-          {p.canCopy && (
-            <PillButton variant="soft" style={{ height: 48 }} onClick={p.onCopy}>
-              A안 그대로 복사해서 시작
-            </PillButton>
-          )}
-          {r?.suggestion && !p.busy && (
-            <p className="plain-line op-suggest-note">
-              놓으면 그늘 +{num(r.suggestion.shade)}명 · 무대 가림 +{num(r.suggestion.blocked)}명
-            </p>
-          )}
-          <PillButton variant="primary" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion || p.busy} onClick={p.onSuggest}>
-            {p.busy ? '계산하는 중…' : r?.suggestion ? '추천 위치에 그늘막 놓기' : '더 놓을 추천 위치가 없어요'}
-          </PillButton>
-          {p.canClear && (
-            <button type="button" className="op-clear" onClick={p.onClear}>
-              {p.view}안 비우기
-            </button>
-          )}
         </>
       )}
-      <details className="op-help">
-        <summary>숫자는 이렇게 계산해요</summary>
-        <dl>
-          {HELP.map(([k, v]) => (
-            <div key={k}>
-              <dt>{k}</dt>
-              <dd>{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </details>
-      <p className="op-note">참고 추정치 · 안전 기준은 따로 확인하세요</p>
     </BottomSheet>
   )
 }

@@ -363,6 +363,12 @@
   pointer-events: none;
 }
 
+.toast {
+  white-space: pre-line;
+  text-align: center;
+  line-height: 1.45;
+}
+
 .toast[hidden] {
   display: none;
 }

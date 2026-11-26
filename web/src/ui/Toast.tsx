@@ -9,7 +9,7 @@ type Props = {
 export function Toast({ message, onDone, ms = 2200 }: Props) {
   useEffect(() => {
     if (!message) return
-    const t = window.setTimeout(onDone, ms)
+    const t = window.setTimeout(onDone, Math.max(ms, message.length * 80))
     return () => window.clearTimeout(t)
   }, [message, onDone, ms])
 

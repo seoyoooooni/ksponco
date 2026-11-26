@@ -14,6 +14,11 @@ export function dateLabel(date: string): string {
   return `${m}월 ${d}일 ${DOW[dow]}`
 }
 
+export function monthDayLabel(date: string): string {
+  const { m, d } = parseDate(date)
+  return `${m}월 ${d}일`
+}
+
 export function chipDateLabel(date: string): string {
   const { m, d, dow } = parseDate(date)
   return `${m}/${d} ${DOW[dow]}`

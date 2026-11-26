@@ -226,3 +226,17 @@ export const UndoIcon = (p: IconProps) => (
     <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
   </Svg>
 )
+
+export const DownloadIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 4v11M7 10l5 5 5-5" />
+    <path d="M5 19h14" />
+  </Svg>
+)
+
+export const UploadIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M12 15V4M7 9l5-5 5 5" />
+    <path d="M5 19h14" />
+  </Svg>
+)

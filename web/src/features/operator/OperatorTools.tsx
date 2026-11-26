@@ -18,9 +18,10 @@ type Props = {
 }
 
 export function OperatorTools({ tool, onTool, wet, canUndo, onUndo }: Props) {
+  const tools = TOOLS.filter((t) => wet || t.id !== 'palm')
   return (
-    <div className="op-tools" role="toolbar" aria-label="운영 도구">
-      {TOOLS.filter((t) => wet || t.id !== 'palm').map((t) => (
+    <div className={`op-tools${tools.length > 3 ? ' op-tools--many' : ''}`} role="toolbar" aria-label="운영 도구">
+      {tools.map((t) => (
         <button key={t.id} type="button" className="op-tool" aria-pressed={tool === t.id} onClick={() => onTool(tool === t.id ? null : t.id)}>
           {t.icon}
           <span>{t.label}</span>

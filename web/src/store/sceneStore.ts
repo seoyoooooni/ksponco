@@ -7,6 +7,7 @@ import type { ClosedArea, Tent, Variant } from '../lib/operator'
 import type { PlanItems } from '../features/operator/planEdit'
 import type { Vec2 } from '../data/types'
 import { initialShare, type SharedSpot } from '../lib/share'
+import { initialPlan } from '../lib/planShare'
 import { loadSettings, saveSettings, type Quality, type ThemeMode } from '../features/settings/settings'
 
 export type CameraMode = 'orbit' | 'firstPerson'
@@ -77,6 +78,7 @@ function todayString(): string {
 export const TODAY = todayString()
 
 function initialDate(): string {
+  if (initialPlan) return initialPlan.date
   if (initialShare) return initialShare.date
   const q = new URLSearchParams(window.location.search).get('date')
   return q && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : TODAY
@@ -113,7 +115,7 @@ function savePlans(s: SceneState) {
 }
 
 let state: SceneState = {
-  venue: initialShare?.venue ?? 'lawn88',
+  venue: initialPlan?.venue ?? initialShare?.venue ?? 'lawn88',
   date: initialDate(),
   hour: initialShare?.stay?.[0] ?? 14,
   stay: initialShare?.stay ?? [14, 16],
@@ -137,7 +139,7 @@ let state: SceneState = {
   playing: false,
   peek: false,
   pref: initialShare?.pref ?? null,
-  operator: false,
+  operator: initialPlan !== null,
   opTool: null,
   tents: [],
   closed: [],

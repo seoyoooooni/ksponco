@@ -7,13 +7,15 @@ import { AudienceSheet } from '../features/audience/AudienceSheet'
 import { FirstPersonOverlay } from '../features/audience/FirstPersonOverlay'
 import { EverydaySheet } from '../features/everyday/EverydaySheet'
 import { PlacePicker } from '../features/picker/PlacePicker'
-import { chipDateLabel, dateLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
+import { chipDateLabel, dateLabel, monthDayLabel, parseClock, rangeLabel, timeLabel } from '../lib/format'
 import { autoPref, dayTempMax, prefWeight } from '../lib/comfort'
 import { zoneAt } from '../lib/polygon'
 import { offLimits } from '../lib/offLimits'
 import { sourceAt } from '../lib/terrainSample'
 import { planKey, rectPoly, rectProblem, tentProblem, withClosed, type ClosedArea, type Tent, type Wet } from '../lib/operator'
-import { clearPlan, editPlan, planSize, undoPlan } from '../features/operator/planEdit'
+import { applyPlanFile, clearPlan, editPlan, planFileOf, planSize, undoPlan } from '../features/operator/planEdit'
+import { PlanShareSheet } from '../features/operator/PlanShareSheet'
+import { takeSharedPlan, type PlanFile } from '../lib/planShare'
 import { BOTH_COLOR, LAYER_COLOR, OperatorSheet } from '../features/operator/OperatorSheet'
 import { OperatorTools } from '../features/operator/OperatorTools'
 import { useOperator } from '../features/operator/useOperator'
@@ -140,6 +142,8 @@ export function App() {
     </>
   )
 }
+
+const EMPTY_FILE: PlanFile = { venue: 'lawn88', date: '2000-01-01', sold: null, plans: { A: { tents: [], zones: [], palms: [] }, B: { tents: [], zones: [], palms: [] } } }
 
 const VENUE_NAMES: Record<string, string> = { lawn88: '88잔디마당', lake: '88호수 수변무대' }
 
@@ -295,6 +299,30 @@ function Main({ ready }: { ready: Base }) {
   const closeAbout = useCallback(() => sceneStore.set({ aboutOpen: false }), [])
   const closeShare = useCallback(() => sceneStore.set({ shareOpen: false }), [])
   const showNotice = useCallback((text: string) => sceneStore.set({ notice: text }), [])
+  const [planShareOpen, setPlanShareOpen] = useState(false)
+  const closePlanShare = useCallback(() => setPlanShareOpen(false), [])
+  const importPlan = useCallback((f: PlanFile) => {
+    const s = sceneStore.get()
+    const moved = f.venue !== s.venue || f.date !== s.date
+    sceneStore.set({
+      ...(moved ? { venue: f.venue, date: f.date, mat: null } : {}),
+      operator: true,
+      compare: false,
+      variant: 'A',
+      opTool: null,
+      zoneStart: null,
+      opHover: null,
+    })
+    applyPlanFile(f)
+    sceneStore.set({
+      notice: `${VENUE_NAMES[f.venue] ?? f.venue} ${monthDayLabel(f.date)} 운영 계획을 불러왔어요\n이 날짜의 A안·B안이 받은 계획으로 바뀌었어요. 원래 계획은 A안·B안에서 각각 되돌리기를 누르면 돌아와요`,
+    })
+  }, [])
+  useEffect(() => {
+    const { plan, broken } = takeSharedPlan()
+    if (plan) importPlan(plan)
+    else if (broken) sceneStore.set({ notice: '운영 계획 링크가 깨져서 열지 못했어요' })
+  }, [importPlan])
   const banner =
     shared && !operator && shared.venue === venue && shared.date === date && sameSpot(mat, shared.mat) ? (
       <SharedBanner
@@ -538,6 +566,9 @@ function Main({ ready }: { ready: Base }) {
               onClear={clear}
               layers={layers}
               onLayers={(v) => sceneStore.set({ opLayers: v })}
+              snap={sheetSnap}
+              onSnap={setSnap}
+              onShare={() => setPlanShareOpen(true)}
               onSuggest={() => {
                 const at = opResult?.suggestion
                 if (at && !tentWhy(at.x, at.z)) editPlan(plan, (s) => ({ tents: [...s.tents, { id: s.nextId, plan, x: at.x, z: at.z }], nextId: s.nextId + 1 }))
@@ -610,6 +641,16 @@ function Main({ ready }: { ready: Base }) {
         estimates={mode === 'event' ? analysis.estimates : []}
         satelliteTrees={ready.bundle.trees.some((t) => t.source !== 'scan')}
       />
+      {operator && (
+        <PlanShareSheet
+          open={planShareOpen}
+          onClose={closePlanShare}
+          file={planShareOpen ? planFileOf(sceneStore.get(), venue, date) : EMPTY_FILE}
+          placeLabel={`${place} ${monthDayLabel(date)}`}
+          onImport={importPlan}
+          onNotice={showNotice}
+        />
+      )}
       <ShareSheet open={share !== null} onClose={closeShare} url={share?.url ?? ''} message={share?.message ?? ''} onNotice={showNotice} />
       <AboutSheet open={aboutOpen} onClose={closeAbout} />
       <SettingsSheet
