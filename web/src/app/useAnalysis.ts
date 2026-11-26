@@ -15,7 +15,7 @@ import {
   type ViewResult,
 } from '../lib/analysis'
 import { buildCrowd, type Crowd } from '../lib/crowd'
-import { clockLabel, hourLabel, parseClock, rangeLabel, shortDuration } from '../lib/format'
+import { clockLabel, hourLabel, parseClock, shortDuration } from '../lib/format'
 import { comfort, stripShade, type SunPref } from '../lib/comfort'
 import { goodSeats, seatGrade, seatVerdict } from '../lib/goodSeats'
 import { dayShade, directionName, scanBounds, shadeGrid, shadeSpots } from '../lib/shadeGrid'
@@ -256,7 +256,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, eyeHeight,
   const estimates = useMemo(() => {
     const out: string[] = []
     if (event?.timeSource === 'default') {
-      out.push(`공연 시간이 정해지지 않아 ${rangeLabel(parseClock(event.start), parseClock(event.end))}로 계산했어요`)
+      out.push(`끝나는 시간이 공개되지 않아 ${clockLabel(parseClock(event.end))}에 끝난다고 보고 계산했어요`)
     }
     if (layout?.source === 'default') out.push('공식 배치도가 없어 기본 배치로 계산했어요')
     return out

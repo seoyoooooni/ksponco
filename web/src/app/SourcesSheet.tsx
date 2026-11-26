@@ -8,7 +8,8 @@ type Props = {
 }
 
 const SOURCES = [
-  { org: '한국체육산업개발', items: '올림픽공원 공연장 실감형 콘텐츠(3D 점군), 차량입출차·공연·날씨 연계 데이터, 올림픽공원 공연 일정' },
+  { org: '한국체육산업개발', items: '올림픽공원 공연장 실감형 콘텐츠(3D 점군), 차량입출차·공연·날씨 연계 데이터' },
+  { org: 'KOPIS 공연예술통합전산망', items: '올림픽공원 공연 일정, 공연 시간과 러닝타임' },
   { org: '기상청', items: '단기예보, 지상관측(ASOS)' },
   { org: '국토교통부', items: 'GIS건물통합정보' },
   { org: 'OpenStreetMap', items: '산책로, 호수 윤곽, 광장 · © OpenStreetMap contributors' },
