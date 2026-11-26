@@ -16,13 +16,14 @@ import { MyMat } from './MyMat'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
 import { SuggestStar } from './SuggestStar'
 import { CookieCrowd } from './CookieCrowd'
+import { SkyDecor } from './SkyDecor'
 import { Walkers } from './Walkers'
 import { Picnickers } from './Picnickers'
 import { SceneClock } from './sceneTime'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
-import { Water } from './Water'
+import { Water, Waterfall } from './Water'
 import { Paths, walkRoutes } from './Paths'
 import { Effects } from './Effects'
 import { Tents } from './Tents'
@@ -190,8 +191,10 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
+      {venue.water && <Waterfall poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
       <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
+      <SkyDecor terrain={terrain} />
       <SceneClock />
       {camera === 'orbit' && <Walkers routes={routes} seed={seed} />}
       {!layout && camera === 'orbit' && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
