@@ -381,7 +381,7 @@ function Main({ ready }: { ready: Base }) {
           {suggestedAt && analysis.suggestion && (
             <div className="fabs">
               <PillButton variant="light" icon={<PinIcon size={14} />} aria-label={`추천 자리로 옮기기, ${analysis.suggestion.text}`} onClick={takeSuggestion}>
-                추천 자리로 옮기기
+                추천 자리
               </PillButton>
             </div>
           )}
