@@ -1,8 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { BufferGeometry, Color, InstancedMesh, Object3D } from 'three'
-import type { Terrain, Tree } from '../data/types'
+import type { Terrain, Tree, Vec2 } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { discOf, inDisc } from '../lib/diorama'
+import { pointInPolygon } from '../lib/polygon'
+import { waterLevel } from '../lib/water'
 import { sceneColors } from './colors'
 import { canopyGeometry } from './treeGeometry'
 
@@ -10,6 +12,7 @@ type Props = {
   trees: Tree[]
   terrain: Terrain
   ghost?: boolean
+  water?: Vec2[] | null
 }
 
 const TONES = ['#a3cf80', '#8cc070', '#78b062', '#669e54', '#578c49']
@@ -67,24 +70,28 @@ function CanopyBatch({ trees, terrain, geometry, ghost = false }: Props & { geom
   )
 }
 
-function Trunks({ trees, terrain, ghost = false }: Props) {
+function Trunks({ trees, terrain, ghost = false, water = null }: Props) {
   const ref = useRef<InstancedMesh>(null)
 
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
     const o = new Object3D()
+    const level = water ? waterLevel(terrain, water) : null
     trees.forEach((t, i) => {
       const g = heightAt(terrain, t.x, t.z)
-      const len = t.base + (t.h - t.base) * 0.3
-      o.position.set(t.x, g + len / 2, t.z)
+      const top = g + t.base + (t.h - t.base) * 0.3
+      const wet = water && level !== null && pointInPolygon(t.x, t.z, water)
+      const bottom = wet && level !== null ? Math.min(g, level - 0.3) : g
+      const len = top - bottom
+      o.position.set(t.x, bottom + len / 2, t.z)
       o.scale.set(1, len, 1)
       o.updateMatrix()
       mesh.setMatrixAt(i, o.matrix)
     })
     mesh.instanceMatrix.needsUpdate = true
     mesh.computeBoundingSphere()
-  }, [trees, terrain])
+  }, [trees, terrain, water])
 
   if (trees.length === 0) return null
   return (
@@ -95,7 +102,7 @@ function Trunks({ trees, terrain, ghost = false }: Props) {
   )
 }
 
-export function Trees({ trees, terrain }: Props) {
+export function Trees({ trees, terrain, water = null }: Props) {
   const { shown, beyond } = useMemo(() => {
     const disc = discOf(terrain)
     const shown: Tree[] = []
@@ -106,7 +113,7 @@ export function Trees({ trees, terrain }: Props) {
 
   return (
     <>
-      <Trunks trees={shown} terrain={terrain} />
+      <Trunks trees={shown} terrain={terrain} water={water} />
       <Canopies trees={shown} terrain={terrain} />
       <Trunks trees={beyond} terrain={terrain} ghost />
       <Canopies trees={beyond} terrain={terrain} ghost />

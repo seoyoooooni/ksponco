@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react'
 import { BufferGeometry, Color, Float32BufferAttribute } from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
-import type { Layout, Terrain as TerrainData, Venue, ZoneType } from '../data/types'
+import type { Layout, OsmFeatures, Terrain as TerrainData, Venue, ZoneType } from '../data/types'
 import { pavedWeight, tuckedHeight } from '../lib/terrace'
 import { TerraceSteps } from './TerraceSteps'
-import { waterLevel } from './Water'
+import { underwater, waterLevel } from '../lib/water'
 import { pointInPolygon, zoneAt } from '../lib/polygon'
 import { discOf, type Disc } from '../lib/diorama'
 import { heightAt } from '../lib/terrainSample'
@@ -57,6 +57,7 @@ function edgeDistance(t: TerrainData): Float32Array {
 type Props = {
   terrain: TerrainData
   venue: Venue
+  osm: OsmFeatures | null
   layout: Layout | null
   onPick?: (x: number, z: number) => void
 }
@@ -153,7 +154,7 @@ function skirtGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Colo
   return g
 }
 
-export function Terrain({ terrain, venue, layout, onPick }: Props) {
+export function Terrain({ terrain, venue, osm, layout, onPick }: Props) {
   const terrace = terrain.terrace ?? null
   const disc = useMemo(() => discOf(terrain), [terrain])
 
@@ -169,11 +170,15 @@ export function Terrain({ terrain, venue, layout, onPick }: Props) {
     const path = new Color(sceneColors.path)
     const dist = edgeDistance(terrain)
     const firstRim = pos.count - SEGMENTS
+    const lake = venue.water ?? null
+    const level = lake ? waterLevel(terrain, lake) : null
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i)
       const z = pos.getZ(i)
       const tucked = terrace ? tuckedHeight(terrace, x, z) : null
-      pos.setY(i, tucked ?? heightAt(terrain, x, z))
+      const y = tucked ?? heightAt(terrain, x, z)
+      const sunk = lake && level !== null && pointInPolygon(x, z, lake) && underwater(terrain, lake, level, x, z, y)
+      pos.setY(i, sunk && level !== null ? Math.min(y, level - 0.5) : y)
       const zone = layout ? zoneAt(layout.zones, x, z) : null
       const gi = Math.min(terrain.nx - 1, Math.max(0, Math.round((x - terrain.x0) / terrain.cell)))
       const gj = Math.min(terrain.nz - 1, Math.max(0, Math.round((z - terrain.z0) / terrain.cell)))
@@ -183,7 +188,9 @@ export function Terrain({ terrain, venue, layout, onPick }: Props) {
       else if (e <= PATH_W) c.copy(path)
       else c.copy(park).lerp(outer, Math.min(1, (e - PATH_W) / FADE))
       const pw = terrace ? pavedWeight(terrace, venue, pos.getY(i), x, z) : 0
-      if (pw > 0) c.lerp(stone, zone ? pw * 0.55 : pw)
+      const plaza = osm?.areas.some((a) => pointInPolygon(x, z, a.poly)) ? 1 : 0
+      const paved = Math.max(pw, plaza)
+      if (paved > 0) c.lerp(stone, zone ? paved * 0.55 : paved)
       colors.push(c.r, c.g, c.b)
       if (i >= firstRim) rim.push(c.clone())
     }
@@ -191,7 +198,7 @@ export function Terrain({ terrain, venue, layout, onPick }: Props) {
     g.computeVertexNormals()
     g.computeBoundingSphere()
     return { geometry: g, rim }
-  }, [terrain, layout, terrace, venue, disc])
+  }, [terrain, layout, terrace, venue, disc, osm])
 
   const skirt = useMemo(() => skirtGeometry(disc, terrain, venue, rim), [disc, terrain, venue, rim])
 

@@ -71,7 +71,7 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
   const canopies = useMemo(() => prepareCanopies(trees, terrain), [trees, terrain])
   const area = useMemo(() => scanBounds(terrain), [terrain])
   const lawnCenter = useMemo(() => ({ x: (area.x0 + area.x1) / 2, z: (area.z0 + area.z1) / 2 }), [area])
-  const crowd = useMemo(() => (layout ? buildCrowd(layout, terrain.terrace ?? null) : null), [layout, terrain])
+  const crowd = useMemo(() => (layout ? buildCrowd(layout, terrain) : null), [layout, terrain])
 
   const heads = useMemo<HeadIndex>(
     () => (crowd ? indexHeads(crowd, terrain, crowdScale, mat ?? undefined) : new Map()),
@@ -137,15 +137,17 @@ export function useAnalysis({ bundle, layout, event, date, stay, mat, anchor, ey
       return cells
     }
     if (layout && seats) {
-      return goodSeats(layout, stage, terrain, heads, canopies, shade, sunWeight, 2, pref).map((c) => ({
-        x: c.x,
-        z: c.z,
-        size: 2,
-        color: SEAT_COLORS[seatGrade(c.score)],
-      }))
+      return goodSeats(layout, stage, terrain, heads, canopies, shade, sunWeight, 2, pref)
+        .filter((c) => !offLimits(venue, c.x, c.z))
+        .map((c) => ({
+          x: c.x,
+          z: c.z,
+          size: 2,
+          color: SEAT_COLORS[seatGrade(c.score)],
+        }))
     }
     return null
-  }, [layout, seats, shade, stage, terrain, heads, canopies, sunWeight, pref, blocked])
+  }, [layout, seats, shade, stage, terrain, heads, canopies, sunWeight, pref, blocked, venue])
 
   const stats = useMemo<AudienceStats | null>(() => {
     if (!mat) return null
