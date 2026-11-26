@@ -7,7 +7,7 @@ import { scanBounds } from '../lib/shadeGrid'
 import { heightAt, sourceAt } from '../lib/terrainSample'
 import { terraceHeight } from '../lib/terrace'
 import type { Route } from './Paths'
-import { LIVELY_TONES } from './Walkers'
+import { PEOPLE_TONES } from './Walkers'
 import { COOKIE, cookieParts, poseCookie } from './cookiePerson'
 import { MAT_LIFT } from './MyMat'
 
@@ -53,7 +53,7 @@ function makeGroups(terrain: Terrain, venue: Venue, routes: Route[], seed: numbe
       const a = yaw + (k / n) * Math.PI * 2 + rand() * 0.6
       const px = x + Math.cos(a) * 0.4
       const pz = z + Math.sin(a) * 0.4
-      return { x: px, z: pz, y: heightAt(terrain, px, pz), yaw: Math.atan2(x - px, z - pz), tone: Math.floor(rand() * LIVELY_TONES.length) }
+      return { x: px, z: pz, y: heightAt(terrain, px, pz), yaw: Math.atan2(x - px, z - pz), tone: Math.floor(rand() * PEOPLE_TONES.length) }
     })
     out.push({ x, z, y, yaw, tone: Math.floor(rand() * MAT_TONES.length), people })
   }
@@ -124,7 +124,7 @@ export function Picnickers({ terrain, venue, routes, seed, avoid }: Props) {
   useLayoutEffect(() => {
     const c = new Color()
     people.forEach((p, i) => {
-      c.set(LIVELY_TONES[p.tone])
+      c.set(PEOPLE_TONES[p.tone])
       bodies.current?.setColorAt(i, c)
       for (let k = 0; k < 4; k++) limbs.current?.setColorAt(i * 4 + k, c)
     })

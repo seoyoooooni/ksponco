@@ -20,9 +20,10 @@ export function DevTools() {
             <span>사람 모양</span>
             <select
               value={personStyle}
-              onChange={(e) => sceneStore.set({ personStyle: e.target.value as PersonStyleId })}
+              onChange={(e) => sceneStore.set({ personStyle: e.target.value as PersonStyleId | 'cookie' })}
               style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--color-line)', padding: '0 8px', background: 'var(--color-surface)' }}
             >
+              <option value="cookie">쿠키</option>
               {personStyleIds.map((id) => (
                 <option key={id} value={id}>
                   {personStyles[id].label}

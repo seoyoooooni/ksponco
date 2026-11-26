@@ -6,7 +6,7 @@ import type { Route } from './Paths'
 import { reducedMotion } from './sceneTime'
 import { COOKIE, cookieParts, poseCookie } from './cookiePerson'
 
-export const LIVELY_TONES = ['#e07b5f', '#5b8fb9', '#f0c75e', '#7fb685', '#9b7fc1', '#f2f2f2', '#3d4a5c', '#d9905a'] as const
+export const PEOPLE_TONES = ['#8b9aac', '#d8cdbf', '#8f9a86', '#b7aab3', '#ece8e1', '#6b7685', '#c4a894'] as const
 const DOG_TONES = ['#c58c52', '#efe6d8', '#3b3430', '#a0784f'] as const
 
 
@@ -58,7 +58,7 @@ function makeAgents(routes: Route[], seed: number): Agent[] {
       s: rand() * chosen.r.len,
       dir: rand() < 0.5 ? 1 : -1,
       speed: 0.9 + rand() * 0.5,
-      tone: Math.floor(rand() * LIVELY_TONES.length),
+      tone: Math.floor(rand() * PEOPLE_TONES.length),
       dog: rand() < 0.3 ? Math.floor(rand() * DOG_TONES.length) : -1,
       phase: rand() * Math.PI * 2,
     })
@@ -80,7 +80,7 @@ export function Walkers({ routes, seed }: { routes: Route[]; seed: number }) {
   useLayoutEffect(() => {
     const c = new Color()
     agents.forEach((a, i) => {
-      c.set(LIVELY_TONES[a.tone])
+      c.set(PEOPLE_TONES[a.tone])
       bodies.current?.setColorAt(i, c)
       for (let k = 0; k < 4; k++) limbs.current?.setColorAt(i * 4 + k, c)
     })

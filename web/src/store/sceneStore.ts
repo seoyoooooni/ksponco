@@ -27,7 +27,7 @@ export type SceneState = {
   notice: string | null
   crowdScale: number
   crowdCount: number
-  personStyle: PersonStyleId
+  personStyle: PersonStyleId | 'cookie'
   sheetSnap: SheetSnap
   sheetH: number
   sceneReady: boolean
@@ -110,7 +110,7 @@ let state: SceneState = {
   notice: null,
   crowdScale: 1,
   crowdCount: 0,
-  personStyle: 'chibi',
+  personStyle: 'cookie',
   sheetSnap: 1,
   sheetH: 0,
   sceneReady: false,

@@ -15,6 +15,7 @@ import { HeatOverlay, type OverlayCell } from './HeatOverlay'
 import { MyMat } from './MyMat'
 import { PerformerMesh, ScreenMesh, StageMesh } from './Stage'
 import { SuggestStar } from './SuggestStar'
+import { CookieCrowd } from './CookieCrowd'
 import { Walkers } from './Walkers'
 import { Picnickers } from './Picnickers'
 import { SceneClock } from './sceneTime'
@@ -204,7 +205,11 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         <PerformerMesh performer={layout.performer} floor={heightAt(terrain, stage.x, stage.z) + stage.deckH} />
       )}
 
-      {layout && crowd && <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />}
+      {layout && crowd && (camera === 'orbit' && personStyle === 'cookie' ? (
+        <CookieCrowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} facing={layout.performer ?? stage} faded={Boolean(overlay)} />
+      ) : (
+        <Crowd crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} styleId={camera === 'firstPerson' || personStyle === 'cookie' ? 'basic' : personStyle} faded={Boolean(overlay) && camera === 'orbit'} />
+      ))}
 
       {painted && camera === 'orbit' && <HeatOverlay cells={painted} terrain={terrain} opacity={watching ? 0.12 : layout ? 0.9 : 0.62} />}
       {suggestion && onSuggestion && camera === 'orbit' && <SuggestStar position={suggestion} terrain={terrain} onTake={onSuggestion} />}
