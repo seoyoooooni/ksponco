@@ -25,10 +25,16 @@ function markerTexture(label: string): CanvasTexture {
   g.fillStyle = '#191f28'
   g.fill()
   g.fillStyle = '#ffffff'
-  g.font = '700 58px "Pretendard Variable", Pretendard, sans-serif'
-  g.textAlign = 'center'
-  g.textBaseline = 'middle'
-  g.fillText(label, 64, 68)
+  if (!label) {
+    g.beginPath()
+    g.arc(64, 64, 18, 0, Math.PI * 2)
+    g.fill()
+  } else {
+    g.font = '700 58px "Pretendard Variable", Pretendard, sans-serif'
+    g.textAlign = 'center'
+    g.textBaseline = 'middle'
+    g.fillText(label, 64, 68)
+  }
   const t = new CanvasTexture(c)
   t.colorSpace = SRGBColorSpace
   return t
