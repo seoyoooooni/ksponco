@@ -1,12 +1,12 @@
 // KOPIS(공연예술통합전산망) 오픈 API로 올림픽공원 잔디·수변·일대 공연을 받는다. 날짜는 모두 KST 기준.
 import type { VenueId } from '../../web/src/data/types.ts'
 import { getKey } from './env.ts'
-import { fetchText, type TextResponse } from './http.ts'
-import { kstNow } from './kma.ts'
+import { fetchText } from './http.ts'
+import { compact, kstNow, type Get } from './kma.ts'
 
 const API = 'https://kopis.or.kr/openApi/restful' // www.는 이 주소로 리다이렉트된다(리다이렉트는 따라가지 않음)
 export const FIRST_MONTH = '2026-01' // 2025년은 manual이 정확해서 겹치지 않게 고정
-export const MONTHS_AHEAD = 12
+const MONTHS_AHEAD = 12
 
 // 올림픽공원(FC001247)의 공연장 코드. 일대는 어느 무대인지 몰라 두 무대 모두 쓰고,
 // 공원 다른 장소 공연이 섞이지 않게 페스티벌만 받는다(clean/events.ts에서 거름).
@@ -15,8 +15,6 @@ export const PLACES: Record<string, { venues: VenueId[]; festivalOnly: boolean }
   'FC001247-08': { venues: ['lake'], festivalOnly: false }, // 야외(수변무대)
   'FC001247-12': { venues: ['lawn88', 'lake'], festivalOnly: true }, // 일대
 }
-
-export type Get = (url: string) => Promise<TextResponse>
 
 // from, to는 YYYY-MM-DD. guidance 예: "토요일 ~ 일요일(14:00)", runtime 예: "8시간 30분"
 export type KopisShow = {
@@ -61,12 +59,11 @@ async function getXml(get: Get, url: string, what: string): Promise<string> {
   return text
 }
 
-const dashed = (d: string) => d.replaceAll('.', '-')
-
 // 한 달·한 공연장의 공연 목록(조회 기간은 최대 31일이라 한 달씩)
 export async function fetchList(key: string, ym: string, place: string, get: Get = realGet) {
   const last = new Date(Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)), 0)).getUTCDate()
-  const q = new URLSearchParams({ service: key, stdate: `${ym.replace('-', '')}01`, eddate: `${ym.replace('-', '')}${last}`, cpage: '1', rows: '100', prfplccd: place })
+  const ymc = compact(ym)
+  const q = new URLSearchParams({ service: key, stdate: `${ymc}01`, eddate: `${ymc}${last}`, cpage: '1', rows: '100', prfplccd: place })
   const xml = await getXml(get, `${API}/pblprfr?${q}`, `목록(${ym}, ${place})`)
   const rows = tags(xml, 'db')
   // 100건이 차면 다음 페이지가 있을 수 있다. 야외 공연장은 한 달에 몇 건이라 넘으면 형식 변화로 본다.
@@ -74,7 +71,7 @@ export async function fetchList(key: string, ym: string, place: string, get: Get
   return rows.map((db, i) => {
     const [id] = tags(db, 'mt20id'), [name] = tags(db, 'prfnm'), [from] = tags(db, 'prfpdfrom'), [to] = tags(db, 'prfpdto')
     if (!id || !name || !from || !to) throw new Error(`KOPIS 목록(${ym}, ${place}) ${i}번째 항목: 필드가 없음`)
-    return { id, name, from: dashed(from), to: dashed(to) }
+    return { id, name, from: from.replaceAll('.', '-'), to: to.replaceAll('.', '-') }
   })
 }
 
