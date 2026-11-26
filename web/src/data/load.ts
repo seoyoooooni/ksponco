@@ -11,6 +11,7 @@ import type {
 } from './types'
 import { rng } from '../lib/rng'
 import { terraceOf } from '../lib/terrace'
+import { clipToDisc, discOf, inDisc } from '../lib/diorama'
 
 export class DataError extends Error {
   readonly path: string
@@ -83,11 +84,21 @@ function grounded(raw: VenueBundle): VenueBundle {
   for (const v of bundle.terrain.h) if (v < low) low = v
   const shifted = Number.isFinite(low) && low !== 0
   const terrain = shifted ? { ...bundle.terrain, h: bundle.terrain.h.map((v) => v - low) } : bundle.terrain
-  return {
+  return cropped({
     ...bundle,
     terrain: { ...terrain, terrace: terraceOf(bundle.venue, terrain) },
     trees: natural(bundle.trees),
     buildings: shifted ? bundle.buildings.map((b) => ({ ...b, base: b.base - low })) : bundle.buildings,
+  })
+}
+
+function cropped(bundle: VenueBundle): VenueBundle {
+  const disc = discOf(bundle.terrain)
+  const water = bundle.venue.water ? clipToDisc(disc, bundle.venue.water) : undefined
+  return {
+    ...bundle,
+    venue: { ...bundle.venue, water: water && water.length >= 3 ? water : undefined },
+    buildings: bundle.buildings.filter((b) => b.footprint.every(([x, z]) => inDisc(disc, x, z, 2))),
   }
 }
 
