@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { fetchDetail, fetchList, fetchShows, monthRange, tags } from '../collect/kopis.ts'
+import { fetchDetail, fetchList, fetchShows, monthRange, retry400, tags } from '../collect/kopis.ts'
 import type { Get } from '../collect/kma.ts'
 
 const KEY = 'k'
@@ -43,6 +43,10 @@ test('fetchList: 한 달 범위·공연장 코드로 요청하고 날짜를 YYYY
 test('fetchList: HTTP 오류, XML 아님, 필드 누락, 100건 이상은 에러', async () => {
   const get = (status: number, text: string): Get => async () => ({ status, text })
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(500, '')), /HTTP 500/)
+  // 거절 사유는 본문 앞부분으로 남기고, 본문에 키가 있으면 가린다
+  await assert.rejects(fetchList(KEY, '2026-02', 'X', get(400, `<error>bad ${KEY}</error>`)), (err: Error) =>
+    err.message.includes('HTTP 400 (<error>bad ***</error>)') && !err.message.includes(KEY),
+  )
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, '<html>')), /XML이 아닌/)
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, list('<db><mt20id>PF1</mt20id></db>'))), /필드/)
   await assert.rejects(fetchList(KEY, '2026-02', 'X', get(200, list(...Array(100).fill(db('PF1', 'a', '2026.02.01', '2026.02.01'))))), /100건/)
@@ -88,14 +92,26 @@ test('fetchShows: 공연장 목록은 들어온 순서와 상관없이 코드 �
   assert.deepEqual(s.places, ['FC001247-07', 'FC001247-12'])
 })
 
-test('fetchShows: 첫 호출을 뺀 모든 호출 앞에서 300ms씩 쉰다', async () => {
+test('retry400: 400이면 5초 쉬고 최대 2번 다시 시도, 다른 상태는 그대로', async () => {
+  const run = async (statuses: number[]) => {
+    const waits: number[] = []
+    let i = 0
+    const res = await retry400(async () => ({ status: statuses[i++], text: '' }), async (ms) => void waits.push(ms))('http://x')
+    return { status: res.status, calls: i, waits }
+  }
+  assert.deepEqual(await run([400, 200]), { status: 200, calls: 2, waits: [5000] })
+  assert.deepEqual(await run([400, 400, 400, 200]), { status: 400, calls: 3, waits: [5000, 5000] })
+  assert.deepEqual(await run([500]), { status: 500, calls: 1, waits: [] })
+})
+
+test('fetchShows: 첫 호출을 뺀 모든 호출 앞에서 1초씩 쉰다', async () => {
   const waits: number[] = []
   let calls = 0
   const base = fake({ '20260501|FC001247-07': list(db('PF1', 'a', '2026.05.01', '2026.05.01'), db('PF2', 'b', '2026.05.02', '2026.05.02')) })
   const get: Get = (url) => (calls++, base(url))
   await fetchShows(new Date('2026-07-01T00:00:00Z'), get, async (ms) => void waits.push(ms), KEY)
   assert.equal(waits.length, calls - 1)
-  assert.ok(waits.every((ms) => ms === 300))
+  assert.ok(waits.every((ms) => ms === 1000))
 })
 
 test('fetchShows: 한 번이라도 실패하면 전체 실패, 0건이면 에러', async () => {
