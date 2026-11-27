@@ -204,7 +204,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       <SceneClock />
       {camera === 'orbit' && !light && <Walkers routes={routes} seed={seed} />}
       {!layout && camera === 'orbit' && !light && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
-      <Buildings buildings={buildings} />
+      <Buildings buildings={buildings} terrain={terrain} />
 
       {stage && <StageMesh stage={stage} terrain={terrain} />}
       {layout?.screens.map((s, i) => (

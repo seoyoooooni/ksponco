@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import { ExtrudeGeometry, Shape } from 'three'
-import type { Building } from '../data/types'
+import type { Building, Terrain } from '../data/types'
+import { discOf, inDisc } from '../lib/diorama'
 import { sceneColors } from './colors'
+import { SHADOW_ONLY } from './SunLight'
 
-function BuildingMesh({ building }: { building: Building }) {
+function BuildingMesh({ building, ghost = false }: { building: Building; ghost?: boolean }) {
   const geometry = useMemo(() => {
     const shape = new Shape()
     building.footprint.forEach(([x, z], i) => {
@@ -16,6 +18,14 @@ function BuildingMesh({ building }: { building: Building }) {
     return g
   }, [building])
 
+  if (ghost) {
+    return (
+      <mesh geometry={geometry} position-y={building.base} castShadow raycast={() => null} layers={SHADOW_ONLY} userData={{ noAO: true }}>
+        <meshBasicMaterial />
+      </mesh>
+    )
+  }
+
   const estimated = building.source === 'gis'
 
   return (
@@ -25,11 +35,22 @@ function BuildingMesh({ building }: { building: Building }) {
   )
 }
 
-export function Buildings({ buildings }: { buildings: Building[] }) {
+export function Buildings({ buildings, terrain }: { buildings: Building[]; terrain: Terrain }) {
+  const { shown, beyond } = useMemo(() => {
+    const disc = discOf(terrain)
+    const shown: Building[] = []
+    const beyond: Building[] = []
+    for (const b of buildings) (b.footprint.every(([x, z]) => inDisc(disc, x, z, 2)) ? shown : beyond).push(b)
+    return { shown, beyond }
+  }, [buildings, terrain])
+
   return (
     <>
-      {buildings.map((b, i) => (
-        <BuildingMesh key={i} building={b} />
+      {shown.map((b, i) => (
+        <BuildingMesh key={`s${i}`} building={b} />
+      ))}
+      {beyond.map((b, i) => (
+        <BuildingMesh key={`g${i}`} building={b} ghost />
       ))}
     </>
   )

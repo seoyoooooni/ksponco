@@ -12,7 +12,7 @@ import type {
 } from './types'
 import { rng } from '../lib/rng'
 import { terraceOf } from '../lib/terrace'
-import { clipToDisc, discOf, inDisc } from '../lib/diorama'
+import { clipToDisc, discOf } from '../lib/diorama'
 
 export class DataError extends Error {
   readonly path: string
@@ -104,7 +104,6 @@ function cropped(bundle: VenueBundle): VenueBundle {
     ...bundle,
     venue: { ...bundle.venue, water: lake },
     terrain: { ...bundle.terrain, water: lake ?? null },
-    buildings: bundle.buildings.filter((b) => b.footprint.every(([x, z]) => inDisc(disc, x, z, 2))),
   }
 }
 
