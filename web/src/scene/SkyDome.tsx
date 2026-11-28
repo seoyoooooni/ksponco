@@ -25,20 +25,21 @@ varying vec3 vDir;
 void main() {
   vec3 d = normalize(vDir);
   float h = d.y;
-  vec3 col = mix(uHorizon, uZenith, pow(clamp(h, 0.0, 1.0), 0.5));
-  col = mix(col, mix(uHorizon, uZenith, 0.35) * 0.96, smoothstep(0.0, -0.35, h));
-  vec2 a = normalize(d.xz + 1e-5);
-  vec2 b = normalize(uSun.xz + 1e-5);
-  float w = dot(a, b) * 0.5 + 0.5;
+  vec3 col = mix(uHorizon, uZenith, sqrt(clamp(h, 0.0, 1.0)));
+  col = mix(col, mix(uHorizon, uZenith, 0.35) * 0.96, 1.0 - smoothstep(-0.35, 0.0, h));
+  vec2 a = d.xz / max(length(d.xz), 1e-3);
+  vec2 b = uSun.xz / max(length(uSun.xz), 1e-3);
+  float w = clamp(dot(a, b) * 0.5 + 0.5, 0.0, 1.0);
+  float aw = 1.0 - w;
   float band = exp(-max(h, 0.0) * 2.6) * smoothstep(-0.3, 0.0, h);
-  float belt = exp(-abs(h - 0.12) * 7.0) * pow(1.0 - w, 2.0);
+  float belt = exp(-abs(h - 0.12) * 7.0) * aw * aw;
   col = mix(col, vec3(0.86, 0.5, 0.58), clamp(uAmount * belt * 0.45, 0.0, 1.0));
-  col = mix(col, uGlow, clamp(uAmount * band * (0.08 + 0.92 * pow(w, 1.6)), 0.0, 1.0) * 0.95);
+  col = mix(col, uGlow, clamp(uAmount * band * (0.08 + 0.92 * w * sqrt(w)), 0.0, 1.0) * 0.95);
   col += uGlow * uAmount * 0.12 * w * w * (1.0 - clamp(h, 0.0, 1.0));
-  float s = dot(d, normalize(uSun));
+  float s = clamp(dot(d, uSun / max(length(uSun), 1e-3)), -1.0, 1.0);
   float disc = smoothstep(0.9991, 0.9995, s) * 1.4 + pow(max(s, 0.0), 260.0) * 0.5;
   col += uDisc * disc * vec3(1.0, 0.88, 0.7) * step(-0.005, h);
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = vec4(clamp(col, 0.0, 8.0), 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { CanvasTexture, Color, DoubleSide, Group, RingGeometry, Sprite, SRGBColorSpace } from 'three'
+import { Color, DataTexture, DoubleSide, Group, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, RingGeometry, Sprite, SRGBColorSpace } from 'three'
 import { useFrame } from '@react-three/fiber'
 import type { Terrain } from '../data/types'
 import { discOf } from '../lib/diorama'
@@ -18,17 +18,34 @@ const SEA = 4
 const EDGE_SAMPLES = 120
 
 export function mistTexture(stops: [number, number][]) {
-  const size = 256
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')!
-  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-  for (const [at, alpha] of stops) g.addColorStop(at, `rgba(255,255,255,${alpha})`)
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, size, size)
-  const tex = new CanvasTexture(canvas)
+  const size = 128
+  const data = new Uint8Array(size * size * 4)
+  const half = size / 2
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const r = Math.hypot(x + 0.5 - half, y + 0.5 - half) / half
+      let alpha = stops[stops.length - 1][1]
+      for (let k = 1; k < stops.length; k++) {
+        const [a0, v0] = stops[k - 1]
+        const [a1, v1] = stops[k]
+        if (r <= a1) {
+          alpha = r <= a0 ? v0 : v0 + ((v1 - v0) * (r - a0)) / (a1 - a0)
+          break
+        }
+      }
+      const i = (y * size + x) * 4
+      data[i] = 255
+      data[i + 1] = 255
+      data[i + 2] = 255
+      data[i + 3] = Math.round(Math.min(1, Math.max(0, alpha)) * 255)
+    }
+  }
+  const tex = new DataTexture(data, size, size, RGBAFormat)
   tex.colorSpace = SRGBColorSpace
+  tex.magFilter = LinearFilter
+  tex.minFilter = LinearMipmapLinearFilter
+  tex.generateMipmaps = true
+  tex.needsUpdate = true
   return tex
 }
 

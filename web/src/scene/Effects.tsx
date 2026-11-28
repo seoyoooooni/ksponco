@@ -35,8 +35,8 @@ uniform sampler2D tDiffuse;
 varying vec2 vUv;
 void main() {
   vec4 c = texture2D(tDiffuse, vUv);
-  if (any(isnan(c)) || any(isinf(c))) c = vec4(0.0, 0.0, 0.0, 1.0);
-  gl_FragColor = min(c, vec4(24.0));
+  bool bad = any(isnan(c)) || any(isinf(c)) || !(c.r >= 0.0) || !(c.g >= 0.0) || !(c.b >= 0.0);
+  gl_FragColor = bad ? vec4(0.0, 0.0, 0.0, 1.0) : min(c, vec4(24.0));
 }
 `
 

@@ -201,7 +201,7 @@ uniform float uNight;
 varying float vA;
 void main() {
   float d = length(gl_PointCoord - 0.5);
-  float a = smoothstep(0.5, 0.0, d);
+  float a = 1.0 - smoothstep(0.0, 0.5, d);
   gl_FragColor = vec4(uColor * a * a * vA * uNight * 2.4, 1.0);
 }
 `
@@ -279,7 +279,8 @@ uniform float uNight;
 uniform float uGain;
 varying float vH;
 void main() {
-  float a = pow(vH, 1.6) * 0.5 + 0.04;
+  float hv = clamp(vH, 0.0, 1.0);
+  float a = hv * sqrt(hv) * 0.5 + 0.04;
   gl_FragColor = vec4(uColor * a * uNight * uGain, 1.0);
 }
 `
