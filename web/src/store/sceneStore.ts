@@ -36,6 +36,7 @@ export type SceneState = {
   sheetSnap: SheetSnap
   sheetH: number
   sceneReady: boolean
+  intro: boolean
   pickerOpen: boolean
   sourcesOpen: boolean
   seats: boolean
@@ -133,6 +134,7 @@ let state: SceneState = {
   sheetSnap: 1,
   sheetH: 0,
   sceneReady: false,
+  intro: typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   pickerOpen: false,
   sourcesOpen: false,
   seats: false,

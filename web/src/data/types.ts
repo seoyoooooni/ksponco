@@ -156,9 +156,15 @@ export type ForecastDay = {
   tempMax: number
 }
 
+export type RainHourly = {
+  start: string
+  mm: (number | null)[]
+}
+
 export type Forecast = {
   updated: string
   days: ForecastDay[]
+  rainHourly?: RainHourly
 }
 
 export type OsmPath = {

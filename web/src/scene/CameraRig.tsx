@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { PerspectiveCamera, Spherical, TOUCH, Vector3 } from 'three'
+import { Fog, PerspectiveCamera, Spherical, TOUCH, Vector3 } from 'three'
 import { sceneStore, useScene } from '../store/sceneStore'
 import { useWide } from '../ui/useMediaQuery'
 
@@ -97,6 +97,92 @@ function TwoFingerMap() {
     camera.position.copy(t).add(off)
     camera.lookAt(t)
     controls.update()
+  })
+
+  return null
+}
+
+const FLIGHT = 3.6
+
+function ease(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+}
+
+function IntroFlight({ target, home }: { target: Vec3; home: Vec3 }) {
+  const camera = useThree((s) => s.camera) as PerspectiveCamera
+  const scene = useThree((s) => s.scene)
+  const gl = useThree((s) => s.gl)
+  const controls = useThree((s) => s.controls) as unknown as (Controls & { enabled: boolean; update: () => void }) | null
+  const ready = useScene((s) => s.sceneReady)
+  const intro = useScene((s) => s.intro)
+  const latest = useRef({ target, home })
+  latest.current = { target, home }
+  const run = useRef<{ t: number; from: Spherical; drop: number; fog: [number, number] | null } | null>(null)
+  const sph = useMemo(() => new Spherical(), [])
+  const end = useMemo(() => new Spherical(), [])
+  const off = useMemo(() => new Vector3(), [])
+  const look = useMemo(() => new Vector3(), [])
+
+  const finish = () => {
+    const r = run.current
+    run.current = null
+    const fog = scene.fog
+    if (r?.fog && fog instanceof Fog) {
+      fog.near = r.fog[0]
+      fog.far = r.fog[1]
+    }
+    const { target: t, home: h } = latest.current
+    camera.position.set(h[0], h[1], h[2])
+    camera.lookAt(t[0], t[1], t[2])
+    if (controls) {
+      controls.target.set(t[0], t[1], t[2])
+      controls.enabled = true
+      controls.update()
+    }
+    sceneStore.set({ intro: false })
+  }
+
+  useEffect(() => {
+    if (!intro || !ready || !controls || run.current) return
+    const { target: t, home: h } = latest.current
+    end.setFromVector3(off.set(h[0] - t[0], h[1] - t[1], h[2] - t[2]))
+    const from = new Spherical(Math.max(end.radius * 2.8, 470), Math.min(1.3, end.phi + 0.5), end.theta + 1.15)
+    const fog = scene.fog instanceof Fog ? ([scene.fog.near, scene.fog.far] as [number, number]) : null
+    run.current = { t: 0, from, drop: 55, fog }
+    controls.enabled = false
+    const el = gl.domElement
+    const skip = () => {
+      if (run.current) finish()
+    }
+    el.addEventListener('pointerdown', skip)
+    el.addEventListener('wheel', skip, { passive: true })
+    return () => {
+      el.removeEventListener('pointerdown', skip)
+      el.removeEventListener('wheel', skip)
+      if (run.current) finish()
+    }
+  }, [intro, ready, controls])
+
+  useFrame((_, dt) => {
+    const r = run.current
+    if (!r) return
+    r.t = Math.min(1, r.t + Math.min(dt, 0.1) / FLIGHT)
+    const e = ease(r.t)
+    const { target: t, home: h } = latest.current
+    end.setFromVector3(off.set(h[0] - t[0], h[1] - t[1], h[2] - t[2]))
+    sph.radius = Math.exp(Math.log(r.from.radius) + (Math.log(end.radius) - Math.log(r.from.radius)) * e)
+    sph.phi = r.from.phi + (end.phi - r.from.phi) * e
+    sph.theta = r.from.theta + (end.theta - r.from.theta) * e
+    look.set(t[0], t[1] - r.drop * (1 - e), t[2])
+    camera.position.copy(look).add(off.setFromSpherical(sph))
+    camera.lookAt(look)
+    const fog = scene.fog
+    if (r.fog && fog instanceof Fog) {
+      const extra = Math.max(0, sph.radius - 200)
+      fog.near = r.fog[0] + extra
+      fog.far = r.fog[1] + extra * 1.6
+    }
+    if (r.t >= 1) finish()
   })
 
   return null
@@ -285,6 +371,7 @@ export function CameraRig({ eye, lookAt, orbitTarget, home }: Props) {
         maxDistance={MAX_DIST}
         enableDamping
       />
+      <IntroFlight target={orbitTarget} home={home} />
     </>
   )
 }

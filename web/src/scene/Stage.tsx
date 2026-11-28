@@ -1,3 +1,5 @@
+import { useEffect, useMemo } from 'react'
+import { CanvasTexture, SRGBColorSpace } from 'three'
 import type { Performer, ScreenSpec, StageSpec, Terrain } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
@@ -57,11 +59,32 @@ export function StageMesh({ stage, terrain }: { stage: StageSpec; terrain: Terra
   )
 }
 
-export function ScreenMesh({ screen, terrain }: { screen: ScreenSpec; terrain: Terrain }) {
+function screenTexture() {
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 144
+  const ctx = canvas.getContext('2d')!
+  const g = ctx.createLinearGradient(0, 0, 0, 144)
+  g.addColorStop(0, '#1b2a5c')
+  g.addColorStop(1, '#5fa8de')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 256, 144)
+  const tex = new CanvasTexture(canvas)
+  tex.colorSpace = SRGBColorSpace
+  return tex
+}
+
+export function ScreenMesh({ screen, terrain, night = 0 }: { screen: ScreenSpec; terrain: Terrain; night?: number }) {
   const g = heightAt(terrain, screen.x, screen.z)
+  const tex = useMemo(() => screenTexture(), [])
+  useEffect(() => () => tex.dispose(), [tex])
   return (
     <group position={[screen.x, g, screen.z]} rotation-y={facingRotation(screen.azimuth)}>
       <Box size={[screen.w, screen.h, 0.4]} position={[0, screen.bottom + screen.h / 2, 0]} color={sceneColors.screen} />
+      <mesh position={[0, screen.bottom + screen.h / 2, 0.21]} raycast={() => null}>
+        <planeGeometry args={[screen.w - 0.3, screen.h - 0.3]} />
+        <meshLambertMaterial color="#000000" emissive="#ffffff" emissiveMap={tex} emissiveIntensity={0.55 + night * 0.5} />
+      </mesh>
       <Box size={[0.5, screen.bottom, 0.5]} position={[0, screen.bottom / 2, -0.4]} color={sceneColors.stageFrame} />
     </group>
   )

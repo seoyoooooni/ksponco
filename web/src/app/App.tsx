@@ -226,6 +226,7 @@ function Main({ ready }: { ready: Base }) {
   const forecastDay = ready.forecast?.days.find((d) => d.date === date) ?? null
   const analysis = useAnalysis({ bundle: ready.bundle, layout, event, date, stay, mat, eyeHeight, crowdScale, seats: seats && !operator, pref, sunWeight, weather: forecastDay })
   const sold = soldKey in soldMap ? soldMap[soldKey] : (event?.people ?? null)
+  const sceneWeatherInput = useMemo(() => ({ day: forecastDay, hourly: ready.forecast?.rainHourly ?? null }), [forecastDay, ready.forecast])
   const wet: Wet = forecastDay && forecastDay.rainPrevDay >= WET_RAIN_MM ? { mm: forecastDay.rainPrevDay } : null
   const wetText = forecastDay && wet ? `전날 비 ${forecastDay.rainPrevDay}mm · 젖은 바닥은 추정이에요` : null
   const planInputs = useMemo(() => {
@@ -277,12 +278,13 @@ function Main({ ready }: { ready: Base }) {
       }
     : null
   const sceneReady = useScene((s) => s.sceneReady)
+  const intro = useScene((s) => s.intro)
   const [touring, setTouring] = useState(false)
   useEffect(() => {
-    if (!sceneReady || tourSeen()) return
-    const t = window.setTimeout(() => setTouring(true), 900)
+    if (!sceneReady || intro || tourSeen()) return
+    const t = window.setTimeout(() => setTouring(true), 600)
     return () => window.clearTimeout(t)
-  }, [sceneReady])
+  }, [sceneReady, intro])
   const endTour = useCallback(() => {
     markTourSeen()
     setTouring(false)
@@ -479,6 +481,7 @@ function Main({ ready }: { ready: Base }) {
         bubble={!matTouched && mode === 'event' ? '여기 앉으면?' : null}
         suggestion={suggestedAt}
         onSuggestion={takeSuggestion}
+        weather={sceneWeatherInput}
         overlayOverride={operator ? opOverlay : undefined}
         ponds={mode !== 'operator' && !closure ? analysis.ponds : null}
         operator={

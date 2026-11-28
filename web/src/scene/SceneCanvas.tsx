@@ -29,8 +29,11 @@ import { Water, Waterfall } from './Water'
 import { Paths, walkRoutes } from './Paths'
 import { Effects } from './Effects'
 import { Tents } from './Tents'
+import { Lamps, PhoneLights, StageLights, Stars } from './NightLights'
+import { useNight } from './night'
 import type { ClosedArea, Tent } from '../lib/operator'
 import type { Vec2 } from '../data/types'
+import type { WeatherInput } from './weather'
 
 type Props = {
   bundle: VenueBundle
@@ -41,6 +44,7 @@ type Props = {
   overlayOverride?: OverlayCell[]
   ponds?: OverlayCell[] | null
   suggestion?: { x: number; z: number } | null
+  weather?: WeatherInput | null
   onSuggestion?: () => void
   operator?: {
     tents: Tent[]
@@ -65,7 +69,7 @@ const BLOCKED: Record<string, string> = {
 
 const DEFAULT_MAT = { w: 1.8, d: 1.8, people: 2 }
 
-export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, operator, overlayOverride, ponds, suggestion, onSuggestion }: Props) {
+export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubble, operator, overlayOverride, ponds, suggestion, onSuggestion, weather = null }: Props) {
   const overlay = overlayOverride ?? baseOverlay
   const painted = !overlayOverride && ponds?.length ? [...(overlay ?? []), ...ponds] : overlay
   const { venue, terrain, trees, buildings } = bundle
@@ -76,6 +80,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
   const crowdScale = useScene((s) => s.crowdScale)
   const personStyle = useScene((s) => s.personStyle)
   const light = useScene((s) => s.quality === 'low')
+  const night = useNight()
 
   const stage = layout?.stage ?? venue.fixedStage ?? null
   const routes = useMemo(() => (bundle.osm ? walkRoutes(bundle.osm.paths, terrain, venue.water ?? null) : []), [bundle.osm, terrain, venue.water])
@@ -194,7 +199,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       style={{ position: 'fixed', touchAction: 'none' }}
     >
       <fog attach="fog" args={[sceneColors.fog, 260, 700]} />
-      <SunLight center={center} radius={radius} />
+      <SunLight center={center} radius={radius} weather={weather} />
 
       <Terrain terrain={terrain} venue={venue} osm={bundle.osm} layout={layout} onPick={operator ? operator.onPick : handlePick} onHover={operator?.onHover} />
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
@@ -215,6 +220,8 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
         />
       )}
       <SkyDecor terrain={terrain} />
+      <Stars night={night} />
+      {camera === 'orbit' && <Lamps routes={routes} terrain={terrain} night={night} />}
       <SceneClock />
       {camera === 'orbit' && !light && <Walkers routes={routes} seed={seed} />}
       {!layout && camera === 'orbit' && !light && <Picnickers terrain={terrain} venue={venue} routes={routes} seed={seed + 1} avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]} />}
@@ -222,8 +229,12 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
 
       {stage && <StageMesh stage={stage} terrain={terrain} />}
       {layout?.screens.map((s, i) => (
-        <ScreenMesh key={i} screen={s} terrain={terrain} />
+        <ScreenMesh key={i} screen={s} terrain={terrain} night={night} />
       ))}
+      {layout?.performer && stage && <StageLights stage={stage} terrain={terrain} night={night} />}
+      {layout && crowd && !(overlay && camera === 'orbit') && (
+        <PhoneLights crowd={crowd} terrain={terrain} myMat={mat} scale={crowdScale} night={night} />
+      )}
       {layout?.performer && stage && (
         <PerformerMesh performer={layout.performer} floor={heightAt(terrain, stage.x, stage.z) + stage.deckH} />
       )}

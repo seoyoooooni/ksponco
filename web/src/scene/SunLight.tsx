@@ -1,23 +1,28 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useThree } from '@react-three/fiber'
-import { CanvasTexture, Color, Fog, Object3D, OrthographicCamera, SRGBColorSpace } from 'three'
+import { Color, Fog, Object3D, OrthographicCamera } from 'three'
 import { sunPosition } from '../lib/sun'
 import { useScene } from '../store/sceneStore'
 import { sceneColors } from './colors'
+import { nightOf } from './night'
+import { Rain, SkyClouds, SkyDome } from './SkyDome'
+import { sceneWeather, skyTone, type WeatherInput } from './weather'
 
 type Props = {
   center: [number, number, number]
   radius: number
+  weather: WeatherInput | null
 }
 
 const DISTANCE = 300
 
 export const SHADOW_ONLY = 1
 
-export function SunLight({ center, radius }: Props) {
+export function SunLight({ center, radius, weather: input }: Props) {
   const date = useScene((s) => s.date)
   const hour = useScene((s) => s.hour)
   const sun = useMemo(() => sunPosition(date, hour), [date, hour])
+  const weather = useMemo(() => sceneWeather(input, date, hour), [input, date, hour])
   const scene = useThree((s) => s.scene)
   const shadowCam = useRef<OrthographicCamera>(null)
 
@@ -34,54 +39,42 @@ export function SunLight({ center, radius }: Props) {
 
   const day = sun.altitude > 0
   const strength = day ? Math.min(1, sun.altitude / 25) : 0
+  const night = nightOf(sun.altitude)
+  const tone = useMemo(() => skyTone(sun.altitude, weather), [sun.altitude, weather])
 
-  const sky = useMemo(
-    () =>
-      day
-        ? new Color(sceneColors.skyDusk).lerp(new Color(sceneColors.sky), strength)
-        : new Color(sceneColors.skyNight),
-    [day, strength],
+  const hemi = useMemo(
+    () => ({
+      sky: new Color(sceneColors.hemiSky).lerp(new Color('#e3e7ea'), weather.overcast * 0.7).lerp(new Color(sceneColors.hemiNightSky), night),
+      ground: new Color(sceneColors.hemiGround).lerp(new Color(sceneColors.hemiNightGround), night),
+    }),
+    [night, weather.overcast],
   )
 
-  const zenith = useMemo(
-    () => (day ? sky.clone().lerp(new Color(sceneColors.skyTop), strength) : new Color(sceneColors.skyNightTop)),
-    [day, sky, strength],
+  const sunColor = useMemo(
+    () => new Color(sceneColors.sun).lerp(new Color(sceneColors.sunLow), Math.min(1, Math.max(0, (10 - sun.altitude) / 10)) * (1 - weather.overcast * 0.7)),
+    [sun.altitude, weather.overcast],
   )
-
-  const gradient = useMemo(() => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 2
-    canvas.height = 256
-    const ctx = canvas.getContext('2d')!
-    const g = ctx.createLinearGradient(0, 0, 0, 256)
-    g.addColorStop(0, `#${zenith.getHexString()}`)
-    g.addColorStop(0.75, `#${sky.getHexString()}`)
-    g.addColorStop(1, `#${sky.getHexString()}`)
-    ctx.fillStyle = g
-    ctx.fillRect(0, 0, 2, 256)
-    const tex = new CanvasTexture(canvas)
-    tex.colorSpace = SRGBColorSpace
-    return tex
-  }, [sky, zenith])
 
   useEffect(() => {
-    scene.background = gradient
-    if (scene.fog instanceof Fog) scene.fog.color.copy(sky)
-    return () => gradient.dispose()
-  }, [scene, sky, gradient])
+    scene.background = null
+    if (scene.fog instanceof Fog) scene.fog.color.copy(tone.horizon).lerp(tone.glow, tone.amount * 0.25)
+  }, [scene, tone])
 
   const [dx, dy, dz] = sun.direction
   const up = Math.max(dy, 0.03)
 
   return (
     <>
+      <SkyDome tone={tone} sun={sun.direction} />
+      <SkyClouds tone={tone} sun={sun.direction} weather={weather} night={night} center={center} />
+      <Rain amount={weather.rain} />
       <primitive object={target} />
-      <hemisphereLight args={[sceneColors.hemiSky, sceneColors.hemiGround, day ? 0.62 : 0.35]} />
+      <hemisphereLight args={[hemi.sky, hemi.ground, 0.62 - night * 0.14 + weather.overcast * 0.24 * (1 - night)]} />
       <directionalLight
         target={target}
         position={[cx + dx * DISTANCE, cy + up * DISTANCE, cz + dz * DISTANCE]}
-        intensity={day ? 0.6 + 2.3 * strength : 0}
-        color={sceneColors.sun}
+        intensity={day ? (0.6 + 2.3 * strength) * (1 - 0.72 * weather.overcast) : 0}
+        color={sunColor}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-bias={-0.0005}
