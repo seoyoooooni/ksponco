@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { BufferGeometry, Color, InstancedMesh, MeshLambertMaterial, Object3D } from 'three'
-import type { Terrain, Tree, Vec2 } from '../data/types'
+import type { Terrain, Tree, Vec2, VenueId } from '../data/types'
 import { heightAt } from '../lib/terrainSample'
 import { discOf, inDisc } from '../lib/diorama'
 import { pointInPolygon } from '../lib/polygon'
@@ -9,15 +9,16 @@ import { sceneColors } from './colors'
 import { canopyGeometry } from './treeGeometry'
 import { sceneTime } from './sceneTime'
 import { SHADOW_ONLY } from './SunLight'
+import { seasonColors } from '../lib/season'
+import { useScene } from '../store/sceneStore'
 
 type Props = {
   trees: Tree[]
   terrain: Terrain
   ghost?: boolean
   water?: Vec2[] | null
+  tones?: string[]
 }
-
-const TONES = ['#a3cf80', '#8cc070', '#78b062', '#669e54', '#578c49']
 
 const VARIANTS = 3
 
@@ -44,7 +45,7 @@ function swayMaterial(): MeshLambertMaterial {
   return m
 }
 
-function Canopies({ trees, terrain, ghost = false }: Props) {
+function Canopies({ trees, terrain, ghost = false, tones = [] }: Props) {
   const geometries = useMemo(() => Array.from({ length: VARIANTS }, (_, k) => canopyGeometry(k + 1, ghost ? 1 : 3)), [ghost])
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries])
 
@@ -57,13 +58,13 @@ function Canopies({ trees, terrain, ghost = false }: Props) {
   return (
     <>
       {groups.map((list, k) => (
-        <CanopyBatch key={k} trees={list} terrain={terrain} geometry={geometries[k]} ghost={ghost} />
+        <CanopyBatch key={k} trees={list} terrain={terrain} geometry={geometries[k]} ghost={ghost} tones={tones} />
       ))}
     </>
   )
 }
 
-function CanopyBatch({ trees, terrain, geometry, ghost = false }: Props & { geometry: BufferGeometry }) {
+function CanopyBatch({ trees, terrain, geometry, ghost = false, tones = [] }: Props & { geometry: BufferGeometry }) {
   const ref = useRef<InstancedMesh>(null)
   const sway = useMemo(() => (ghost ? null : swayMaterial()), [ghost])
   useEffect(() => () => sway?.dispose(), [sway])
@@ -81,13 +82,12 @@ function CanopyBatch({ trees, terrain, geometry, ghost = false }: Props & { geom
       o.rotation.set(0, (t.x * 1.7 + t.z * 2.3) % (Math.PI * 2), 0)
       o.updateMatrix()
       mesh.setMatrixAt(i, o.matrix)
-      const tone = Math.abs(Math.floor(t.x * 7.3 + t.z * 3.1)) % TONES.length
-      mesh.setColorAt(i, c.set(TONES[tone]))
+      if (tones.length) mesh.setColorAt(i, c.set(tones[Math.abs(Math.floor(t.x * 7.3 + t.z * 3.1)) % tones.length]))
     })
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     mesh.instanceMatrix.needsUpdate = true
     mesh.computeBoundingSphere()
-  }, [trees, terrain])
+  }, [trees, terrain, tones])
 
   if (trees.length === 0) return null
   return (
@@ -129,7 +129,11 @@ function Trunks({ trees, terrain, ghost = false, water = null }: Props) {
   )
 }
 
-export function Trees({ trees, terrain, water = null }: Props) {
+export function Trees({ trees, terrain, water = null, venue }: Props & { venue: VenueId }) {
+  const date = useScene((s) => s.date)
+  const toneKey = seasonColors(venue, date).trees.join()
+  const tones = useMemo(() => toneKey.split(','), [toneKey])
+
   const { shown, beyond } = useMemo(() => {
     const disc = discOf(terrain)
     const shown: Tree[] = []
@@ -141,7 +145,7 @@ export function Trees({ trees, terrain, water = null }: Props) {
   return (
     <>
       <Trunks trees={shown} terrain={terrain} water={water} />
-      <Canopies trees={shown} terrain={terrain} />
+      <Canopies trees={shown} terrain={terrain} tones={tones} />
       <Trunks trees={beyond} terrain={terrain} ghost />
       <Canopies trees={beyond} terrain={terrain} ghost />
     </>

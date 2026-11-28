@@ -19,7 +19,6 @@ export function markTourSeen(key = KEY) {
   }
 }
 
-// 운영자 모드 안내. wet: 야자매트 도구가 보이는 날(전날 비)
 export function operatorTourSteps(wet: boolean): TourStep[] {
   return [
     {

@@ -287,7 +287,6 @@ function Main({ ready }: { ready: Base }) {
     markTourSeen()
     setTouring(false)
   }, [])
-  // 운영자 모드 안내: 처음 들어올 때 한 번, 설정에서 다시 보기. 도구 막대가 그려진 뒤 시작한다.
   const [opTouring, setOpTouring] = useState(false)
   const opTourTimer = useRef(0)
   const startOpTour = useCallback((delay: number) => {

@@ -199,7 +199,7 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       {venue.water && <Water poly={venue.water} terrain={terrain} />}
       {venue.water && <Waterfall poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
-      <Trees trees={trees} terrain={terrain} water={venue.water ?? null} />
+      <Trees trees={trees} terrain={terrain} water={venue.water ?? null} venue={venue.id} />
       <SkyDecor terrain={terrain} />
       <SceneClock />
       {camera === 'orbit' && !light && <Walkers routes={routes} seed={seed} />}

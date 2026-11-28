@@ -11,6 +11,8 @@ import { discOf, type Disc } from '../lib/diorama'
 import { heightAt } from '../lib/terrainSample'
 import { sceneColors } from './colors'
 import { grassTexture } from './grassTexture'
+import { seasonColors } from '../lib/season'
+import { useScene } from '../store/sceneStore'
 
 const zoneColor: Record<ZoneType, string> = {
   standing: sceneColors.standing,
@@ -114,7 +116,7 @@ function inward(disc: Disc, x: number, z: number): [number, number] {
   return [disc.x + (x - disc.x) * k, disc.z + (z - disc.z) * k]
 }
 
-function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Color[]) {
+function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Color[], drapeHex: string) {
   const level = venue.water ? waterLevel(terrain, venue.water) : null
   const tops: number[] = []
   const wet: boolean[] = []
@@ -149,7 +151,7 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
 
   const band = { pos: [] as number[], col: [] as number[], index: [] as number[] }
   const ROWS = 6
-  const drapeGrass = new Color(sceneColors.drapeGrass)
+  const drapeGrass = new Color(drapeHex)
   for (let j = 0; j <= SEGMENTS; j++) {
     const k = j % SEGMENTS
     const a = (k / SEGMENTS) * Math.PI * 2
@@ -245,6 +247,9 @@ function islandGeometry(disc: Disc, terrain: TerrainData, venue: Venue, rim: Col
 export function Terrain({ terrain, venue, osm, layout, onPick, onHover }: Props) {
   const terrace = terrain.terrace ?? null
   const disc = useMemo(() => discOf(terrain), [terrain])
+  const date = useScene((s) => s.date)
+  const seasonKey = JSON.stringify(seasonColors(venue.id, date))
+  const season = useMemo(() => JSON.parse(seasonKey) as ReturnType<typeof seasonColors>, [seasonKey])
 
   const { geometry, rim } = useMemo(() => {
     const g = discGeometry(disc)
@@ -253,8 +258,8 @@ export function Terrain({ terrain, venue, osm, layout, onPick, onHover }: Props)
     const rim: Color[] = []
     const c = new Color()
     const stone = new Color(sceneColors.paving)
-    const outer = new Color(sceneColors.outerGrass)
-    const park = new Color(sceneColors.parkGrass)
+    const outer = new Color(season.outer)
+    const park = new Color(season.park)
     const path = new Color(sceneColors.path)
     const bed = new Color(sceneColors.waterDeep)
     const bedDeep = new Color(sceneColors.lakeBed)
@@ -275,8 +280,8 @@ export function Terrain({ terrain, venue, osm, layout, onPick, onHover }: Props)
       const gj = Math.min(terrain.nz - 1, Math.max(0, Math.round((z - terrain.z0) / terrain.cell)))
       const e = dist[gj * terrain.nx + gi] + Math.max(0, Math.abs(x - terrain.x0 - (gi * terrain.cell)) + Math.abs(z - terrain.z0 - (gj * terrain.cell)) - 1)
       if (sunk && level !== null) c.copy(bed).lerp(bedDeep, Math.min(1, Math.max(0, level - y) / 4))
-      else if (zone) c.set(zoneColor[zone.type])
-      else if (e === 0) c.set(sceneColors.lawn)
+      else if (zone) c.set(zone.type === 'picnic' ? season.picnic : zoneColor[zone.type])
+      else if (e === 0) c.set(season.lawn)
       else if (e <= PATH_W) c.copy(path)
       else c.copy(park).lerp(outer, Math.min(1, (e - PATH_W) / FADE))
       const pw = terrace ? pavedWeight(terrace, venue, pos.getY(i), x, z) : 0
@@ -290,9 +295,9 @@ export function Terrain({ terrain, venue, osm, layout, onPick, onHover }: Props)
     g.computeVertexNormals()
     g.computeBoundingSphere()
     return { geometry: g, rim }
-  }, [terrain, layout, terrace, venue, disc, osm])
+  }, [terrain, layout, terrace, venue, disc, osm, season])
 
-  const skirt = useMemo(() => islandGeometry(disc, terrain, venue, rim), [disc, terrain, venue, rim])
+  const skirt = useMemo(() => islandGeometry(disc, terrain, venue, rim, season.drape), [disc, terrain, venue, rim, season.drape])
 
   const texture = useMemo(() => grassTexture(1, 1), [])
 

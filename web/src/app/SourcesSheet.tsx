@@ -14,6 +14,7 @@ const SOURCES = [
   { org: '국토교통부', items: 'GIS건물통합정보' },
   { org: 'OpenStreetMap', items: '산책로, 호수 윤곽, 광장 · © OpenStreetMap contributors' },
   { org: 'Esri', items: 'World Imagery 위성 영상 (나무 위치 추정)' },
+  { org: 'Copernicus Sentinel-2', items: '2025년 위성 관측으로 정한 계절별 잔디·나무 색 · Contains modified Copernicus Sentinel data 2025' },
 ]
 
 export function SourcesSheet({ open, onClose, satelliteTrees, estimates }: Props) {

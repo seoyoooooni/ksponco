@@ -76,7 +76,6 @@ export function Tour({ steps: all, onDone }: Props) {
     if (step?.sheet !== undefined) sceneStore.set({ sheetSnap: step.sheet })
   }, [step])
 
-  // 시트 안쪽에 가려진 대상은 시트가 펼쳐진 뒤 보이는 곳까지 스크롤한다
   useEffect(() => {
     const sel = targets(step).find((s) => s !== MAT_TARGET)
     if (!sel) return
