@@ -22,11 +22,11 @@ const zoneColor: Record<ZoneType, string> = {
   closed: sceneColors.closed,
 }
 
-const PATH_W = 3.5
+export const PATH_W = 3.5
 const FADE = 28
 const TILE = 22
 
-function edgeDistance(t: TerrainData): Float32Array {
+export function edgeDistance(t: TerrainData): Float32Array {
   const { nx, nz } = t
   const d = new Float32Array(nx * nz)
   for (let k = 0; k < d.length; k++) d[k] = t.src[k] === 0 ? 0 : 1e9

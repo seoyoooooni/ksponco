@@ -36,7 +36,7 @@ function nearRoute(routes: Route[], x: number, z: number): boolean {
   return false
 }
 
-function makeGroups(terrain: Terrain, venue: Venue, routes: Route[], seed: number): Group[] {
+export function makeGroups(terrain: Terrain, venue: Venue, routes: Route[], seed: number): Group[] {
   const area = scanBounds(terrain)
   const rand = rng(seed)
   const out: Group[] = []

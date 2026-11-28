@@ -24,6 +24,7 @@ import { SceneClock } from './sceneTime'
 import { SunLight } from './SunLight'
 import { Terrain } from './Terrain'
 import { Trees } from './Trees'
+import { Grass } from './Grass'
 import { Water, Waterfall } from './Water'
 import { Paths, walkRoutes } from './Paths'
 import { Effects } from './Effects'
@@ -200,6 +201,19 @@ export function SceneCanvas({ bundle, layout, crowd, overlay: baseOverlay, bubbl
       {venue.water && <Waterfall poly={venue.water} terrain={terrain} />}
       {bundle.osm && <Paths paths={bundle.osm.paths} terrain={terrain} water={venue.water ?? null} />}
       <Trees trees={trees} terrain={terrain} water={venue.water ?? null} venue={venue.id} />
+      {!light && (
+        <Grass
+          terrain={terrain}
+          venue={venue}
+          osm={bundle.osm}
+          layout={layout}
+          buildings={buildings}
+          routes={routes}
+          picnicSeed={!layout && camera === 'orbit' ? seed + 1 : null}
+          avoid={[...(mat ? [mat] : []), ...(suggestion ? [suggestion] : [])]}
+          flat={camera !== 'orbit' || Boolean(painted && layout)}
+        />
+      )}
       <SkyDecor terrain={terrain} />
       <SceneClock />
       {camera === 'orbit' && !light && <Walkers routes={routes} seed={seed} />}
