@@ -35,8 +35,23 @@ export function tags(xml: string, name: string): string[] {
   return [...xml.matchAll(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, 'g'))].map((m) => decode(m[1]).trim())
 }
 
-const realGet: Get = (url) => fetchText(url, { timeoutMs: 15_000, retryWaitMs: 5_000 })
 const realSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+const PACE_MS = 1_000 // Actions에서 0.3초 간격일 때 앞단 웹서버가 간헐적으로 400을 줬다
+const RETRY_400 = 2
+const RETRY_400_WAIT_MS = 5_000
+
+// 앞단 웹서버의 간헐적 400(HTML 페이지)은 잠시 뒤 다시 시도한다. 연결 오류·5xx 재시도는 fetchText가 한다.
+export function retry400(get: Get, sleep: (ms: number) => Promise<void> = realSleep): Get {
+  return async (url) => {
+    for (let attempt = 0; ; attempt++) {
+      const res = await get(url)
+      if (res.status !== 400 || attempt >= RETRY_400) return res
+      await sleep(RETRY_400_WAIT_MS)
+    }
+  }
+}
+
+const realGet: Get = retry400((url) => fetchText(url, { timeoutMs: 15_000, retryWaitMs: 5_000 }))
 
 function addMonths(ym: string, n: number): string {
   const t = Number(ym.slice(0, 4)) * 12 + Number(ym.slice(5, 7)) - 1 + n
@@ -54,8 +69,11 @@ export function monthRange(now: Date): string[] {
 // 오류 메시지에 URL을 넣지 않는다(쿼리에 키가 있음).
 async function getXml(get: Get, url: string, what: string): Promise<string> {
   const { status, text } = await get(url)
-  if (status !== 200) throw new Error(`KOPIS ${what}: HTTP ${status}`)
-  if (!text.includes('<dbs')) throw new Error(`KOPIS ${what}: XML이 아닌 응답 (${text.slice(0, 80).replace(/\s+/g, ' ')})`)
+  // 응답 본문 앞부분으로 거절 사유를 남긴다. 본문이 요청을 되돌려 줄 수 있어 키는 가린다.
+  const key = new URL(url).searchParams.get('service')
+  const head = () => (key ? text.replaceAll(key, '***') : text).slice(0, 80).replace(/\s+/g, ' ')
+  if (status !== 200) throw new Error(`KOPIS ${what}: HTTP ${status} (${head()})`)
+  if (!text.includes('<dbs')) throw new Error(`KOPIS ${what}: XML이 아닌 응답 (${head()})`)
   return text
 }
 
@@ -90,7 +108,7 @@ export async function fetchShows(
 ): Promise<KopisShow[]> {
   const byId = new Map<string, { id: string; name: string; from: string; to: string; places: Set<string> }>()
   let calls = 0
-  const pace = () => (calls++ ? sleep(300) : Promise.resolve())
+  const pace = () => (calls++ ? sleep(PACE_MS) : Promise.resolve())
   for (const ym of monthRange(now)) {
     for (const place of Object.keys(PLACES)) {
       await pace()
