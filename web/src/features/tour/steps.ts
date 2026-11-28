@@ -1,21 +1,72 @@
 import { MAT_TARGET, type TourStep } from './Tour'
 
 const KEY = 'sunseat.tour.v1'
+export const OP_TOUR_KEY = 'sunseat.tour.op.v1'
 
-export function tourSeen(): boolean {
+export function tourSeen(key = KEY): boolean {
   try {
-    return window.localStorage.getItem(KEY) === '1'
+    return window.localStorage.getItem(key) === '1'
   } catch {
     return true
   }
 }
 
-export function markTourSeen() {
+export function markTourSeen(key = KEY) {
   try {
-    window.localStorage.setItem(KEY, '1')
+    window.localStorage.setItem(key, '1')
   } catch {
     return
   }
+}
+
+// 운영자 모드 안내. wet: 야자매트 도구가 보이는 날(전날 비)
+export function operatorTourSteps(wet: boolean): TourStep[] {
+  return [
+    {
+      target: null,
+      title: '운영자 모드예요',
+      sheet: 1,
+      body: '그늘막과 출입 통제를 설치하기 전에, 관객에게 어떤 효과가 있는지 숫자로 미리 봐요',
+    },
+    {
+      target: '.op-tools',
+      title: '도구 고르고 잔디 누르기',
+      sheet: 1,
+      body: wet
+        ? '그늘막은 누르면 놓이고 끌어서 옮겨요. 출입 금지 구역과 야자매트는 두 꼭짓점을 눌러 그려요'
+        : '그늘막은 누르면 놓이고 끌어서 옮겨요. 출입 금지 구역은 두 꼭짓점을 눌러 그려요',
+    },
+    {
+      target: '.op-stats',
+      title: '놓을 때마다 다시 계산해요',
+      sheet: 1,
+      body: '수용 상한, 그늘을 더 얻는 관객, 무대가 가려지는 관객이 바로 바뀌어요. 판매 예정 인원을 넣으면 초과 여부도 보여요',
+    },
+    {
+      target: '[role="group"][aria-label="계획 안"]',
+      title: 'A안 · B안 비교',
+      sheet: 1,
+      body: 'A안과 B안을 따로 꾸미고, 비교에서 두 안의 차이를 한 표로 봐요',
+    },
+    {
+      target: '.op-suggest',
+      title: '어디에 둘지 모르겠다면',
+      sheet: 2,
+      body: '그늘을 얻는 사람은 많고 무대가 가려지는 사람은 적은 자리를 골라 그늘막을 놓아 줘요',
+    },
+    {
+      target: '.op-layers',
+      title: '지도에서 확인',
+      sheet: 2,
+      body: '초록은 그늘이 새로 생기는 자리, 빨강은 무대가 가려지는 자리예요',
+    },
+    {
+      target: '.op-share',
+      title: '팀과 같은 계획 보기',
+      sheet: 2,
+      body: '링크나 파일로 내보내면 팀원이 같은 A안·B안을 열어 봐요. 숫자 계산 기준은 바로 아래에 있어요',
+    },
+  ]
 }
 
 export function tourSteps(event: boolean): TourStep[] {
@@ -37,7 +88,7 @@ export function tourSteps(event: boolean): TourStep[] {
       target: '.icon-chip[aria-label="설정"]',
       title: '설정',
       sheet: 0,
-      body: '다크 모드, 그래픽, 사용법 다시 보기는 여기 있어요',
+      body: '다크 모드, 그래픽, 사용법 다시 보기, 운영자 모드는 여기 있어요',
     },
     {
       target: ['h1.headline', MAT_TARGET],

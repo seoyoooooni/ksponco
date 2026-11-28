@@ -160,7 +160,7 @@ export function OperatorSheet(p: Props) {
 
   const help = (
     <>
-      <PillButton variant="soft" style={{ height: 48 }} icon={<ShareIcon size={18} />} onClick={p.onShare}>
+      <PillButton variant="soft" className="op-share" style={{ height: 48 }} icon={<ShareIcon size={18} />} onClick={p.onShare}>
         계획 보내기 · 저장
       </PillButton>
       <details className="op-help">
@@ -200,7 +200,7 @@ export function OperatorSheet(p: Props) {
           놓으면 그늘 +{num(r.suggestion.shade)}명 · 무대 가림 +{num(r.suggestion.blocked)}명
         </p>
       )}
-      <PillButton variant="primary" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion || p.busy} onClick={p.onSuggest}>
+      <PillButton variant="primary" className="op-suggest" style={{ height: 52, fontSize: 16, fontWeight: 700 }} icon={<TentIcon />} disabled={!r?.suggestion || p.busy} onClick={p.onSuggest}>
         {p.busy ? '계산하는 중…' : r?.suggestion ? '추천 위치에 그늘막 놓기' : '더 놓을 추천 위치가 없어요'}
       </PillButton>
       {p.canClear && (

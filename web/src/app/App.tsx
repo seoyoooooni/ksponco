@@ -40,7 +40,7 @@ import { forgetShare, sameSpot, shareMessage, shareUrl, takeSharedStay } from '.
 import { ShareSheet } from '../features/share/ShareSheet'
 import { SharedBanner } from '../features/share/SharedBanner'
 import { Tour } from '../features/tour/Tour'
-import { markTourSeen, tourSeen, tourSteps } from '../features/tour/steps'
+import { markTourSeen, OP_TOUR_KEY, operatorTourSteps, tourSeen, tourSteps } from '../features/tour/steps'
 import { SettingsSheet } from '../features/settings/SettingsSheet'
 import { AboutSheet } from '../features/settings/AboutSheet'
 import { applyTheme, watchSystemTheme } from '../features/settings/settings'
@@ -287,6 +287,27 @@ function Main({ ready }: { ready: Base }) {
     markTourSeen()
     setTouring(false)
   }, [])
+  // 운영자 모드 안내: 처음 들어올 때 한 번, 설정에서 다시 보기. 도구 막대가 그려진 뒤 시작한다.
+  const [opTouring, setOpTouring] = useState(false)
+  const opTourTimer = useRef(0)
+  const startOpTour = useCallback((delay: number) => {
+    sceneStore.set({ compare: false, opTool: null, zoneStart: null, opHover: null, camera: 'orbit' })
+    window.clearTimeout(opTourTimer.current)
+    opTourTimer.current = window.setTimeout(() => setOpTouring(true), delay)
+  }, [])
+  useEffect(() => {
+    if (!operator) {
+      window.clearTimeout(opTourTimer.current)
+      setOpTouring(false)
+      return
+    }
+    if (sceneReady && !tourSeen(OP_TOUR_KEY)) startOpTour(600)
+    return () => window.clearTimeout(opTourTimer.current)
+  }, [operator, sceneReady, startOpTour])
+  const endOpTour = useCallback(() => {
+    markTourSeen(OP_TOUR_KEY)
+    setOpTouring(false)
+  }, [])
   const settingsOpen = useScene((s) => s.settingsOpen)
   const theme = useScene((s) => s.theme)
   const quality = useScene((s) => s.quality)
@@ -353,6 +374,7 @@ function Main({ ready }: { ready: Base }) {
 
   const mode = operator ? 'operator' : event ? 'event' : 'everyday'
   const steps = useMemo(() => tourSteps(mode === 'event'), [mode])
+  const opSteps = useMemo(() => operatorTourSteps(wet !== null), [wet !== null])
 
   const opStage = baseLayout?.stage ?? ready.bundle.venue.fixedStage ?? null
   const tentWhy = (x: number, z: number, ignore?: number) => tentProblem(layout, opStage, ready.bundle.venue, sceneStore.get().tents.filter((t) => t.plan === plan), x, z, ignore)
@@ -675,7 +697,10 @@ function Main({ ready }: { ready: Base }) {
         }
         onTour={
           operator
-            ? null
+            ? () => {
+                sceneStore.set({ settingsOpen: false })
+                startOpTour(250)
+              }
             : () => {
                 sceneStore.set({ settingsOpen: false, camera: 'orbit' })
                 setTouring(true)
@@ -684,6 +709,7 @@ function Main({ ready }: { ready: Base }) {
         onSources={() => sceneStore.set({ settingsOpen: false, sourcesOpen: true })}
       />
       {touring && mode !== 'operator' && !firstPerson && !pickerOpen && !shareOpen && !settingsOpen && !sourcesOpen && !aboutOpen && <Tour steps={steps} onDone={endTour} />}
+      {opTouring && mode === 'operator' && !pickerOpen && !planShareOpen && !settingsOpen && !sourcesOpen && !aboutOpen && <Tour steps={opSteps} onDone={endOpTour} />}
       <Toast message={notice} onDone={clearNotice} />
     </>
   )
